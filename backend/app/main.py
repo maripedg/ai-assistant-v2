@@ -1,0 +1,21 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from .routers import health, chat
+from .deps import settings
+
+app = FastAPI(title="AI Assistant Backend")
+
+# CORS
+cfg = settings.app.get("server", {}).get("cors", {})
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cfg.get("allow_origins", ["*"]),
+    allow_methods=cfg.get("allow_methods", ["*"]),
+    allow_headers=cfg.get("allow_headers", ["*"]),
+)
+
+# Routers
+app.include_router(health.router)
+app.include_router(chat.router, prefix="")
+
+# Nota: /chat implementa retrieval híbrido (DB→LLM) sin colas.

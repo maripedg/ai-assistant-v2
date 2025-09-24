@@ -1,0 +1,20 @@
+provider: oci
+vector_store: oci
+
+oci:
+  endpoint: ${OCI_GENAI_ENDPOINT}
+  region: ${OCI_REGION}
+  compartment_id: ${OCI_COMPARTMENT_OCID}
+  auth_mode: ${OCI_AUTH_MODE}          # config_file | instance_principal
+  config_path: ${OCI_CONFIG_PATH}
+  config_profile: ${OCI_CONFIG_PROFILE}
+  models:
+    embeddings: ${OCI_EMBED_MODEL_ID}  # cohere.embed-english-v3.0
+    chat: ${OCI_LLM_MODEL_ID}          # cohere.command-english-v3.0
+
+oraclevs:
+  dsn: ${DB_DSN}                       # 10.0.0.3:1529/FREEPDB1
+  user: ${DB_USER}                     # sys
+  password: ${DB_PASSWORD}
+  table: ${ORACLEVS_TABLE}             # MY_DEMO
+  distance: dot_product

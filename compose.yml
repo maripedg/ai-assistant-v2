@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    container_name: ai-assistant-backend
+    environment:
+      - DB_DSN=${DB_DSN}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ORACLEVS_TABLE=${ORACLEVS_TABLE}
+      - OCI_REGION=${OCI_REGION}
+      - OCI_GENAI_ENDPOINT=${OCI_GENAI_ENDPOINT}
+      - OCI_COMPARTMENT_OCID=${OCI_COMPARTMENT_OCID}
+      - OCI_AUTH_MODE=${OCI_AUTH_MODE}
+      - OCI_CONFIG_PATH=${OCI_CONFIG_PATH}
+      - OCI_CONFIG_PROFILE=${OCI_CONFIG_PROFILE}
+      - OCI_EMBED_MODEL_ID=${OCI_EMBED_MODEL_ID}
+      - OCI_LLM_MODEL_ID=${OCI_LLM_MODEL_ID}
+    ports:
+      - "8080:8080"
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8080 --log-level info
+    volumes:
+      - ./backend:/app/backend
+      - ~/.oci:/root/.oci:ro

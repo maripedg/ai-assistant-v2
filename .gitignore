@@ -1,0 +1,50 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# --- Entornos virtuales ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Archivos de entorno ---
+.env
+.env.*
+!.env.example    # mantener solo el ejemplo
+
+# --- Archivos de configuración de IDE ---
+.vscode/
+.idea/
+*.swp
+
+# --- Compilados / bins ---
+dist/
+build/
+*.out
+*.exe
+
+# --- Archivos temporales ---
+.DS_Store
+Thumbs.db
+*.tmp
+
+# --- Cobertura y tests ---
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# --- Docker ---
+*.pid
+*.seed
+*.bak
+
+# --- Llaves y configs sensibles ---
+oci/             # <--- no subas nada de esta carpeta (keys, config)

@@ -1,15 +1,25 @@
 from fastapi import APIRouter
+
 from ..models.chat import ChatRequest, ChatResponse
-from app.deps import settings, make_embeddings, make_vector_store, make_chat_model
+from app.deps import (
+    settings,
+    make_embeddings,
+    make_vector_store,
+    make_chat_model_primary,
+    make_chat_model_fallback,
+    validate_startup,
+)
 from core.services.retrieval_service import RetrievalService
 
 router = APIRouter()
 
 # Instancias singleton simples (MVP)
+validate_startup()
 _embeddings = make_embeddings()
 _vector = make_vector_store(_embeddings)
-_chat = make_chat_model()
-_service = RetrievalService(_vector, _chat, settings.app)
+_llm_primary = make_chat_model_primary()
+_llm_fallback = make_chat_model_fallback()
+_service = RetrievalService(_vector, _llm_primary, _llm_fallback, settings.app)
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):

@@ -2,5 +2,5 @@
 user=ocid1.user.oc1..aaaaaaaa7mcjcgoooiivxmefoqdmkgqbr3elivf4fvi6uyxqkrrop5wehnxa
 fingerprint=94:16:80:cd:e2:88:85:05:84:06:71:d1:88:40:d2:c4
 tenancy=ocid1.tenancy.oc1..aaaaaaaaamuhda4xcynzumstqiwxbx5d2mkmeqflyfnwsta6gn4g7ofmnfkq
-region=us-ashburn-1
+region=us-chicago-1
 key_file=C:\Users\Mario Pedraza\Desktop\Development\ai-assistant-v2\oci\apikey-devcorp.pem

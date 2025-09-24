@@ -9,6 +9,8 @@ server:
 retrieval:
   mode: hybrid_prefer_db
   top_k: 8
+  threshold_low: 0.6
+  threshold_high: 0.8
   similarity_threshold: 0.80     # ajustar con evaluación offline
   max_context_chars: 6000        # límite aproximado para contexto
   dedupe_by: doc_id              # "doc_id" o "source"

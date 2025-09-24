@@ -1,4 +1,4 @@
-provider: oci
+﻿provider: oci
 vector_store: oci
 
 oci:
@@ -11,6 +11,34 @@ oci:
   models:
     embeddings: ${OCI_EMBED_MODEL_ID}  # cohere.embed-english-v3.0
     chat: ${OCI_LLM_MODEL_ID}          # cohere.command-english-v3.0
+
+  # model_id may be either a public alias (e.g., cohere.command-english-v3.0)
+  # or an OCID (ocid1.generativeaimodel...). The loader normalizes both into model_id.
+  embeddings:
+    model_id: ${OCI_EMBED_MODEL_ID}
+    # model_ocid: <deprecated, use model_id instead>
+    endpoint: ${OCI_GENAI_ENDPOINT}
+    compartment_id: ${OCI_COMPARTMENT_OCID}
+    auth_file: ${OCI_CONFIG_PATH}
+    auth_profile: ${OCI_CONFIG_PROFILE}
+
+  # For primary LLM, aliases work with LangChain; OCID triggers native OCI text path.
+  llm_primary:
+    model_id: ${OCI_LLM_PRIMARY_MODEL_ID}
+    # model_ocid: ${OCI_LLM_PRIMARY_MODEL_OCID}  # deprecated, use model_id instead
+    endpoint: ${OCI_LLM_PRIMARY_ENDPOINT}
+    compartment_id: ${OCI_LLM_PRIMARY_COMPARTMENT_OCID}
+    auth_file: ${OCI_CONFIG_PATH}
+    auth_profile: ${OCI_CONFIG_PROFILE}
+
+  # Fallback chat adapter requires a model OCID (aliases unsupported).
+  llm_fallback:
+    model_id: ${OCI_LLM_FALLBACK_MODEL_ID}
+    # model_ocid: ${OCI_LLM_FALLBACK_MODEL_OCID}  # deprecated, use model_id instead
+    endpoint: ${OCI_LLM_FALLBACK_ENDPOINT}
+    compartment_id: ${OCI_LLM_FALLBACK_COMPARTMENT_OCID}
+    auth_file: ${OCI_CONFIG_PATH}
+    auth_profile: ${OCI_CONFIG_PROFILE}
 
 oraclevs:
   dsn: ${DB_DSN}                       # 10.0.0.3:1529/FREEPDB1

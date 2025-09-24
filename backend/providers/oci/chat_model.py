@@ -1,5 +1,7 @@
-from langchain_community.llms import OCIGenAI
+﻿from langchain_community.llms import OCIGenAI
+
 from core.ports.chat_model import ChatModelPort
+
 
 class OciChatModel(ChatModelPort):
     def __init__(
@@ -9,13 +11,16 @@ class OciChatModel(ChatModelPort):
         compartment_id: str,
         auth_file_location: str | None = None,
         auth_profile: str | None = None,
-    ):
+    ) -> None:
+        if model_id.startswith("ocid1."):
+            raise ValueError("OciChatModel supports alias IDs only; use OciChatModelChat for OCIDs")
+
         kwargs = {}
         if auth_file_location:
             kwargs["auth_file_location"] = auth_file_location
         if auth_profile:
             kwargs["auth_profile"] = auth_profile
-        self.llm = OCIGenAI(
+        self._llm = OCIGenAI(
             model_id=model_id,
             service_endpoint=endpoint,
             compartment_id=compartment_id,
@@ -23,4 +28,4 @@ class OciChatModel(ChatModelPort):
         )
 
     def generate(self, prompt: str) -> str:
-        return self.llm.invoke(prompt).strip()
+        return self._llm.invoke(prompt).strip()

@@ -334,6 +334,71 @@ def validate_startup(verbose: bool = True) -> None:
             reason = result.get("reason") or "unknown"
             print(f'[{label}] status=down ({reason})')
 
+    retrieval_cfg = settings.app.get("retrieval", {}) or {}
+
+    def _safe_value(container: Any, key: str):
+        if not isinstance(container, dict) or key not in container:
+            return "(missing)"
+        value = container.get(key)
+        return "(missing)" if value is None else value
+
+    top_k = _safe_value(retrieval_cfg, "top_k")
+    thr_low = _safe_value(retrieval_cfg, "threshold_low")
+    thr_high = _safe_value(retrieval_cfg, "threshold_high")
+
+    short_cfg = retrieval_cfg.get("short_query") if isinstance(retrieval_cfg, dict) else None
+    short_max = _safe_value(short_cfg or {}, "max_tokens")
+    short_low = _safe_value(short_cfg or {}, "threshold_low")
+    short_high = _safe_value(short_cfg or {}, "threshold_high")
+
+    expansions_cfg = retrieval_cfg.get("expansions") if isinstance(retrieval_cfg, dict) else None
+    if isinstance(expansions_cfg, dict):
+        exp_enabled = expansions_cfg.get("enabled")
+        exp_terms = expansions_cfg.get("terms")
+        exp_enabled = "(missing)" if exp_enabled is None else exp_enabled
+        if isinstance(exp_terms, dict):
+            exp_terms_count = len(exp_terms)
+        else:
+            exp_terms_count = "(missing)"
+    else:
+        exp_enabled = "(missing)"
+        exp_terms_count = "(missing)"
+
+    distance = _safe_value(retrieval_cfg, "distance")
+    dedupe_by = _safe_value(retrieval_cfg, "dedupe_by")
+
+    print(
+        "retrieval: top_k={0}, threshold_low={1}, threshold_high={2}, short_query={{max_tokens:{3}, low:{4}, high:{5}}}, "
+        "expansions_enabled={6}, expansion_terms={7}, distance={8}, dedupe_by={9}".format(
+            top_k,
+            thr_low,
+            thr_high,
+            short_max,
+            short_low,
+            short_high,
+            exp_enabled,
+            exp_terms_count,
+            distance,
+            dedupe_by,
+        )
+    )
+
+    prompts_cfg = settings.app.get("prompts", {}) or {}
+    rag_cfg = prompts_cfg.get("rag", {}) if isinstance(prompts_cfg, dict) else None
+    fallback_cfg = prompts_cfg.get("fallback", {}) if isinstance(prompts_cfg, dict) else None
+    no_ctx_token = prompts_cfg.get("no_context_token") if isinstance(prompts_cfg, dict) else None
+    rag_style = rag_cfg.get("style") if isinstance(rag_cfg, dict) else None
+    rag_max = rag_cfg.get("max_output_tokens") if isinstance(rag_cfg, dict) else None
+    fallback_max = fallback_cfg.get("max_output_tokens") if isinstance(fallback_cfg, dict) else None
+    print(
+        "prompts: no_context_token={0}, rag_style={1}, rag_max_tokens={2}, fallback_max_tokens={3}".format(
+            no_ctx_token or "(missing)",
+            rag_style or "(missing)",
+            rag_max if rag_max is not None else "(missing)",
+            fallback_max if fallback_max is not None else "(missing)",
+        )
+    )
+
 
 def health_probe(section: str) -> Dict[str, Any]:
     """Public helper for health checks."""

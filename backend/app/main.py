@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import health, chat
-from .deps import settings
+from .deps import settings, validate_startup
 
 app = FastAPI(title="AI Assistant Backend")
+
+validate_startup(True)
 
 # CORS
 cfg = settings.app.get("server", {}).get("cors", {})

@@ -8,12 +8,39 @@ server:
 
 retrieval:
   mode: hybrid_prefer_db
-  top_k: 8
-  threshold_low: 0.6
-  threshold_high: 0.8
-  similarity_threshold: 0.80     # ajustar con evaluación offline
-  max_context_chars: 6000        # límite aproximado para contexto
-  dedupe_by: doc_id              # "doc_id" o "source"
+  top_k: 12
+  threshold_low: 0.30
+  threshold_high: 0.55
+  short_query:
+    max_tokens: 2
+    threshold_low: 0.20
+    threshold_high: 0.45
+  expansions:
+    enabled: false
+    terms:
+      dbe:
+        - digital business experience
+  distance: dot_product
+  dedupe_by: doc_id
+  legacy:
+    store_metric: dot_product
+    score_normalization: dot_to_sim01
+    # legacy chunking: size 2000, overlap 100, separator '.'
+  rag_if_any_hit: true
+
+prompts:
+  no_context_token: "__NO_CONTEXT__"
+  rag:
+    system: |
+      You are a telecom assistant. Use ONLY the CONTEXT below to answer.
+      If the context is insufficient, output exactly __NO_CONTEXT__.
+      Be concise, define acronyms on first mention, and cite the source filename(s).
+    style: balanced
+    max_output_tokens: 512
+  fallback:
+    system: |
+      You are a helpful assistant. Answer clearly and concisely.
+    max_output_tokens: 512
 
 fallback:
   enabled: true

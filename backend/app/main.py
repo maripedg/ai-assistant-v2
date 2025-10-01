@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routers import health, chat
 from backend.app.deps import settings, validate_startup
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(title="AI Assistant Backend")
 

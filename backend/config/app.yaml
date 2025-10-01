@@ -9,24 +9,48 @@ server:
 retrieval:
   mode: hybrid_prefer_db
   top_k: 12
-  threshold_low: 0.30
-  threshold_high: 0.55
+  distance: dot_product
+  # Mantén el comportamiento anterior: thresholds "planos"
+  threshold_low: 0.20
+  threshold_high: 0.50
+  # NUEVO: selector de modo de puntuación y thresholds adicionales
+  score_mode: normalized
+  thresholds:
+    low: 0.20
+    high: 0.50
+    raw_dot_low:  -0.50
+    raw_dot_high: -0.20
+    raw_cosine_low:  0.25
+    raw_cosine_high: 0.55
+
   short_query:
     max_tokens: 2
     threshold_low: 0.20
     threshold_high: 0.45
+
   expansions:
     enabled: false
     terms:
       dbe:
         - digital business experience
-  distance: dot_product
+
   dedupe_by: doc_id
+
   legacy:
     store_metric: dot_product
     score_normalization: dot_to_sim01
     # legacy chunking: size 2000, overlap 100, separator '.'
+
   rag_if_any_hit: true
+
+  # NUEVO: parámetros de ensamblado en modo híbrido
+  hybrid:
+    max_context_chars: 8000
+    max_chunks: 6
+    min_tokens_per_chunk: 200
+    llm_enrichment: true
+    cite_sources: true
+    require_disclaimer_on_gaps: true
 
 embeddings:
   active_profile: legacy_profile   # default, can be switched to standard_profile later
@@ -78,7 +102,6 @@ embeddings:
     by_hash: true
     hash_normalization: "lower_strip_ws"
 
-
 prompts:
   no_context_token: "__NO_CONTEXT__"
   rag:
@@ -87,6 +110,13 @@ prompts:
       If the context is insufficient, output exactly __NO_CONTEXT__.
       Be concise, define acronyms on first mention, and cite the source filename(s).
     style: balanced
+    max_output_tokens: 512
+  # NUEVO prompt para HYBRID
+  hybrid:
+    system: |
+      You are a technical assistant. First, use the provided excerpts as primary evidence.
+      If minor gaps exist, you MAY add concise bridging context from general knowledge, but do not contradict the excerpts.
+      Clearly prioritize doc-based facts and cite source filenames when possible.
     max_output_tokens: 512
   fallback:
     system: |

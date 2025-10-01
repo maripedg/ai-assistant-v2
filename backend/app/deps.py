@@ -406,19 +406,49 @@ def make_vector_store(embeddings=None):
             "Install it with `pip install oracledb`."
         ) from exc
 
+    # Resolve alias (stable read surface)
+    alias_name = _resolve_alias_table()
     ovs = settings.providers["oraclevs"]
-    table_name = _resolve_alias_table()
-    if "table" in ovs and ovs["table"] != table_name:
-        logger.warning(
-            "providers.oraclevs.table=%s ignored; using embeddings alias %s",
-            ovs["table"],
-            table_name,
-        )
+
+    # Guard: ensure alias exists and is a VIEW before constructing the store
+    try:
+        import oracledb  # type: ignore
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "The 'oracledb' package is required for Oracle vector operations. "
+            "Install it with `pip install oracledb`."
+        ) from exc
+
+    conn = oracledb.connect(user=ovs["user"], password=ovs["password"], dsn=ovs["dsn"])
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT object_type FROM user_objects WHERE object_name = :1",
+                (alias_name.upper(),),
+            )
+            row = cur.fetchone()
+            if not row:
+                raise RuntimeError(
+                    f"Alias view '{alias_name}' not found. Run the embedding job with --update-alias first."
+                )
+            obj_type = (row[0] or "").upper()
+            if obj_type != "VIEW":
+                raise RuntimeError(
+                    f"Alias name '{alias_name}' is a {obj_type}. Drop/rename it; it must be a VIEW."
+                )
+    finally:
+        try:
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Instantiate store pointing at the alias (read surface). Preventing auto-bootstrap is handled
+    # by the guard above; OracleVS should not attempt to create a TABLE when a VIEW exists.
     return OracleVSStore(
         dsn=ovs["dsn"],
         user=ovs["user"],
         password=ovs["password"],
-        table=table_name,
+        table=alias_name,
         embeddings=embeddings,
         distance=ovs.get("distance", "dot_product"),
     )

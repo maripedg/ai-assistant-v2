@@ -118,6 +118,10 @@ class OracleVSUpserter:
         self._conn = conn
         self._config = None
 
+    def set_target_table(self, table_name: str) -> None:
+        """Force writes to the given physical table (e.g., MY_DEMO_V1)."""
+        self._table = table_name
+
     def upsert_vectors(
         self,
         vectors: Iterable[Dict[str, Any]],
@@ -139,31 +143,29 @@ class OracleVSUpserter:
         with conn.cursor() as cur:
             for vector in vectors:
                 meta = dict(vector["metadata"])
-                index_name = meta.pop("index_name")
                 hash_norm = meta.get("hash_norm")
+                metric = (meta.get("distance_metric") or "dot_product").lower()
                 if dedupe and hash_norm:
                     cur.execute(
-                        f"SELECT 1 FROM {self._table} WHERE index_name = :1 AND hash_norm = :2 FETCH FIRST 1 ROWS ONLY",
-                        (index_name, hash_norm),
+                        f"SELECT 1 FROM {self._table} WHERE HASH_NORM = :1 FETCH FIRST 1 ROWS ONLY",
+                        (hash_norm,),
                     )
                     if cur.fetchone():
                         skipped += 1
                         continue
 
-                metadata_json = json.dumps(meta, ensure_ascii=False)
-                embedding_json = json.dumps(vector.get("embedding", []))
+                metadata_json = json.dumps(meta, ensure_ascii=False, separators=(",", ":"))
+                embedding_json = json.dumps(vector.get("embedding", []), separators=(",", ":"))
                 cur.execute(
-                    f"INSERT INTO {self._table} (index_name, doc_id, chunk_id, text, metadata_json, embedding_json, hash_norm) "
-                    "VALUES (:1, :2, :3, :4, :5, :6, :7)",
-                    (
-                        index_name,
-                        meta.get("doc_id"),
-                        meta.get("chunk_id"),
-                        vector["text"],
-                        metadata_json,
-                        embedding_json,
-                        hash_norm,
-                    ),
+                    f"INSERT INTO {self._table} (ID, TEXT, METADATA, EMBEDDING, HASH_NORM, DISTANCE_METRIC) "
+                    f"VALUES (SYS_GUID(), :text, :metadata_json, TO_VECTOR(:embedding_json), :hash_norm, :metric)",
+                    {
+                        "text": vector["text"],
+                        "metadata_json": metadata_json,
+                        "embedding_json": embedding_json,
+                        "hash_norm": hash_norm,
+                        "metric": metric,
+                    },
                 )
                 inserted += 1
             self._conn.commit()
@@ -543,35 +545,13 @@ def run_embed_job(
     if not isinstance(oraclevs_cfg, dict):
         raise ValueError("providers.oraclevs configuration missing")
     upserter = OracleVSUpserter(oraclevs_cfg)
-
+    conn = None
     if not dry_run:
+        # Use the upserter's native Oracle connection targeting the physical table.
         try:
-            from backend.app.deps import make_vector_store
-        except ModuleNotFoundError as exc:  # pragma: no cover - defensive
-            raise ModuleNotFoundError(
-                "The 'oracledb' package is required for DB writes. Install it with `pip install oracledb` or run with `--dry-run`."
-            ) from exc
-
-        try:
-            vector_store = make_vector_store(embedder)
-        except ModuleNotFoundError as exc:  # pragma: no cover - defensive
-            raise ModuleNotFoundError(
-                "The 'oracledb' package is required for DB writes. Install it with `pip install oracledb` or run with `--dry-run`."
-            ) from exc
+            conn = upserter.connection
         except Exception as exc:  # noqa: BLE001
-            raise RuntimeError("Failed to initialize Oracle vector store") from exc
-
-        conn = getattr(vector_store, "conn", None)
-        if conn is None:
-            raise RuntimeError("Oracle vector store did not expose a database connection")
-
-        upserter.attach_connection(conn)
-
-        from backend.providers.oracle_vs.index_admin import ensure_alias, ensure_index_table
-
-        ensure_index_table(conn, index_name, profile_cfg.get("distance_metric", "dot_product"))
-        if update_alias and alias_name:
-            ensure_alias(conn, alias_name, index_name)
+            raise RuntimeError("Failed to open Oracle connection for ingestion") from exc
     elif update_alias and alias_name:
         logger.info("Skipping alias update during dry-run; alias remains unchanged")
 
@@ -626,6 +606,7 @@ def run_embed_job(
                 chunk_id = f"{doc_id}_chunk_{idx}"
                 meta = _ensure_chunk_metadata(chunk, base_meta, chunk_id)
                 meta["index_name"] = index_name
+                meta["distance_metric"] = profile_cfg.get("distance_metric", "dot_product")
                 if dedupe_enabled:
                     meta["hash_norm"] = _hash_normalize(chunk.text)
                 vector_buffer.append({"text": chunk.text, "metadata": meta})
@@ -639,6 +620,8 @@ def run_embed_job(
     logger.info("Prepared %d chunks. Embedding in batches of %d", len(vector_buffer), batch_size)
 
     last_batch_time = 0.0
+    ensured_table = False
+    logged_target_table = False
     for offset in range(0, len(vector_buffer), batch_size):
         if rate_interval:
             elapsed = time.time() - last_batch_time
@@ -647,6 +630,20 @@ def run_embed_job(
         batch = vector_buffer[offset : offset + batch_size]
         texts = [item["text"] for item in batch]
         embeddings = embedder.embed_documents(texts)
+        # Ensure physical table exists with proper embedding dimension, once we know it
+        if not dry_run and not ensured_table:
+            if not embeddings:
+                continue
+            dim = len(embeddings[0])
+            from backend.providers.oracle_vs.index_admin import ensure_alias, ensure_index_table
+            ensure_index_table(conn, index_name, profile_cfg.get("distance_metric", "dot_product"), dim=dim)
+            ensured_table = True
+            # Ensure the upserter targets the physical table for all inserts
+            upserter.set_target_table(index_name)
+
+        if not logged_target_table and not dry_run:
+            logger.debug("Upserting into physical table: %s", index_name)
+            logged_target_table = True
         for payload, embedding in zip(batch, embeddings):
             payload["embedding"] = embedding
         batch_inserted, batch_skipped = upserter.upsert_vectors(batch, dedupe_enabled, dry_run=dry_run)
@@ -689,6 +686,11 @@ def run_embed_job(
         summary.errors,
         summary.dry_run,
     )
+
+    # Update alias only after successful inserts
+    if not dry_run and update_alias and alias_name and ensured_table:
+        from backend.providers.oracle_vs.index_admin import ensure_alias
+        ensure_alias(conn, alias_name, index_name)
 
     return summary
 

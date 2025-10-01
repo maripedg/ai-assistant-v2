@@ -1,0 +1,20 @@
+﻿queries:
+  - query: "What is DBE?"
+    expect_doc_ids:
+      - "dbe_overview"
+    expect_phrases:
+      - "Digital Business Experience"
+    top_k: 5
+  - query: "How do I reset my fiber modem?"
+    expect_doc_ids:
+      - "fiber_modem_reset"
+    expect_phrases:
+      - "power cycle"
+      - "hold the reset button"
+    top_k: 5
+  - query: "Who do I contact for billing support?"
+    expect_doc_ids:
+      - "billing_support_contact"
+    expect_phrases:
+      - "billing support"
+      - "contact center"

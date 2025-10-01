@@ -28,6 +28,57 @@ retrieval:
     # legacy chunking: size 2000, overlap 100, separator '.'
   rag_if_any_hit: true
 
+embeddings:
+  active_profile: legacy_profile   # default, can be switched to standard_profile later
+  alias:
+    name: MY_DEMO                  # DB view/synonym used by retrieval
+    active_index: v1               # v1 -> MY_DEMO_v1, v2 -> MY_DEMO_v2
+  profiles:
+    legacy_profile:
+      index_name: MY_DEMO_v1
+      chunker:
+        type: char
+        separator: "."
+        size: 2000
+        overlap: 100
+      distance_metric: dot_product
+      input_types:
+        documents: search_document
+        queries:   search_query
+      metadata:
+        keep:
+          - source
+          - chunk_id
+          - page
+          - lang
+    standard_profile:
+      index_name: MY_DEMO_v2
+      chunker:
+        type: tokens
+        size: 900
+        overlap: 0.15
+      distance_metric: cosine
+      input_types:
+        documents: search_document
+        queries:   search_query
+      metadata:
+        keep:
+          - source
+          - title
+          - page
+          - lang
+  batching:
+    batch_size: 32
+    workers: 4
+    rate_limit_per_min: 300
+  ocr:
+    enabled: false
+    engine: tesseract
+  dedupe:
+    by_hash: true
+    hash_normalization: "lower_strip_ws"
+
+
 prompts:
   no_context_token: "__NO_CONTEXT__"
   rag:

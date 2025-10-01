@@ -1,8 +1,8 @@
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.ports.chat_model import ChatModelPort
-from core.ports.vector_store import VectorStorePort
+from backend.core.ports.chat_model import ChatModelPort
+from backend.core.ports.vector_store import VectorStorePort
 
 class RetrievalService:
     def __init__(

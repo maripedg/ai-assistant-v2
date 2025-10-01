@@ -1,6 +1,6 @@
 ﻿from langchain_community.llms import OCIGenAI
 
-from core.ports.chat_model import ChatModelPort
+from backend.core.ports.chat_model import ChatModelPort
 
 
 class OciChatModel(ChatModelPort):

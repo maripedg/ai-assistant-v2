@@ -13,7 +13,7 @@ from oci.generative_ai_inference.models import (
     TextContent,
 )
 
-from core.ports.chat_model import ChatModelPort
+from backend.core.ports.chat_model import ChatModelPort
 
 
 class OciChatModelChat(ChatModelPort):

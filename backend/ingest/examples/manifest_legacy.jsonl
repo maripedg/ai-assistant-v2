@@ -1,0 +1,2 @@
+{"path": "./data/legacy/billing_overview.pdf", "doc_id": "billing_overview", "profile": "legacy_profile", "tags": ["billing", "legacy"], "lang": "en", "priority": 7}
+{"path": "./data/legacy/network_manual.pdf", "profile": "legacy_profile", "tags": ["network"], "priority": 5}

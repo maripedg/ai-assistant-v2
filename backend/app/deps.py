@@ -1,33 +1,59 @@
-﻿import logging
+import logging
 import os
 import re
-import yaml
+from importlib import resources
 from pathlib import Path
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
+
+import yaml
+from dotenv import load_dotenv
 
 import oci
-from dotenv import load_dotenv
-from langchain_community.embeddings import OCIGenAIEmbeddings
-from providers.oci.vectorstore import OracleVSStore
-from providers.oci.chat_model import OciChatModel
-from providers.oci.chat_model_chat import OciChatModelChat
-
 
 logger = logging.getLogger(__name__)
 
 # ---------------- paths ----------------
 BASE_DIR = Path(__file__).resolve().parents[1]  # backend/
-REPO_ROOT = BASE_DIR.parent
-CONFIG_DIR = BASE_DIR / "config"
-ENV_PATH = BASE_DIR / ".env"
-CFG_PATH = (REPO_ROOT / "oci" / "config").resolve()
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = PROJECT_ROOT
+CFG_PATH = (PROJECT_ROOT / "oci" / "config").resolve()
 
 # ---------------- env ----------------
-load_dotenv(ENV_PATH)
+_DOTENV_LOADED = False
+
+
+def _load_env_file() -> None:
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+
+    candidates = []
+    env_hint = os.environ.get("APP_ENV_FILE")
+    if env_hint:
+        candidates.append(Path(env_hint))
+    candidates.append(PROJECT_ROOT / ".env")
+    candidates.append(BASE_DIR / ".env")
+
+    for candidate in candidates:
+        candidate = Path(candidate).expanduser()
+        if not candidate.is_absolute():
+            candidate = (PROJECT_ROOT / candidate).resolve()
+        if candidate.exists():
+            load_dotenv(candidate)
+            break
+
+    _DOTENV_LOADED = True
+    db_password = os.getenv("DB_PASSWORD")
+    if db_password is not None:
+        preview = db_password if len(db_password) <= 6 else f"{db_password[:3]}***{db_password[-1]}"
+        logger.info("Loaded DB_PASSWORD=%s", preview)
+
+
+_load_env_file()
 
 # Forzar uso de config del repo (idéntico a test_embed)
-os.environ["OCI_CONFIG_FILE"] = str(CFG_PATH)
-os.environ["OCI_CONFIG_PROFILE"] = os.getenv("OCI_CONFIG_PROFILE", "DEFAULT")
+os.environ.setdefault("OCI_CONFIG_FILE", str(CFG_PATH))
+os.environ.setdefault("OCI_CONFIG_PROFILE", "DEFAULT")
 
 
 # ---------------- settings ----------------
@@ -49,15 +75,81 @@ def _deep_resolve_env(obj):
     return resolve(obj)
 
 
+def _read_yaml_from_package(package: str, filename: str) -> Optional[Any]:
+    try:
+        resource = resources.files(package).joinpath(filename)
+    except ModuleNotFoundError:
+        return None
+
+    if not resource.exists():
+        return None
+
+    with resources.as_file(resource) as resolved:
+        path = Path(resolved)
+        if not path.exists():
+            return None
+        return _read_yaml(path)
+
+
+def _load_config_yaml(env_var: str, filename: str) -> Dict[str, Any]:
+    override = os.environ.get(env_var)
+    if override:
+        override_path = Path(override).expanduser()
+        if not override_path.is_absolute():
+            override_path = (PROJECT_ROOT / override_path).resolve()
+        if not override_path.exists():
+            raise FileNotFoundError(f"Config file not found at {override_path}")
+        return _read_yaml(override_path) or {}
+
+    package_data = _read_yaml_from_package("backend.config", filename)
+    if package_data is not None:
+        return package_data or {}
+
+    fallback_path = BASE_DIR / "config" / filename
+    return _read_yaml(fallback_path) or {}
+
+
 class Settings:
     def __init__(self):
-        self.app = _read_yaml(CONFIG_DIR / "app.yaml")
-        self.providers = _deep_resolve_env(_read_yaml(CONFIG_DIR / "providers.yaml"))
+        self.app = _load_config_yaml("APP_CONFIG_PATH", "app.yaml")
+        self.providers = _deep_resolve_env(_load_config_yaml("PROVIDERS_CONFIG_PATH", "providers.yaml"))
 
 
 settings = Settings()
 
+
+def _get_embeddings_settings() -> Dict[str, Any]:
+    embeddings_cfg = settings.app.get("embeddings", {}) or {}
+    return embeddings_cfg if isinstance(embeddings_cfg, dict) else {}
+
+
+def _resolve_alias_runtime_values() -> tuple[Optional[str], Optional[str], Optional[str]]:
+    embeddings_cfg = _get_embeddings_settings()
+    alias_cfg = embeddings_cfg.get("alias", {}) if isinstance(embeddings_cfg, dict) else {}
+    if not isinstance(alias_cfg, dict):
+        alias_cfg = {}
+    active_profile = embeddings_cfg.get("active_profile")
+    alias_name = alias_cfg.get("name")
+    active_index = alias_cfg.get("active_index")
+    return active_profile, alias_name, active_index
+
+
+_startup_log_emitted = False
 _region_warning_cache: set[tuple[str, str, str]] = set()
+
+
+def _log_embedding_runtime_once() -> None:
+    global _startup_log_emitted
+    if _startup_log_emitted:
+        return
+    profile, alias, index = _resolve_alias_runtime_values()
+    logger.info(
+        "embedding_profile=%s alias=%s active_index=%s",
+        profile or "<missing>",
+        alias or "<missing>",
+        index or "<missing>",
+    )
+    _startup_log_emitted = True
 
 
 # ---------------- helpers ----------------
@@ -211,6 +303,13 @@ def _probe_service(section: str) -> Dict[str, Any]:
 
     try:
         if section == "embeddings":
+            try:
+                from langchain_community.embeddings import OCIGenAIEmbeddings  # type: ignore
+            except ModuleNotFoundError as exc:
+                raise ModuleNotFoundError(
+                    "langchain-community is required to probe embeddings availability"
+                ) from exc
+
             client = OCIGenAIEmbeddings(
                 model_id=cfg["model_id"],
                 service_endpoint=cfg["endpoint"],
@@ -220,6 +319,9 @@ def _probe_service(section: str) -> Dict[str, Any]:
             )
             client.embed_query("ping")
         elif section == "llm_primary":
+            from backend.providers.oci.chat_model import OciChatModel
+            from backend.providers.oci.chat_model_chat import OciChatModelChat
+
             model_id = cfg["model_id"]
             if isinstance(model_id, str) and model_id.startswith("ocid1."):
                 client = OciChatModelChat(
@@ -239,6 +341,8 @@ def _probe_service(section: str) -> Dict[str, Any]:
                 )
             client.generate("ok")
         elif section == "llm_fallback":
+            from backend.providers.oci.chat_model_chat import OciChatModelChat
+
             client = OciChatModelChat(
                 endpoint=cfg["endpoint"],
                 compartment_id=cfg["compartment_id"],
@@ -262,7 +366,17 @@ def _probe_service(section: str) -> Dict[str, Any]:
 
 # ---------------- factories ----------------
 def make_embeddings():
+    _log_embedding_runtime_once()
     cfg = _load_oci_section("embeddings")
+
+    try:
+        from langchain_community.embeddings import OCIGenAIEmbeddings  # type: ignore
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "The 'langchain-community' package is required for embeddings. "
+            "Install it via `pip install langchain-community`."
+        ) from exc
+
     return OCIGenAIEmbeddings(
         model_id=cfg["model_id"],
         service_endpoint=cfg["endpoint"],
@@ -272,19 +386,48 @@ def make_embeddings():
     )
 
 
-def make_vector_store(embeddings):
+def _resolve_alias_table() -> str:
+    _, alias_name, _ = _resolve_alias_runtime_values()
+    if not alias_name:
+        raise ValueError("embeddings.alias.name must be configured")
+    return alias_name
+
+
+def make_vector_store(embeddings=None):
+    _log_embedding_runtime_once()
+    if embeddings is None:
+        embeddings = make_embeddings()
+
+    try:
+        from backend.providers.oci.vectorstore import OracleVSStore
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "The 'oracledb' package is required for Oracle vector operations. "
+            "Install it with `pip install oracledb`."
+        ) from exc
+
     ovs = settings.providers["oraclevs"]
+    table_name = _resolve_alias_table()
+    if "table" in ovs and ovs["table"] != table_name:
+        logger.warning(
+            "providers.oraclevs.table=%s ignored; using embeddings alias %s",
+            ovs["table"],
+            table_name,
+        )
     return OracleVSStore(
         dsn=ovs["dsn"],
         user=ovs["user"],
         password=ovs["password"],
-        table=ovs["table"],
+        table=table_name,
         embeddings=embeddings,
         distance=ovs.get("distance", "dot_product"),
     )
 
 
 def make_chat_model_primary():
+    from backend.providers.oci.chat_model import OciChatModel
+    from backend.providers.oci.chat_model_chat import OciChatModelChat
+
     cfg = _load_oci_section("llm_primary")
     model_id = cfg["model_id"]
     if isinstance(model_id, str) and model_id.startswith("ocid1."):
@@ -305,6 +448,8 @@ def make_chat_model_primary():
 
 
 def make_chat_model_fallback():
+    from backend.providers.oci.chat_model_chat import OciChatModelChat
+
     cfg = _load_oci_section("llm_fallback")
     return OciChatModelChat(
         endpoint=cfg["endpoint"],

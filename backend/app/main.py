@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import health, chat
-from .deps import settings, validate_startup
+from backend.app.routers import health, chat
+from backend.app.deps import settings, validate_startup
 
 app = FastAPI(title="AI Assistant Backend")
 

@@ -1,12 +1,23 @@
 import logging
+import os
 from time import perf_counter
 from typing import Any, List, Tuple
 
-import oracledb
 from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
 
-from core.ports.vector_store import VectorStorePort
+from backend.core.ports.vector_store import VectorStorePort
+
+
+def _lazy_import_oracledb():
+    try:
+        import oracledb  # type: ignore
+    except ModuleNotFoundError as exc:  # pragma: no cover - defensive
+        raise ModuleNotFoundError(
+            "The 'oracledb' package is required for Oracle vector retrieval. "
+            "Install it via `pip install oracledb`."
+        ) from exc
+    return oracledb
 
 
 logger = logging.getLogger(__name__)
@@ -22,12 +33,20 @@ class OracleVSStore(VectorStorePort):
         embeddings,
         distance: str = "dot_product",
     ):
-        self.conn = oracledb.connect(
-            user=user,
-            password=password,
-            dsn=dsn,
-            mode=oracledb.AUTH_MODE_SYSDBA,
-        )
+        oracledb = _lazy_import_oracledb()
+        params = {
+            "user": user,
+            "password": password,
+            "dsn": dsn,
+        }
+        # Only connect AS SYSDBA/SYSOPER when explicitly requested or when using SYS.
+        auth_mode_env = (os.getenv("ORACLE_AUTH_MODE") or "").strip().upper()
+        if user and user.strip().upper() == "SYS":
+            params["mode"] = getattr(oracledb, "AUTH_MODE_SYSDBA")
+        elif auth_mode_env in {"SYSDBA", "SYSOPER"}:
+            params["mode"] = getattr(oracledb, f"AUTH_MODE_{auth_mode_env}")
+
+        self.conn = oracledb.connect(**params)
         strategy = (
             DistanceStrategy.DOT_PRODUCT
             if distance == "dot_product"

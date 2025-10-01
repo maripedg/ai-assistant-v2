@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.deps import health_probe
+from backend.app.deps import health_probe
 
 
 logger = logging.getLogger(__name__)

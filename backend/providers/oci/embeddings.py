@@ -2,7 +2,7 @@ import os
 import oci
 from langchain_community.embeddings import OCIGenAIEmbeddings
 
-from core.ports.embeddings import EmbeddingsPort
+from backend.core.ports.embeddings import EmbeddingsPort
 
 
 class OciEmbeddings(EmbeddingsPort):

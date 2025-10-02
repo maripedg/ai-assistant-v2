@@ -7,6 +7,7 @@ import glob
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +17,13 @@ from backend.app.deps import make_embeddings, settings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+
+# --- Sanitizer (optional import)
+try:
+    from backend.common.sanitizer import sanitize_if_enabled  # (text, doc_id) -> (text, counters)
+except Exception:  # pragma: no cover
+    sanitize_if_enabled = None
 
 
 @dataclass(frozen=True)
@@ -141,6 +149,8 @@ class OracleVSUpserter:
 
         conn = self._get_connection()
         with conn.cursor() as cur:
+            oracledb = _lazy_import_oracledb()
+            clob_type = getattr(oracledb, 'DB_TYPE_CLOB', None)
             for vector in vectors:
                 meta = dict(vector["metadata"])
                 hash_norm = meta.get("hash_norm")
@@ -156,16 +166,35 @@ class OracleVSUpserter:
 
                 metadata_json = json.dumps(meta, ensure_ascii=False, separators=(",", ":"))
                 embedding_json = json.dumps(vector.get("embedding", []), separators=(",", ":"))
-                cur.execute(
-                    f"INSERT INTO {self._table} (ID, TEXT, METADATA, EMBEDDING, HASH_NORM, DISTANCE_METRIC) "
-                    f"VALUES (SYS_GUID(), :text, :metadata_json, TO_VECTOR(:embedding_json), :hash_norm, :metric)",
-                    {
+
+                binds = {
+                    "hash_norm": hash_norm,
+                    "metric": metric,
+                }
+
+                if clob_type is not None:
+                    text_clob = cur.var(clob_type)
+                    text_clob.setvalue(0, vector["text"])
+                    meta_clob = cur.var(clob_type)
+                    meta_clob.setvalue(0, metadata_json)
+                    emb_clob = cur.var(clob_type)
+                    emb_clob.setvalue(0, embedding_json)
+                    binds.update({
+                        "text": text_clob,
+                        "metadata_json": meta_clob,
+                        "embedding_json": emb_clob,
+                    })
+                else:
+                    binds.update({
                         "text": vector["text"],
                         "metadata_json": metadata_json,
                         "embedding_json": embedding_json,
-                        "hash_norm": hash_norm,
-                        "metric": metric,
-                    },
+                    })
+
+                cur.execute(
+                    f"INSERT INTO {self._table} (ID, TEXT, METADATA, EMBEDDING, HASH_NORM, DISTANCE_METRIC) "
+                    f"VALUES (SYS_GUID(), :text, :metadata_json, TO_VECTOR(:embedding_json), :hash_norm, :metric)",
+                    binds,
                 )
                 inserted += 1
             self._conn.commit()
@@ -587,6 +616,17 @@ def run_embed_job(
                 errors += 1
                 logger.exception("Failed to load %s: %s", resolved_path, exc)
                 continue
+
+            # --- Pre-split/embedding sanitization ---
+            if sanitize_if_enabled is not None:
+                _doc_basename = os.path.basename(str(resolved_path))
+                try:
+                    text, _san_counts = sanitize_if_enabled(text, _doc_basename)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("Sanitizer failed for %s (%s); continuing without changes", _doc_basename, exc)
+                else:
+                    if _san_counts:
+                        print(f"[sanitizer:{_doc_basename}] {_san_counts}")
 
             total_docs += 1
             doc_id = entry.doc_id or resolved_path.stem

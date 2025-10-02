@@ -9,3 +9,7 @@ oci==2.131.1
 pydantic-settings
 langchain-core>=0.3.10,<0.4.0
 langchain-community>=0.3.10,<0.4.0
+spacy>=3.7.0
+detect-secrets>=1.4.0
+pdfplumber>=0.10.3
+tqdm>=4.66.0

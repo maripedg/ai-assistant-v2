@@ -1,0 +1,69 @@
+{
+  "pii": {
+    "email": {
+      "enabled": true,
+      "pattern": "\\b[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b"
+    },
+
+    "msisdn": {
+      "enabled": true,
+      "patterns": [
+        {
+          "pattern": "(?i)\\bmsisdn\\b\\s*[:=\\-]?\\s*(\\+?[1-9][0-9\\-\\s]{6,18})\\b",
+          "group_value": 1
+        }
+      ]
+    },
+
+    "phone": {
+      "enabled": true,
+      "patterns": [
+        {
+          "pattern": "(?i)\\b(?:phone|tel|telefono|m[óo]vil|mobile|cell|contact)\\s*[:=\\-]?\\s*(\\+?[1-9][0-9\\-\\s]{6,18})\\b",
+          "group_value": 1
+        }
+      ]
+    },
+
+    "imsi": {
+      "enabled": true,
+      "pattern": "(?i)\\bimsi-?\\s*(\\d{5,15})\\b",
+      "group_value": 1
+    },
+
+    "imei": {
+      "enabled": true,
+      "pattern": "(?i)\\bimei\\s*[:=\\-]?\\s*(\\d{15})\\b",
+      "validator": "luhn",
+      "group_value": 1
+    },
+
+    "iccid": {
+      "enabled": true,
+      "pattern": "\\b89\\d{17,19}\\b"
+    },
+
+    "api_key": {
+      "enabled": true,
+      "pattern": "(?i)(api[_-]?key|token|secret)\\s*[:=]\\s*([A-Za-z0-9_\\-]{16,})",
+      "group_value": 2
+    },
+
+    "password": {
+      "enabled": true,
+      "patterns": [
+        { "pattern": "(?i)password\\s*[:=]\\s*([^\\s,;]{4,})", "group_value": 1 },
+        { "pattern": "(?is)<password>.*?<\\/password>" }
+      ]
+    }
+  },
+
+  "allowlist": {
+    "tokens": ["chapter","table","figure","release","7.4.1","OCA","ASAP"]
+  },
+
+  "placeholder": {
+    "format": "[{TYPE}]",
+    "format_pseudonym": "[{TYPE}:{HASH}]"
+  }
+}

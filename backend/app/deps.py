@@ -183,6 +183,9 @@ def _load_oci_section(section: str) -> dict:
 
     data["auth_file"] = _resolve_auth_file(data["auth_file"])
     _normalize_model_fields(section, data)
+    # Attach validated generation parameters for chat sections
+    if section in {"llm_primary", "llm_fallback"}:
+        data["gen_params"] = _parse_generation_params(section, data)
     _warn_if_region_mismatch(section, data["endpoint"], data["auth_file"], data["auth_profile"])
     return data
 
@@ -214,6 +217,117 @@ def _normalize_model_fields(section: str, data: dict) -> None:
         raise ValueError(f"providers.oci.{section} must define either model_id or model_ocid")
 
     data.pop("model_ocid", None)
+
+
+def _clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def _parse_generation_params(section: str, data: dict) -> dict:
+    """Extract and validate optional generation params from a provider section.
+
+    Supported keys: max_tokens, temperature, top_p, top_k, frequency_penalty, presence_penalty
+    Values outside acceptable ranges are clamped with a warning.
+    """
+    params_raw = {
+        "max_tokens": data.get("max_tokens"),
+        "temperature": data.get("temperature"),
+        "top_p": data.get("top_p"),
+        "top_k": data.get("top_k"),
+        "frequency_penalty": data.get("frequency_penalty"),
+        "presence_penalty": data.get("presence_penalty"),
+    }
+
+    # Environment overrides take precedence over YAML values
+    sec = section.lower()
+    if sec in {"llm_primary", "llm_fallback"}:
+        prefix = "OCI_LLM_PRIMARY_" if sec == "llm_primary" else "OCI_LLM_FALLBACK_"
+        env_map = {
+            "max_tokens": os.getenv(prefix + "MAX_TOKENS"),
+            "temperature": os.getenv(prefix + "TEMPERATURE"),
+            "top_p": os.getenv(prefix + "TOP_P"),
+            "top_k": os.getenv(prefix + "TOP_K"),
+            "frequency_penalty": os.getenv(prefix + "FREQUENCY_PENALTY"),
+            "presence_penalty": os.getenv(prefix + "PRESENCE_PENALTY"),
+        }
+        for k, v in env_map.items():
+            if v is not None and v != "":
+                params_raw[k] = v
+
+    out: dict[str, int | float] = {}
+
+    # max_tokens: positive int
+    mt = params_raw.get("max_tokens")
+    if mt is not None:
+        try:
+            mt_i = int(mt)
+            if mt_i <= 0:
+                logger.warning("generation.max_tokens <= 0; clamping to 1")
+                mt_i = 1
+            out["max_tokens"] = mt_i
+        except Exception:
+            logger.warning("generation.max_tokens is not an int; ignoring: %r", mt)
+
+    # temperature: [0.0, 2.0]
+    t = params_raw.get("temperature")
+    if t is not None:
+        try:
+            tv = float(t)
+            tv = _clamp(tv, 0.0, 2.0)
+            out["temperature"] = tv
+        except Exception:
+            logger.warning("generation.temperature is not a float; ignoring: %r", t)
+
+    # top_p: [0.0, 1.0]
+    tp = params_raw.get("top_p")
+    if tp is not None:
+        try:
+            tpv = float(tp)
+            tpv = _clamp(tpv, 0.0, 1.0)
+            out["top_p"] = tpv
+        except Exception:
+            logger.warning("generation.top_p is not a float; ignoring: %r", tp)
+
+    # top_k: non-negative int
+    tk = params_raw.get("top_k")
+    if tk is not None:
+        try:
+            tkv = int(tk)
+            if tkv < 0:
+                logger.warning("generation.top_k < 0; clamping to 0")
+                tkv = 0
+            out["top_k"] = tkv
+        except Exception:
+            logger.warning("generation.top_k is not an int; ignoring: %r", tk)
+
+    # frequency_penalty: [0.0, 2.0]
+    fp = params_raw.get("frequency_penalty")
+    if fp is not None:
+        try:
+            fpv = float(fp)
+            fpv = _clamp(fpv, 0.0, 2.0)
+            out["frequency_penalty"] = fpv
+        except Exception:
+            logger.warning("generation.frequency_penalty is not a float; ignoring: %r", fp)
+
+    # presence_penalty: [0.0, 2.0]
+    pp = params_raw.get("presence_penalty")
+    if pp is not None:
+        try:
+            ppv = float(pp)
+            ppv = _clamp(ppv, 0.0, 2.0)
+            out["presence_penalty"] = ppv
+        except Exception:
+            logger.warning("generation.presence_penalty is not a float; ignoring: %r", pp)
+
+    return out
+
+
+def _format_gen_params(params: dict | None) -> str:
+    p = params or {}
+    keys = ("max_tokens", "temperature", "top_p", "top_k", "frequency_penalty", "presence_penalty")
+    parts = [f"{k}={p.get(k, '-') if p.get(k) is not None else '-'}" for k in keys]
+    return "{" + ", ".join(parts) + "}"
 
 
 def _extract_region_from_endpoint(endpoint: str) -> Optional[str]:
@@ -296,9 +410,12 @@ def _probe_service(section: str) -> Dict[str, Any]:
     model_kind = "ocid" if isinstance(model_id, str) and model_id.startswith("ocid1.") else "alias"
     if model_id == "<missing>":
         model_kind = "?"
+    gen_info = ""
+    if section in ("llm_primary", "llm_fallback"):
+        gen_info = f" | gen={_format_gen_params(cfg.get('gen_params'))}"
     info = (
         f"endpoint={endpoint} | region={region} | profile={profile} | "
-        f"model_id={model_id} ({model_kind})"
+        f"model_id={model_id} ({model_kind})" + gen_info
     )
 
     try:
@@ -330,6 +447,7 @@ def _probe_service(section: str) -> Dict[str, Any]:
                     model_id=model_id,
                     auth_file_location=cfg["auth_file"],
                     auth_profile=cfg["auth_profile"],
+                    **(cfg.get("gen_params") or {}),
                 )
             else:
                 client = OciChatModel(
@@ -338,6 +456,7 @@ def _probe_service(section: str) -> Dict[str, Any]:
                     compartment_id=cfg["compartment_id"],
                     auth_file_location=cfg["auth_file"],
                     auth_profile=cfg["auth_profile"],
+                    **(cfg.get("gen_params") or {}),
                 )
             client.generate("ok")
         elif section == "llm_fallback":
@@ -349,6 +468,7 @@ def _probe_service(section: str) -> Dict[str, Any]:
                 model_id=cfg["model_id"],
                 auth_file_location=cfg["auth_file"],
                 auth_profile=cfg["auth_profile"],
+                **(cfg.get("gen_params") or {}),
             )
             client.generate("ok")
         else:
@@ -467,6 +587,7 @@ def make_chat_model_primary():
             model_id=model_id,
             auth_file_location=cfg["auth_file"],
             auth_profile=cfg["auth_profile"],
+            **(cfg.get("gen_params") or {}),
         )
     return OciChatModel(
         model_id=model_id,
@@ -474,6 +595,7 @@ def make_chat_model_primary():
         compartment_id=cfg["compartment_id"],
         auth_file_location=cfg["auth_file"],
         auth_profile=cfg["auth_profile"],
+        **(cfg.get("gen_params") or {}),
     )
 
 
@@ -487,6 +609,7 @@ def make_chat_model_fallback():
         model_id=cfg["model_id"],
         auth_file_location=cfg["auth_file"],
         auth_profile=cfg["auth_profile"],
+        **(cfg.get("gen_params") or {}),
     )
 
 

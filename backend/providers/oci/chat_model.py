@@ -11,6 +11,7 @@ class OciChatModel(ChatModelPort):
         compartment_id: str,
         auth_file_location: str | None = None,
         auth_profile: str | None = None,
+        **gen_kwargs,
     ) -> None:
         if model_id.startswith("ocid1."):
             raise ValueError("OciChatModel supports alias IDs only; use OciChatModelChat for OCIDs")
@@ -26,6 +27,20 @@ class OciChatModel(ChatModelPort):
             compartment_id=compartment_id,
             **kwargs,
         )
+        # Store generation kwargs to pass on each invocation (back-compat if empty)
+        self._gen_kwargs = {
+            k: v
+            for k, v in {
+                "max_tokens": gen_kwargs.get("max_tokens"),
+                "temperature": gen_kwargs.get("temperature"),
+                "top_p": gen_kwargs.get("top_p"),
+                "top_k": gen_kwargs.get("top_k"),
+                "frequency_penalty": gen_kwargs.get("frequency_penalty"),
+                "presence_penalty": gen_kwargs.get("presence_penalty"),
+            }.items()
+            if v is not None
+        }
 
     def generate(self, prompt: str) -> str:
-        return self._llm.invoke(prompt).strip()
+        # Pass any configured generation kwargs to the underlying client
+        return self._llm.invoke(prompt, **self._gen_kwargs).strip()

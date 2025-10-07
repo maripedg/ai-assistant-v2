@@ -43,6 +43,7 @@ Operational guide for running and supporting the AI Assistant backend.
 ## OCI & Oracle Troubleshooting
 - **Region mismatch warnings**: Update OCI profile (`oci/config`) or `providers.yaml` endpoint to align. Warnings are emitted once per combination by `backend.app.deps`.
 - **Authentication failures**: `validate_startup` prints the reason (`config error`, HTTP status). Check file permissions on the OCI config or expired API keys.
+- **LLM generation parameters**: On startup, `validate_startup` prints effective generation params per LLM (primary/fallback). Use this to confirm `max_tokens`, `temperature`, `top_p`, etc. are applied as configured.
 - **Vector table schema drift**: `ensure_index_table` raises when dimensions differ. Drop and recreate the physical table or rebuild embeddings with the expected vector dimension.
 
 ## Monitoring Ideas

@@ -30,6 +30,13 @@ oci:
     compartment_id: ${OCI_LLM_PRIMARY_COMPARTMENT_OCID}
     auth_file: ${OCI_CONFIG_PATH}
     auth_profile: ${OCI_CONFIG_PROFILE}
+    # Optional generation parameters (can also be overridden by env):
+    max_tokens: ${OCI_LLM_PRIMARY_MAX_TOKENS}
+    temperature: ${OCI_LLM_PRIMARY_TEMPERATURE}
+    top_p: ${OCI_LLM_PRIMARY_TOP_P}
+    top_k: ${OCI_LLM_PRIMARY_TOP_K}
+    frequency_penalty: ${OCI_LLM_PRIMARY_FREQUENCY_PENALTY}
+    presence_penalty: ${OCI_LLM_PRIMARY_PRESENCE_PENALTY}
 
   # Fallback chat adapter requires a model OCID (aliases unsupported).
   llm_fallback:
@@ -39,6 +46,13 @@ oci:
     compartment_id: ${OCI_LLM_FALLBACK_COMPARTMENT_OCID}
     auth_file: ${OCI_CONFIG_PATH}
     auth_profile: ${OCI_CONFIG_PROFILE}
+    # Optional generation parameters (can also be overridden by env):
+    max_tokens: ${OCI_LLM_FALLBACK_MAX_TOKENS}
+    temperature: ${OCI_LLM_FALLBACK_TEMPERATURE}
+    top_p: ${OCI_LLM_FALLBACK_TOP_P}
+    top_k: ${OCI_LLM_FALLBACK_TOP_K}
+    frequency_penalty: ${OCI_LLM_FALLBACK_FREQUENCY_PENALTY}
+    presence_penalty: ${OCI_LLM_FALLBACK_PRESENCE_PENALTY}
 
 oraclevs:
   dsn: ${DB_DSN}                       # 10.0.0.3:1529/FREEPDB1

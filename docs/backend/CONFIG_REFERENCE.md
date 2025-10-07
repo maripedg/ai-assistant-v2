@@ -35,8 +35,8 @@ Configuration is loaded by [backend/app/deps.py](../../backend/app/deps.py), whi
 | `oci.config_path` / `config_profile` | OCI SDK auth. | `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
 | `oci.models.embeddings` / `chat` | Backward-compat aliases. | `OCI_EMBED_MODEL_ID`, `OCI_LLM_MODEL_ID` |
 | `oci.embeddings` | `model_id`, `endpoint`, `compartment_id`, `auth_file`, `auth_profile`. | `OCI_EMBED_MODEL_ID`, `OCI_GENAI_ENDPOINT`, `OCI_COMPARTMENT_OCID`, `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
-| `oci.llm_primary` | Primary chat model configuration; `model_id` may be alias or OCID. | `OCI_LLM_PRIMARY_MODEL_ID`, `OCI_LLM_PRIMARY_ENDPOINT`, `OCI_LLM_PRIMARY_COMPARTMENT_OCID`, `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
-| `oci.llm_fallback` | Fallback chat model configuration (must be OCID). | `OCI_LLM_FALLBACK_MODEL_ID`, `OCI_LLM_FALLBACK_ENDPOINT`, `OCI_LLM_FALLBACK_COMPARTMENT_OCID`, `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
+| `oci.llm_primary` | Primary chat model configuration; `model_id` may be alias or OCID. Optional generation params: `max_tokens`, `temperature`, `top_p`, `top_k`, `frequency_penalty`, `presence_penalty`. | `OCI_LLM_PRIMARY_MODEL_ID`, `OCI_LLM_PRIMARY_ENDPOINT`, `OCI_LLM_PRIMARY_COMPARTMENT_OCID`, `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
+| `oci.llm_fallback` | Fallback chat model configuration (must be OCID). Optional generation params: `max_tokens`, `temperature`, `top_p`, `top_k`, `frequency_penalty`, `presence_penalty`. | `OCI_LLM_FALLBACK_MODEL_ID`, `OCI_LLM_FALLBACK_ENDPOINT`, `OCI_LLM_FALLBACK_COMPARTMENT_OCID`, `OCI_CONFIG_PATH`, `OCI_CONFIG_PROFILE` |
 | `oraclevs` | Oracle DSN, username, password, and default logical table. | `DB_DSN`, `DB_USER`, `DB_PASSWORD`, `ORACLEVS_TABLE` |
 
 ## `.env` Keys (from `backend/.env.example`)
@@ -63,3 +63,12 @@ Configuration is loaded by [backend/app/deps.py](../../backend/app/deps.py), whi
 ## TODO
 - Clarify ownership of `retrieval.legacy` keys; they are currently unused in the runtime service.
 - Consider consolidating duplicate LLM identifiers (`oci.models.chat` vs explicit `llm_primary`) to reduce confusion.
+ 
+## Generation Parameters
+- Scope: Only under `providers.oci.llm_primary` and `providers.oci.llm_fallback`.
+- Supported keys: `max_tokens` (int > 0), `temperature` [0.0–2.0], `top_p` [0.0–1.0], `top_k` (int >= 0), `frequency_penalty` [0.0–2.0], `presence_penalty` [0.0–2.0].
+- Behavior: All keys are optional. Missing keys preserve legacy behavior. Values outside ranges are clamped during startup and printed in the startup summary.
+- Precedence: Values in the respective LLM section are applied to that LLM only; primary and fallback are independent.
+ - Environment overrides: Each key may be overridden via environment variables with higher precedence than YAML defaults:
+   - Primary: `OCI_LLM_PRIMARY_MAX_TOKENS`, `OCI_LLM_PRIMARY_TEMPERATURE`, `OCI_LLM_PRIMARY_TOP_P`, `OCI_LLM_PRIMARY_TOP_K`, `OCI_LLM_PRIMARY_FREQUENCY_PENALTY`, `OCI_LLM_PRIMARY_PRESENCE_PENALTY`.
+   - Fallback: `OCI_LLM_FALLBACK_MAX_TOKENS`, `OCI_LLM_FALLBACK_TEMPERATURE`, `OCI_LLM_FALLBACK_TOP_P`, `OCI_LLM_FALLBACK_TOP_K`, `OCI_LLM_FALLBACK_FREQUENCY_PENALTY`, `OCI_LLM_FALLBACK_PRESENCE_PENALTY`.

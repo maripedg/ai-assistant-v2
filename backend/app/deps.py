@@ -10,6 +10,12 @@ from dotenv import load_dotenv
 
 import oci
 
+from dotenv import load_dotenv
+
+import oci
+from backend.providers.oci.embeddings_adapter import OCIEmbeddingsAdapter
+
+
 logger = logging.getLogger(__name__)
 
 # ---------------- paths ----------------
@@ -420,21 +426,23 @@ def _probe_service(section: str) -> Dict[str, Any]:
 
     try:
         if section == "embeddings":
-            try:
-                from langchain_community.embeddings import OCIGenAIEmbeddings  # type: ignore
-            except ModuleNotFoundError as exc:
-                raise ModuleNotFoundError(
-                    "langchain-community is required to probe embeddings availability"
-                ) from exc
-
-            client = OCIGenAIEmbeddings(
+            # Probar vía adapter (Embeddings de LangChain) para asegurar compatibilidad
+            emb_app = _get_embeddings_settings()
+            input_types = (emb_app.get("profiles", {}) or {}).get(
+                emb_app.get("active_profile"), {}
+            ).get("input_types", {}) if isinstance(emb_app, dict) else {}
+            doc_it = input_types.get("documents", "search_document")
+            qry_it = input_types.get("queries", "search_query")
+            adapter = OCIEmbeddingsAdapter(
                 model_id=cfg["model_id"],
                 service_endpoint=cfg["endpoint"],
                 compartment_id=cfg["compartment_id"],
                 auth_file_location=cfg["auth_file"],
                 auth_profile=cfg["auth_profile"],
+                doc_input_type=doc_it,
+                query_input_type=qry_it,
             )
-            client.embed_query("ping")
+            adapter.embed_query("ping")
         elif section == "llm_primary":
             from backend.providers.oci.chat_model import OciChatModel
             from backend.providers.oci.chat_model_chat import OciChatModelChat
@@ -488,21 +496,22 @@ def _probe_service(section: str) -> Dict[str, Any]:
 def make_embeddings():
     _log_embedding_runtime_once()
     cfg = _load_oci_section("embeddings")
+    emb_app = _get_embeddings_settings()  # lee de app.yaml
+    input_types = (emb_app.get("profiles", {}) or {}).get(
+        emb_app.get("active_profile"), {}
+    ).get("input_types", {}) if isinstance(emb_app, dict) else {}
+    doc_it = input_types.get("documents", "search_document")
+    qry_it = input_types.get("queries", "search_query")
 
-    try:
-        from langchain_community.embeddings import OCIGenAIEmbeddings  # type: ignore
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "The 'langchain-community' package is required for embeddings. "
-            "Install it via `pip install langchain-community`."
-        ) from exc
-
-    return OCIGenAIEmbeddings(
+    # Devuelve el adapter (hereda de langchain_core.embeddings.Embeddings)
+    return OCIEmbeddingsAdapter(
         model_id=cfg["model_id"],
         service_endpoint=cfg["endpoint"],
         compartment_id=cfg["compartment_id"],
         auth_file_location=cfg["auth_file"],
         auth_profile=cfg["auth_profile"],
+        doc_input_type=doc_it,
+        query_input_type=qry_it,
     )
 
 
@@ -641,8 +650,9 @@ def validate_startup(verbose: bool = True) -> None:
         return "(missing)" if value is None else value
 
     top_k = _safe_value(retrieval_cfg, "top_k")
-    thr_low = _safe_value(retrieval_cfg, "threshold_low")
-    thr_high = _safe_value(retrieval_cfg, "threshold_high")
+    thresholds = retrieval_cfg.get("thresholds") if isinstance(retrieval_cfg, dict) else None
+    thr_low = _safe_value(thresholds or {}, "low")
+    thr_high = _safe_value(thresholds or {}, "high")
 
     short_cfg = retrieval_cfg.get("short_query") if isinstance(retrieval_cfg, dict) else None
     short_max = _safe_value(short_cfg or {}, "max_tokens")

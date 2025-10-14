@@ -135,11 +135,14 @@ def ensure_alias(conn: Any, alias_name: str, index_name: str) -> None:
                     f"Drop it or choose another alias."
                 )
 
-        stmt = (
-            f"CREATE OR REPLACE VIEW {alias_name} (ID, TEXT, METADATA, EMBEDDING) AS "
-            f"SELECT ID, TEXT, METADATA, EMBEDDING FROM {index_name}"
-        )
+    # Normalize METADATA to CLOB for compatibility with LangChain OracleVS, which expects CLOB or LOB
+    # rather than Python dicts when reading the metadata column.
+    stmt = (
+        f"CREATE OR REPLACE VIEW {alias_name} (ID, TEXT, METADATA, EMBEDDING) AS "
+        f"SELECT ID, TEXT, JSON_SERIALIZE(METADATA RETURNING CLOB) AS METADATA, EMBEDDING FROM {index_name}"
+    )
+    with conn.cursor() as cur:
         cur.execute(stmt)
-        conn.commit()
+    conn.commit()
     logger.info("alias %s -> %s", alias_name, index_name)
 logger = logging.getLogger(__name__)

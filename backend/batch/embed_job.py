@@ -668,8 +668,13 @@ def run_embed_job(
             if elapsed < rate_interval:
                 time.sleep(rate_interval - elapsed)
         batch = vector_buffer[offset : offset + batch_size]
-        texts = [item["text"] for item in batch]
-        embeddings = embedder.embed_documents(texts)
+        # Filter out empty/whitespace-only texts to avoid OCI 400 errors
+        non_empty_idx = [i for i, item in enumerate(batch) if (item.get("text") or "").strip()]
+        if not non_empty_idx:
+            # Nothing to embed in this batch
+            continue
+        texts = [batch[i]["text"] for i in non_empty_idx]
+        embeddings = embedder.embed_documents(texts, input_type="search_document")
         # Ensure physical table exists with proper embedding dimension, once we know it
         if not dry_run and not ensured_table:
             if not embeddings:
@@ -684,9 +689,14 @@ def run_embed_job(
         if not logged_target_table and not dry_run:
             logger.debug("Upserting into physical table: %s", index_name)
             logged_target_table = True
-        for payload, embedding in zip(batch, embeddings):
-            payload["embedding"] = embedding
-        batch_inserted, batch_skipped = upserter.upsert_vectors(batch, dedupe_enabled, dry_run=dry_run)
+        # Attach embeddings back to the corresponding payloads
+        for idx, embedding in zip(non_empty_idx, embeddings):
+            batch[idx]["embedding"] = embedding
+        # Only upsert items that actually have embeddings
+        upsert_batch = [item for item in batch if "embedding" in item]
+        if not upsert_batch:
+            continue
+        batch_inserted, batch_skipped = upserter.upsert_vectors(upsert_batch, dedupe_enabled, dry_run=dry_run)
         inserted += batch_inserted
         skipped += batch_skipped
         last_batch_time = time.time()

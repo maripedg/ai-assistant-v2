@@ -64,7 +64,9 @@ class OracleVSStore(VectorStorePort):
         start = perf_counter()
         raw_results = self.vs.similarity_search_with_score(query, k=k)
 
-        order = "DESC" if self._distance_label == "dot_product" else "ASC"
+        # Oracle VECTOR_DISTANCE returns a distance for both DOT and COSINE
+        # (smaller = more similar). Keep ascending order for all metrics.
+        order = "ASC"
         enriched: List[Tuple[Any, float]] = []
         for doc, score in raw_results:
             metadata = dict(getattr(doc, "metadata", {}) or {})
@@ -77,10 +79,8 @@ class OracleVSStore(VectorStorePort):
             doc.metadata = metadata
             enriched.append((doc, raw_score))
 
-        if order == "DESC":
-            enriched.sort(key=lambda item: item[1], reverse=True)
-        else:
-            enriched.sort(key=lambda item: item[1])
+        # Always sort by ascending distance (lower is better)
+        enriched.sort(key=lambda item: item[1])
 
         elapsed_ms = (perf_counter() - start) * 1000.0
         preview = query if len(query) <= 120 else f"{query[:117]}..."

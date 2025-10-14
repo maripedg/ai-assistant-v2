@@ -10,9 +10,9 @@ retrieval:
   mode: hybrid_prefer_db
   top_k: 12
   distance: dot_product
+  score_kind: similarity
+  docs_normalized: true
   # Mantén el comportamiento anterior: thresholds "planos"
-  threshold_low: 0.1
-  threshold_high: 0.3
   # NUEVO: selector de modo de puntuación y thresholds adicionales
   score_mode: normalized
   thresholds:
@@ -120,7 +120,6 @@ prompts:
     max_output_tokens: 512
   # NUEVO prompt para HYBRID
   hybrid:
-    system: |
     system: |
       You are a technical assistant for Oracle SBC configuration topics.
       First, use the provided CONTEXT excerpts as your primary evidence.

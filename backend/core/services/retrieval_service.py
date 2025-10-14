@@ -24,13 +24,36 @@ class RetrievalService:
         thresholds_cfg = retrieval_cfg.get("thresholds", {}) or {}
         self.score_mode = (retrieval_cfg.get("score_mode") or "normalized").lower()
         self.distance = (retrieval_cfg.get("distance") or "dot_product").lower()
+        self.score_kind = (retrieval_cfg.get("score_kind") or "similarity").lower()
+        # Default docs_normalized to True when missing
+        self.docs_normalized = bool(retrieval_cfg.get("docs_normalized", True))
 
-        self.norm_low = float(thresholds_cfg.get("low", 0.20))
-        self.norm_high = float(thresholds_cfg.get("high", 0.45))
-        self.raw_dot_low = float(thresholds_cfg.get("raw_dot_low", -0.50))
-        self.raw_dot_high = float(thresholds_cfg.get("raw_dot_high", -0.20))
-        self.raw_cos_low = float(thresholds_cfg.get("raw_cosine_low", 0.25))
-        self.raw_cos_high = float(thresholds_cfg.get("raw_cosine_high", 0.55))
+        # Require normalized thresholds
+        if "low" not in thresholds_cfg or "high" not in thresholds_cfg:
+            raise ValueError("retrieval.thresholds.low/high are required in app.yaml")
+        self.norm_low = float(thresholds_cfg.get("low"))
+        self.norm_high = float(thresholds_cfg.get("high"))
+
+        # Validate RAW mode thresholds per metric
+        if self.score_mode == "raw":
+            if "dot" in self.distance:
+                if "raw_dot_low" not in thresholds_cfg or "raw_dot_high" not in thresholds_cfg:
+                    raise ValueError(
+                        "retrieval.thresholds.raw_dot_low/high are required for score_mode=raw with distance=dot_product"
+                    )
+                self.raw_dot_low = float(thresholds_cfg.get("raw_dot_low"))
+                self.raw_dot_high = float(thresholds_cfg.get("raw_dot_high"))
+            elif "cos" in self.distance:
+                if "raw_cosine_low" not in thresholds_cfg or "raw_cosine_high" not in thresholds_cfg:
+                    raise ValueError(
+                        "retrieval.thresholds.raw_cosine_low/high are required for score_mode=raw with distance=cosine"
+                    )
+                self.raw_cos_low = float(thresholds_cfg.get("raw_cosine_low"))
+                self.raw_cos_high = float(thresholds_cfg.get("raw_cosine_high"))
+            else:
+                raise ValueError(
+                    f"score_mode=raw unsupported for distance={self.distance} (explicit raw thresholds required)"
+                )
 
         short_cfg = retrieval_cfg.get("short_query", {}) or {}
         self.short_max_tokens = int(short_cfg.get("max_tokens", 2))
@@ -76,6 +99,19 @@ class RetrievalService:
 
         decision_score, low, high = self._pick_thresholds(max_raw, max_norm, short_query)
         mode = self._decide_mode(decision_score, low, high, short_query)
+
+        raw_vals = [m["raw_score"] for m in metas]
+        sim_vals = [m["similarity"] for m in metas]
+        log.info(
+            "raw_range=[%.4f..%.4f] sim_range=[%.4f..%.4f] metric=%s kind=%s docs_norm=%s",
+            min(raw_vals),
+            max(raw_vals),
+            min(sim_vals),
+            max(sim_vals),
+            self.distance,
+            self.score_kind,
+            self.docs_normalized,
+        )
 
         if mode == "fallback":
             return self._build_response(question, mode, metas, [], decision_score, short_query, llm_used="fallback")
@@ -181,10 +217,24 @@ class RetrievalService:
         return metas
 
     def _normalize(self, raw_value: float) -> float:
-        if "dot" in self.distance:
-            value = (raw_value + 1.0) / 2.0
+        # Cohere embeddings are unit-normalized when docs_normalized=True.
+        # Normalization rules:
+        # - dot + docs_normalized=True       -> (-raw + 1) / 2   [VECTOR_DISTANCE(DOT) returns distance]
+        # - cosine + score_kind=similarity   -> (raw + 1) / 2
+        # - cosine + score_kind=distance     -> 1 - clamp(raw/2, 0, 1)
+        # - l2/distance fallback             -> 1 / (1 + |raw|)
+        if "dot" in self.distance and self.docs_normalized:
+            value = (-raw_value + 1.0) / 2.0
         elif "cos" in self.distance:
-            value = 1.0 - raw_value
+            if self.score_kind == "similarity":
+                value = (raw_value + 1.0) / 2.0
+            else:
+                x = raw_value / 2.0
+                if x < 0.0:
+                    x = 0.0
+                elif x > 1.0:
+                    x = 1.0
+                value = 1.0 - x
         else:
             value = 1.0 / (1.0 + abs(raw_value))
         return min(max(value, 0.0), 1.0)
@@ -197,7 +247,7 @@ class RetrievalService:
             elif "cos" in self.distance:
                 low, high = self.raw_cos_low, self.raw_cos_high
             else:
-                low, high = self.norm_low, self.norm_high
+                raise ValueError("raw mode requires explicit raw thresholds for the selected metric")
         else:
             score = max_norm if max_norm is not None else float("-inf")
             low, high = self.norm_low, self.norm_high

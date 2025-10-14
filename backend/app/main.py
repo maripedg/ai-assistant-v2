@@ -1,11 +1,19 @@
 import logging
 
+# --- Logging setup ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s %(name)s:%(lineno)d | %(message)s"
+)
+logging.getLogger("backend.core.services.retrieval_service").setLevel(logging.INFO)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
+# --- End logging setup ---
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routers import health, chat
 from backend.app.deps import settings, validate_startup
-
-logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(title="AI Assistant Backend")
 

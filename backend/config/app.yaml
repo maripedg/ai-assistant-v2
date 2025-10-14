@@ -11,13 +11,13 @@ retrieval:
   top_k: 12
   distance: dot_product
   # Mantén el comportamiento anterior: thresholds "planos"
-  threshold_low: 0.20
-  threshold_high: 0.50
+  threshold_low: 0.1
+  threshold_high: 0.3
   # NUEVO: selector de modo de puntuación y thresholds adicionales
   score_mode: normalized
   thresholds:
-    low: 0.20
-    high: 0.50
+    low: 0.1
+    high: 0.3
     raw_dot_low:  -0.50
     raw_dot_high: -0.20
     raw_cosine_low:  0.25
@@ -46,11 +46,15 @@ retrieval:
   # NUEVO: parámetros de ensamblado en modo híbrido
   hybrid:
     max_context_chars: 8000
-    max_chunks: 6
-    min_tokens_per_chunk: 200
+    max_chunks: 1
+    min_tokens_per_chunk: 0
     llm_enrichment: true
     cite_sources: true
     require_disclaimer_on_gaps: true
+    # --- GATE: mínimos para permitir HYBRID ---
+    min_similarity_for_hybrid: 0.3      # si max_similarity < 0.55 => forzar fallback
+    min_chunks_for_hybrid: 1             # si usados < 2 => forzar fallback
+    min_total_context_chars: 0        # si contexto < 1200 chars => forzar fallback
 
 embeddings:
   active_profile: legacy_profile   # default, can be switched to standard_profile later
@@ -106,21 +110,35 @@ prompts:
   no_context_token: "__NO_CONTEXT__"
   rag:
     system: |
-      You are a telecom assistant. Use ONLY the CONTEXT below to answer.
-      If the context is insufficient, output exactly __NO_CONTEXT__.
-      Be concise, define acronyms on first mention, and cite the source filename(s).
+      You are a telecom assistant specialized in Oracle SBC configuration and troubleshooting.
+      Use ONLY the CONTEXT provided below to answer.
+      If the CONTEXT is insufficient, irrelevant, or does not contain the answer, output exactly __NO_CONTEXT__ and nothing else.
+      Do not add general knowledge beyond the provided excerpts.
+      Be concise, define acronyms on first mention, and cite the source filename(s) in parentheses.
+      Use bullet points or numbered steps when describing configuration procedures.
     style: balanced
     max_output_tokens: 512
   # NUEVO prompt para HYBRID
   hybrid:
     system: |
-      You are a technical assistant. First, use the provided excerpts as primary evidence.
-      If minor gaps exist, you MAY add concise bridging context from general knowledge, but do not contradict the excerpts.
-      Clearly prioritize doc-based facts and cite source filenames when possible.
+    system: |
+      You are a technical assistant for Oracle SBC configuration topics.
+      First, use the provided CONTEXT excerpts as your primary evidence.
+      If minor gaps exist, you MAY add concise bridging information from general telecom knowledge,
+      but never contradict or override the excerpts.
+      If the CONTEXT is insufficient, irrelevant, or off-topic, output exactly __NO_CONTEXT__ and nothing else.
+      Do not fabricate sources or commands that do not appear in the CONTEXT.
+      Always prioritize factual details from the documents and cite the source filenames when possible.
+      Format configuration steps clearly, using numbered lists when appropriate.
     max_output_tokens: 512
   fallback:
     system: |
-      You are a helpful assistant. Answer clearly and concisely.
+      You are a helpful and knowledgeable assistant.
+      Answer clearly and concisely using general knowledge only.
+      Do NOT cite or refer to any document context.
+      If the question is unrelated to your domain or cannot be answered reliably,
+      explain the limitation politely and suggest how the user could rephrase or narrow the question.
+      Keep the tone professional and neutral.
     max_output_tokens: 512
 
 fallback:

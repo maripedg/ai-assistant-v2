@@ -41,6 +41,10 @@ class RetrievalService:
         self.hybrid_max_chars = int(hybrid_cfg.get("max_context_chars", 8000))
         self.hybrid_max_chunks = int(hybrid_cfg.get("max_chunks", 6))
         self.hybrid_min_chars = int(hybrid_cfg.get("min_tokens_per_chunk", 200))
+        # Evidence gate defaults
+        self.hybrid_gate_min_similarity = float(hybrid_cfg.get("min_similarity_for_hybrid", 0.0))
+        self.hybrid_gate_min_chunks = int(hybrid_cfg.get("min_chunks_for_hybrid", 0))
+        self.hybrid_gate_min_total_chars = int(hybrid_cfg.get("min_total_context_chars", 0))
 
         self.top_k = int(retrieval_cfg.get("top_k", 8))
         self.dedupe_key = retrieval_cfg.get("dedupe_by", "doc_id")
@@ -78,7 +82,53 @@ class RetrievalService:
 
         context_text, used_chunks = self._select_context(metas)
         if not context_text:
-            return self._build_response(question, "fallback", metas, [], decision_score, short_query, llm_used="fallback")
+            return self._build_response(
+                question,
+                "fallback",
+                metas,
+                [],
+                decision_score,
+                short_query,
+                llm_used="fallback",
+                reason="gate_failed_min_context",
+            )
+
+        # Evidence gate: only applicable for hybrid vs fallback
+        if mode == "hybrid":
+            total_ctx_chars = len(context_text.encode("utf-8"))
+            if decision_score is not None and decision_score < self.hybrid_gate_min_similarity:
+                return self._build_response(
+                    question,
+                    "fallback",
+                    metas,
+                    [],
+                    decision_score,
+                    short_query,
+                    llm_used="fallback",
+                    reason="gate_failed_min_similarity",
+                )
+            if len(used_chunks) < self.hybrid_gate_min_chunks:
+                return self._build_response(
+                    question,
+                    "fallback",
+                    metas,
+                    [],
+                    decision_score,
+                    short_query,
+                    llm_used="fallback",
+                    reason="gate_failed_min_chunks",
+                )
+            if total_ctx_chars < self.hybrid_gate_min_total_chars:
+                return self._build_response(
+                    question,
+                    "fallback",
+                    metas,
+                    [],
+                    decision_score,
+                    short_query,
+                    llm_used="fallback",
+                    reason="gate_failed_min_context",
+                )
 
         system_prompt = self.rag_prompt
         if mode == "hybrid":
@@ -86,8 +136,17 @@ class RetrievalService:
         prompt = self._compose_prompt(system_prompt, context_text, question)
 
         answer = (self.llm_primary.generate(prompt) or "").strip()
-        if not answer:
-            return self._build_response(question, "fallback", metas, [], decision_score, short_query, llm_used="fallback")
+        if not answer or answer == (self.no_context_token or ""):
+            return self._build_response(
+                question,
+                "fallback",
+                metas,
+                [],
+                decision_score,
+                short_query,
+                llm_used="fallback",
+                reason="llm_no_context_token" if answer == (self.no_context_token or "") else None,
+            )
 
         return self._build_response(
             question,
@@ -213,6 +272,7 @@ class RetrievalService:
         short_query: bool,
         answer: Optional[str] = None,
         llm_used: str = "primary",
+        reason: Optional[str] = None,
     ) -> Dict:
         if not answer:
             prompt = f"{self.fallback_prompt}\n\n{question}" if self.fallback_prompt else question
@@ -252,6 +312,8 @@ class RetrievalService:
             "effective_query": question,
             "used_llm": llm_used,
         }
+        if reason:
+            decision_explain["reason"] = reason
 
         return {
             "question": question,

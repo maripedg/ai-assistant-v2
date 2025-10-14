@@ -14,7 +14,7 @@ Configuration is loaded by [backend/app/deps.py](../../backend/app/deps.py), whi
 | `retrieval` | `mode`, `top_k`, `distance`, `threshold_low/high`, `score_mode`, nested `thresholds` for raw metrics | Governs similarity search parameters and thresholding. |
 | `retrieval.short_query` | `max_tokens`, `threshold_low/high` | Overrides thresholds for terse questions. |
 | `retrieval.expansions` | `enabled`, `terms` | Reserved for query expansion (currently unused). |
-| `retrieval.hybrid` | `max_context_chars`, `max_chunks`, `min_tokens_per_chunk`, flags for LLM enrichment/citations | Controls context assembly and hybrid behavior. |
+| `retrieval.hybrid` | `max_context_chars`, `max_chunks`, `min_tokens_per_chunk`, `min_similarity_for_hybrid`, `min_chunks_for_hybrid`, `min_total_context_chars` | Controls context assembly, evidence gate, and hybrid behavior. |
 | `embeddings.active_profile` | String | Default profile for ingestion jobs. |
 | `embeddings.alias` | `name`, `active_index` | Alias/view indirection between physical tables and API. |
 | `embeddings.profiles` | Nested profiles (e.g., `legacy_profile`, `standard_profile`) with `index_name`, `chunker`, `distance_metric`, `input_types`, `metadata.keep` | Manifest-driven chunking and storage definitions. |
@@ -72,3 +72,9 @@ Configuration is loaded by [backend/app/deps.py](../../backend/app/deps.py), whi
  - Environment overrides: Each key may be overridden via environment variables with higher precedence than YAML defaults:
    - Primary: `OCI_LLM_PRIMARY_MAX_TOKENS`, `OCI_LLM_PRIMARY_TEMPERATURE`, `OCI_LLM_PRIMARY_TOP_P`, `OCI_LLM_PRIMARY_TOP_K`, `OCI_LLM_PRIMARY_FREQUENCY_PENALTY`, `OCI_LLM_PRIMARY_PRESENCE_PENALTY`.
    - Fallback: `OCI_LLM_FALLBACK_MAX_TOKENS`, `OCI_LLM_FALLBACK_TEMPERATURE`, `OCI_LLM_FALLBACK_TOP_P`, `OCI_LLM_FALLBACK_TOP_K`, `OCI_LLM_FALLBACK_FREQUENCY_PENALTY`, `OCI_LLM_FALLBACK_PRESENCE_PENALTY`.
+### Hybrid Evidence Gate
+- `min_similarity_for_hybrid` (float, default `0.0`): require at least this decision score (based on `score_mode`) to keep hybrid; otherwise fallback.
+- `min_chunks_for_hybrid` (int, default `0`): require at least this many context chunks after dedupe/filters; otherwise fallback.
+- `min_total_context_chars` (int, default `0`): require at least this many bytes of assembled context; otherwise fallback.
+- When a gate forces fallback, `decision_explain.reason` is set to one of `gate_failed_min_similarity`, `gate_failed_min_chunks`, or `gate_failed_min_context`.
+- If the primary LLM returns the exact `prompts.no_context_token`, the runtime falls back to the fallback LLM and sets `decision_explain.reason=llm_no_context_token`.

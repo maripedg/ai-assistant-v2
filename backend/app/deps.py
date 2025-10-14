@@ -665,9 +665,19 @@ def validate_startup(verbose: bool = True) -> None:
     distance = _safe_value(retrieval_cfg, "distance")
     dedupe_by = _safe_value(retrieval_cfg, "dedupe_by")
 
+    # Hybrid gate logging
+    hybrid_cfg = retrieval_cfg.get("hybrid") if isinstance(retrieval_cfg, dict) else None
+    if isinstance(hybrid_cfg, dict):
+        gate_min_sim = hybrid_cfg.get("min_similarity_for_hybrid", 0.0)
+        gate_min_chunks = hybrid_cfg.get("min_chunks_for_hybrid", 0)
+        gate_min_ctx = hybrid_cfg.get("min_total_context_chars", 0)
+    else:
+        gate_min_sim, gate_min_chunks, gate_min_ctx = 0.0, 0, 0
+
     print(
         "retrieval: top_k={0}, threshold_low={1}, threshold_high={2}, short_query={{max_tokens:{3}, low:{4}, high:{5}}}, "
-        "expansions_enabled={6}, expansion_terms={7}, distance={8}, dedupe_by={9}".format(
+        "expansions_enabled={6}, expansion_terms={7}, distance={8}, dedupe_by={9}, "
+        "hybrid_gates={{min_sim:{10}, min_chunks:{11}, min_ctx_chars:{12}}}".format(
             top_k,
             thr_low,
             thr_high,
@@ -678,6 +688,9 @@ def validate_startup(verbose: bool = True) -> None:
             exp_terms_count,
             distance,
             dedupe_by,
+            gate_min_sim,
+            gate_min_chunks,
+            gate_min_ctx,
         )
     )
 

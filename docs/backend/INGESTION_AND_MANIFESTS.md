@@ -57,3 +57,85 @@ Arguments:
 ## TODO
 - Implement token-based chunking for the `standard_profile` (`chunker.type: tokens`) to honour profile intentions.
 - Wire `--workers` into actual parallel execution if ingestion throughput becomes a bottleneck.
+# Ingestion & Manifests
+
+## Purpose
+Describe how content is ingested, chunked, embedded, and inserted into Oracle Vector Search; define the manifest format.
+
+## Components / Architecture
+- CLI entrypoint: `backend/batch/cli.py`
+- Job implementation: `backend/batch/embed_job.py`
+- Strategy hook (optional): `backend/core/embeddings/embedding_strategy.py`
+- Providers: OracleVS admin helpers `backend/providers/oracle_vs/index_admin.py`
+
+## Parameters & Env
+- Uses `backend/config/app.yaml` → `embeddings.active_profile` and `profiles.*` for chunker and `distance_metric`.
+- Uses `backend/config/providers.yaml` for DB connection and OCI settings.
+- Sanitizer can run pre‑embedding (see [Sanitization](./SANITIZATION.md)).
+
+## Manifest Schema
+Newline‑delimited JSON (JSONL). Minimal field:
+
+```json
+{ "path": "C:/path/to/files/*.pdf" }
+```
+
+Optional fields per line (if supported by your pipeline):
+- `doc_id` (string), `profile` (string), `tags` (string[]), `lang` (string), `priority` (int)
+
+Example from repo:
+
+```json
+{ "path": "C:/Users/Mario Pedraza/Desktop/Development/ai-assistant-v2/data/docs/*.md" }
+```
+
+## Examples
+Run the embed job (creates/validates table, embeds, inserts, and updates alias if requested):
+
+```bash
+python -m backend.batch.cli embed \
+  --manifest backend/ingest/examples/my_pdfs.jsonl \
+  --profile legacy_profile \
+  --update-alias
+``;
+
+## Ops Notes
+- The job skips empty/whitespace‑only texts to prevent 400s from the embed API.
+- The alias view is recreated with `JSON_SERIALIZE(METADATA RETURNING CLOB)` for OracleVS compatibility.
+- Ensure DB credentials and `OCI_CONFIG_*` are valid before running.
+
+## Supported Types
+The ingestion loaders produce items with the following metadata keys. Chunkers are applied after sanitization:
+
+| Type | Loader | Required metadata | Notes |
+| ---- | ------ | ----------------- | ----- |
+| pdf  | pdf_loader | `source` (abs path), `content_type="application/pdf"`, `page` (int), `has_ocr` (bool) | One item per page; OCR optional and only for pages with no text |
+| docx | docx_loader | `source`, `content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"` | Sections split by Heading1 if present; otherwise one item |
+| pptx | pptx_loader | `source`, `content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"`, `slide_number` (int), `has_notes` (bool) | One item per slide; notes appended when available |
+| xlsx | xlsx_loader | `source`, `content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"`, `sheet_name` (str), `n_rows` (int), `n_cols` (int) | One item per sheet; concise text summary, not full data dump |
+| html | html_loader | `source`, `content_type="text/html"`, `section_path` (e.g., `h1>h2`) | Split by top‑level sections where possible |
+| txt  | txt_loader  | `source`, `content_type="text/plain"` | Single item or paragraph blocks if large |
+
+Chunkers
+- Char: `char_chunker` with `size` and `overlap` (profile‑driven).
+- Tokens: `token_chunker` with `max_tokens` and fractional `overlap` (profile‑driven).
+
+Manifest
+- JSONL lines support `path` (file or glob), optional `tags`, optional `content_type` hint. Globs are expanded relative to the manifest file. Missing files are skipped with a warning.
+
+## Cleaning Policy
+Before sanitization and chunking, every loader’s text passes through a deterministic cleaner:
+- Unicode NFC normalization
+- Removal of invisible chars (zero width); NBSP mapped to space; soft hyphen removed
+- Ligature replacement (ﬁ→fi, ﬂ→fl)
+- Line ending normalization; trailing space trim; collapse multiple spaces (not newlines)
+- Safe de‑hyphenation at line breaks (avoids true hyphenated terms)
+- Optional header/footer de‑dup (conservative heuristic)
+- Table‑preserving mode (for XLSX summaries) keeps row structure
+- Noise blocks filtered (<10 alphabetic chars unless heading‑like)
+
+Order in pipeline: loader → CLEAN → sanitize → chunk → embed
+
+## See also
+- [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md)
+- [Runbook](./RUNBOOK.md)

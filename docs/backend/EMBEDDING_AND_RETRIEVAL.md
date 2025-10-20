@@ -44,3 +44,71 @@ Implementation: [backend/core/services/retrieval_service.py](../../backend/core/
 ## TODO
 - Implement extractive and multi-answer paths (`answer2`, `answer3`) or prune them from the schema to avoid confusion.
 - Consider exposing retrieval diagnostics (e.g., raw ranks, trace IDs) via an authenticated endpoint for deeper observability.
+# Embedding & Retrieval
+
+## Purpose
+Explain how document embeddings are produced and how retrieval ranking/thresholding works.
+
+## Components / Architecture
+- Embeddings: OCI Generative AI via adapter (`backend/providers/oci/embeddings_adapter.py`).
+- Vector store: OracleVS wrapper (`backend/providers/oci/vectorstore.py`).
+- Retrieval logic: `backend/core/services/retrieval_service.py`.
+- Config: `backend/config/app.yaml` (retrieval, profiles) and `backend/config/providers.yaml` (endpoints, DSN, models).
+
+## Parameters & Env
+- Profiles under `app.yaml` → `embeddings.profiles` (e.g., `legacy_profile`, `standard_profile`).
+  - Each profile includes `index_name`, `chunker` settings, and `distance_metric` (`dot_product` or `cosine`).
+- Retrieval controls under `app.yaml` → `retrieval`:
+  - `distance`: distance label used by service (`dot_product` or `cosine`).
+  - `score_mode`: `normalized` or `raw`.
+  - `score_kind`: `similarity` or `distance` (cosine handling).
+  - `docs_normalized`: whether vectors are unit‑norm (Cohere profiles → true).
+  - `thresholds`: `{ low, high, raw_dot_low/high, raw_cosine_low/high }`.
+
+## Examples
+Switch active embedding profile:
+
+```yaml
+# backend/config/app.yaml
+embeddings:
+  active_profile: legacy_profile
+  profiles:
+    legacy_profile:
+      index_name: MY_DEMO_v1
+      distance_metric: dot_product
+      chunker:
+        type: char
+        size: 2000
+        overlap: 100
+    standard_profile:
+      index_name: MY_DEMO_v2
+      distance_metric: cosine
+      chunker:
+        type: tokens
+        size: 900
+        overlap: 0.15
+```
+
+Retrieval flow (simplified):
+
+```
+Query → Embedding (search_query) → Oracle VECTOR_DISTANCE
+     → Top‑K (ASC by distance) → Normalize/threshold
+     → Context selection → Prompt → LLM answer
+```
+
+Quality & thresholds:
+- Use `score_mode=normalized` for UI‑friendly [0,1] scores.
+- For DOT with unit‑norm vectors, Oracle returns a distance; normalization maps `(-raw + 1)/2`.
+- Tune `thresholds.low/high` to gate RAG vs fallback; hybrid gates live under `retrieval.hybrid`.
+
+## Ops Notes
+- Ensure alias view projects `(ID, TEXT, METADATA CLOB, EMBEDDING)`.
+- Keep `providers.yaml` `oraclevs.distance` aligned with `app.yaml` `retrieval.distance`.
+
+Note
+- Chunker selection is profile‑driven; ingestion loaders do not affect the distance metric. Loaders only influence extracted text quality and attached metadata.
+
+## See also
+- [Config](./CONFIG_REFERENCE.md)
+- [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md)

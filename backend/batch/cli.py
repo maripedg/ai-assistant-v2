@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+from pathlib import Path
+from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _handle_embed(args: argparse.Namespace) -> None:
     from backend.batch.embed_job import format_summary, run_embed_job
+    from backend.app.deps import settings
+    from backend.ingest.manifests.spec import validate_and_expand_manifest
+    from backend.ingest.router import route_and_load
+    from backend.ingest.normalizer import normalize_metadata
+    from backend.ingest.chunking.char_chunker import chunk_text
+    from backend.ingest.chunking.token_chunker import chunk_text_by_tokens
 
     logger.info(
         "Starting embed job: manifest=%s profile=%s dry_run=%s update_alias=%s batch_size=%s workers=%s evaluate=%s",
@@ -57,6 +65,71 @@ def _handle_embed(args: argparse.Namespace) -> None:
         args.workers,
         args.evaluate_path,
     )
+    if args.dry_run:
+        # Preflight: expand, load, normalize, chunk; print content_type summary
+        app_settings = settings.app
+        embeddings_cfg = app_settings.get("embeddings", {}) or {}
+        profile_name = args.profile or embeddings_cfg.get("active_profile")
+        if not profile_name:
+            raise ValueError("No embedding profile specified")
+        profiles = embeddings_cfg.get("profiles", {}) or {}
+        profile_cfg = profiles.get(profile_name) or {}
+        chunker_cfg = profile_cfg.get("chunker", {}) or {}
+
+        files = validate_and_expand_manifest(args.manifest)
+        print(f"[dry-run] Files: {len(files)}")
+
+        item_counts: Dict[str, int] = {k: 0 for k in ("pdf", "docx", "pptx", "xlsx", "html", "txt")}
+        chunk_counts: Dict[str, int] = {k: 0 for k in ("pdf", "docx", "pptx", "xlsx", "html", "txt")}
+
+        for f in files:
+            try:
+                items = route_and_load(f)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to load %s: %s", f, exc)
+                continue
+            for it in items:
+                try:
+                    norm = normalize_metadata(it)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("Bad metadata %s: %s", f, exc)
+                    continue
+                ctype = str(norm["metadata"].get("content_type", "")).lower()
+                # Map to simple keys
+                key = (
+                    "pdf" if "pdf" in ctype else
+                    "pptx" if ("presentation" in ctype or "ppt" in ctype) else
+                    "xlsx" if ("spreadsheet" in ctype or "xlsx" in ctype) else
+                    "html" if "html" in ctype else
+                    "docx" if ("wordprocessingml" in ctype or "docx" in ctype) else
+                    "txt"
+                )
+                item_counts[key] += 1
+                text = (norm.get("text") or "").strip()
+                if not text:
+                    continue
+                if (chunker_cfg.get("type") or "char").lower() == "tokens":
+                    max_tokens = int(chunker_cfg.get("size", 900) or 900)
+                    ov = float(chunker_cfg.get("overlap", 0.15) or 0.0)
+                    chunks = chunk_text_by_tokens(text, max_tokens=max_tokens, overlap=ov)
+                else:
+                    size = int(chunker_cfg.get("size", 2000) or 2000)
+                    ov = int(chunker_cfg.get("overlap", 100) or 0)
+                    chunks = chunk_text(text, size=size, overlap=ov)
+                chunk_counts[key] += len(chunks)
+
+        # Print summary table
+        print("\n[dry-run] Content-Type Summary")
+        print("TYPE    ITEMS  CHUNKS")
+        for k in ("pdf", "docx", "pptx", "xlsx", "html", "txt"):
+            ic = item_counts.get(k, 0)
+            cc = chunk_counts.get(k, 0)
+            if ic == 0 and cc == 0:
+                continue
+            print(f"{k:<6} {ic:>6} {cc:>7}")
+        return
+
+    # Normal (non dry-run) path executes embeddings/upsert
     summary = run_embed_job(
         manifest_path=args.manifest,
         profile_name=args.profile,

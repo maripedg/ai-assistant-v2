@@ -51,3 +51,57 @@ The backend delivers retrieval-augmented generation (RAG) services for the AI As
 - `backend/app/routers/ingest.py`, `jobs.py`, and several provider stubs remain empty; document or remove when implementations land.
 - `backend/core/embeddings/embedding_strategy.py` only defines interfaces; link the embed job once concrete strategies exist.
 - Character encoding comments in `config/app.yaml` appear corrupted (e.g., "MantAcn"); clarify intent with configuration owners.
+# Backend Overview
+
+## Purpose
+High‑level view of the AI Assistant backend and how requests flow through the system. This service exposes a minimal API for health and chat, performs retrieval over Oracle Vector Search, and composes responses using configured LLMs.
+
+## Components / Architecture
+Directory layout in `backend/`:
+
+- `app/` – FastAPI app, routers, dependency factories (`deps.py`), startup validation, models.
+- `core/` – Core services and ports. Notably `core/services/retrieval_service.py` with ranking/thresholding logic.
+- `common/` – Shared utilities (e.g., `common/sanitizer.py`).
+- `config/` – App and provider config YAMLs (`app.yaml`, `providers.yaml`).
+- `ingest/` and `ingestion/` – Ingestion pipeline code and examples.
+- `providers/` – Integrations: OCI embeddings, OracleVS vector store, model clients.
+- `queue/`, `repos/`, `worker/` – Extension points for async jobs, persistence adapters, and background workers (if enabled).
+- `tests/` – Unit tests.
+
+Typical request path (chat):
+
+1. Client calls `POST /chat` with `question`.
+2. Router builds singletons via `app/deps.py`: embeddings adapter, OracleVS store, LLMs.
+3. `RetrievalService.answer()` executes similarity search, normalizes scores, applies thresholds and gates, and selects context.
+4. Primary/fallback LLM generates the answer; response includes decision explanation and used chunks.
+
+## Parameters & Env
+- App config: `backend/config/app.yaml` (retrieval, embeddings profiles, prompts).
+- Provider config: `backend/config/providers.yaml` (OCI endpoints, auth mode, DB DSN/user/password, vector distance).
+- Environment variables: see [Config](./CONFIG_REFERENCE.md).
+
+## Examples
+Minimal request to the running backend:
+
+```bash
+curl -s -X POST http://localhost:8000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"What is in the demo index?"}' | jq .
+```
+
+Health probe:
+
+```bash
+curl -s http://localhost:8000/healthz | jq .
+```
+
+## Ops Notes
+- Startup validates embeddings/LLMs via `validate_startup()` and prints probe results.
+- Retrieval ranking and normalization are controlled by `retrieval.distance`, `score_mode`, `score_kind`, `docs_normalized` and thresholds in `app.yaml`.
+- OracleVS uses an alias view; ensure it exists and projects `(ID, TEXT, METADATA, EMBEDDING)`.
+
+## See also
+- [API Reference](./API_REFERENCE.md)
+- [Config](./CONFIG_REFERENCE.md)
+- [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md)
+- [Runbook](./RUNBOOK.md)

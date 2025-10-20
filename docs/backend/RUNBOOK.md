@@ -54,3 +54,64 @@ Operational guide for running and supporting the AI Assistant backend.
 ## TODO
 - Automate alias rotation with change-management scripts to avoid manual SQL during rollbacks.
 - Define explicit SLOs (e.g., max fallback rate, minimum hit rate) and wire probes into a monitoring system.
+# Runbook
+
+## Purpose
+Operational guidance for day‑2 activities: health checks, reindexing, key rotation, and troubleshooting.
+
+## Components / Architecture
+- FastAPI service at `backend/app/main.py`
+- Probes via `backend/app/deps.py`
+- Ingestion job at `backend/batch/embed_job.py`
+
+## Parameters & Env
+- See [Config](./CONFIG_REFERENCE.md) for env variables.
+- Ensure `OCI_CONFIG_*` and DB credentials are current after rotations.
+
+## Examples
+
+Health check:
+```bash
+curl -s http://localhost:8000/healthz | jq .
+```
+
+Reindex (re‑embed documents):
+```bash
+python -m backend.batch.cli embed \
+  --manifest backend/ingest/examples/my_pdfs.jsonl \
+  --profile legacy_profile \
+  --update-alias
+```
+
+Day‑2 checks (ingestion quality):
+- Counts by content_type and chunk totals:
+  ```bash
+  python -m backend.batch.cli embed --manifest backend/ingest/examples/my_pdfs.jsonl --profile legacy_profile --dry-run
+  # Inspect TYPE/ITEMS/CHUNKS summary
+  ```
+- Watch for high percentage of empty items (should be near 0% except scanned PDFs).
+- For PDFs with no text, plan OCR as a separate step.
+
+Rotate keys (OCI API key):
+1. Update `~/.oci/config` key_file and fingerprint.
+2. Update `backend/.env` `OCI_CONFIG_PATH`/`OCI_CONFIG_PROFILE` if needed.
+3. Restart service.
+
+Reload config:
+```bash
+# Restart app (dev)
+pkill -f uvicorn || true
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Retry failed jobs:
+- If using queues (TODO if queue is enabled): re‑enqueue or re‑run CLI with the same manifest.
+
+## Ops Notes
+- OracleVS alias must exist and project METADATA as CLOB: recreated via `--update-alias`.
+- Keep provider `distance` consistent with retrieval settings to avoid score drift.
+- Logs: Uvicorn access suppressed; backend service logs decisions and probes.
+
+## See also
+- [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md)
+- [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md)

@@ -79,3 +79,88 @@ The FastAPI application in [backend/app/main.py](../../backend/app/main.py) expo
   - `answer2` and `answer3` are reserved for multi-answer modes but currently remain `null` (see `RetrievalService._build_response`).
   - `retrieved_chunks_metadata` echoes raw scores from Oracle before filtering; `used_chunks` reflects the prompt context actually passed to the LLM after dedupe and size checks.
   - If no chunks meet thresholds or the primary model returns an empty string, the fallback LLM generates the answer and `mode` is forced to `fallback`.
+# API Reference
+
+## Purpose
+Document HTTP endpoints exposed by the backend service (FastAPI).
+
+## Components / Architecture
+- FastAPI app: `backend/app/main.py`
+- Routers: `backend/app/routers/*.py`
+- Models: `backend/app/models/*.py`
+
+## Endpoints
+
+### GET /healthz
+- Purpose: Liveness and dependency health (embeddings, primary/fallback LLM).
+- Response:
+
+```json
+{
+  "ok": true,
+  "services": {
+    "embeddings": "up",
+    "llm_primary": "up",
+    "llm_fallback": "up"
+  }
+}
+```
+
+### POST /chat
+- Purpose: Retrieve relevant context and generate a response.
+- Request model: `ChatRequest` (backend/app/models/chat.py)
+
+```json
+{ "question": "How do I configure Oracle SBC SIP interfaces?" }
+```
+
+- Response model: `ChatResponse` (backend/app/models/chat.py)
+
+```json
+{
+  "question": "…",
+  "answer": "…",
+  "answer2": null,
+  "answer3": null,
+  "retrieved_chunks_metadata": [ { "source": "…", "raw_score": 0.42, "similarity": 0.78 } ],
+  "mode": "rag",
+  "sources_used": "partial",
+  "used_chunks": [
+    { "chunk_id": "…", "source": "…", "score": 0.78, "snippet": "…" }
+  ],
+  "decision_explain": {
+    "score_mode": "normalized",
+    "distance": "dot_product",
+    "max_similarity": 0.78,
+    "threshold_low": 0.2,
+    "threshold_high": 0.45,
+    "top_k": 8,
+    "short_query_active": false,
+    "mode": "rag",
+    "effective_query": "…",
+    "used_llm": "primary"
+  }
+}
+```
+
+## Error Model
+- The service uses FastAPI defaults. Non‑2xx responses return a JSON body with `detail`.
+- Dependency probe failures are reported inside `/healthz` as `down (reason)` strings.
+
+## Examples
+
+```bash
+curl -s http://localhost:8000/healthz | jq .
+
+curl -s -X POST http://localhost:8000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"hello"}' | jq .
+```
+
+## Ops Notes
+- `/chat` returns header `X-Answer-Mode` indicating the decision: `rag`, `hybrid`, or `fallback`.
+- See retrieval controls in [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md).
+
+## See also
+- [Backend Overview](./BACKEND_OVERVIEW.md)
+- [Config](./CONFIG_REFERENCE.md)

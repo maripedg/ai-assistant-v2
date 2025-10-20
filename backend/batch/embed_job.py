@@ -14,6 +14,11 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from backend.app.deps import make_embeddings, settings
+from backend.ingest.manifests.spec import validate_and_expand_manifest
+from backend.ingest.router import route_and_load
+from backend.ingest.normalizer import normalize_metadata
+from backend.ingest.chunking.char_chunker import chunk_text
+from backend.ingest.chunking.token_chunker import chunk_text_by_tokens
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -585,8 +590,12 @@ def run_embed_job(
         logger.info("Skipping alias update during dry-run; alias remains unchanged")
 
     manifest_path = Path(manifest_path).resolve()
-    manifest_entries = list(_iter_manifest(manifest_path))
-    logger.info("Loaded %d manifest entries", len(manifest_entries))
+    # Use new ingestion manifest expansion
+    try:
+        resolved_files = validate_and_expand_manifest(str(manifest_path))
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"Failed to read manifest {manifest_path}: {exc}") from exc
+    logger.info("Loaded %d files from manifest", len(resolved_files))
 
     total_docs = 0
     total_chunks = 0
@@ -595,62 +604,102 @@ def run_embed_job(
     errors = 0
 
     vector_buffer: List[Dict[str, Any]] = []
-    manifest_root = manifest_path.parent
+    # Per content_type counters
+    content_counts: Dict[str, int] = {k: 0 for k in ("pdf", "docx", "pptx", "xlsx", "html", "txt")}
 
-    for entry in manifest_entries:
+    for filepath in resolved_files:
+        path_obj = Path(filepath)
+        total_docs += 1
+        doc_id_base = path_obj.stem
         try:
-            resolved_paths = _expand_entry_paths(entry.path, manifest_root)
-        except FileNotFoundError as exc:
+            items = route_and_load(filepath)
+        except Exception as exc:  # noqa: BLE001
             errors += 1
-            logger.error("Manifest entry path not found: %s", exc)
+            logger.exception("Failed to load %s: %s", filepath, exc)
             continue
 
-        if not resolved_paths:
-            logger.warning("Manifest entry produced no matches: %s", entry.path)
-            continue
-
-        for match_idx, resolved_path in enumerate(resolved_paths, start=1):
+        for item_idx, raw_item in enumerate(items, start=1):
             try:
-                text = _load_document(resolved_path)
+                norm = normalize_metadata(raw_item)
             except Exception as exc:  # noqa: BLE001
                 errors += 1
-                logger.exception("Failed to load %s: %s", resolved_path, exc)
+                logger.warning("Invalid metadata for %s item %d: %s", filepath, item_idx, exc)
                 continue
 
-            # --- Pre-split/embedding sanitization ---
+            # Cleaning before sanitization
+            from backend.ingest.text_cleaner import clean_text  # local import to avoid startup cost elsewhere
+            preserve = False
+            ctype_for_clean = str(norm["metadata"].get("content_type", "")).lower()
+            if "spreadsheet" in ctype_for_clean or "xlsx" in ctype_for_clean:
+                preserve = True
+            text = clean_text(norm.get("text") or "", preserve_tables=preserve)
+            if not text:
+                continue
+
+            # Sanitization per item
             if sanitize_if_enabled is not None:
-                _doc_basename = os.path.basename(str(resolved_path))
                 try:
-                    text, _san_counts = sanitize_if_enabled(text, _doc_basename)
+                    text, _san_counts = sanitize_if_enabled(text, doc_id_base)
                 except Exception as exc:  # noqa: BLE001
-                    logger.warning("Sanitizer failed for %s (%s); continuing without changes", _doc_basename, exc)
+                    logger.warning("Sanitizer failed for %s (%s); continuing without changes", filepath, exc)
                 else:
                     if _san_counts:
-                        print(f"[sanitizer:{_doc_basename}] {_san_counts}")
+                        print(f"[sanitizer:{os.path.basename(filepath)}] {_san_counts}")
 
-            total_docs += 1
-            doc_id = entry.doc_id or resolved_path.stem
-            if entry.doc_id and len(resolved_paths) > 1:
-                doc_id = f"{entry.doc_id}_{match_idx}"
+            meta = dict(norm["metadata"])
+            ctype_simple = meta.get("content_type")
+            if isinstance(ctype_simple, str):
+                # Map common MIME to simple type keywords
+                if ctype_simple.startswith("application/") or ctype_simple.startswith("text/"):
+                    # leave; normalizer maps to MIME; counters use keyword below
+                    pass
+            # Build chunker selection
+            chunker_cfg = profile_cfg.get("chunker", {}) or {}
+            chunks_text: List[str] = []
+            if (chunker_cfg.get("type") or "char").lower() == "tokens":
+                max_tokens = int(chunker_cfg.get("size", 900) or 900)
+                ov = float(chunker_cfg.get("overlap", 0.15) or 0.0)
+                chunks_text = chunk_text_by_tokens(text, max_tokens=max_tokens, overlap=ov)
+            else:
+                size = int(chunker_cfg.get("size", 2000) or 2000)
+                ov = int(chunker_cfg.get("overlap", 100) or 0)
+                chunks_text = chunk_text(text, size=size, overlap=ov)
 
-            base_meta = {
-                "source": str(resolved_path),
-                "doc_id": doc_id,
-                "profile": entry.profile or profile_name,
-                "lang": entry.lang,
-                "tags": entry.tags,
-                "priority": entry.priority,
-            }
-            chunks = strategy.chunk(text, base_meta)
-            for idx, chunk in enumerate(chunks, start=1):
-                chunk_id = f"{doc_id}_chunk_{idx}"
-                meta = _ensure_chunk_metadata(chunk, base_meta, chunk_id)
-                meta["index_name"] = index_name
-                meta["distance_metric"] = profile_cfg.get("distance_metric", "dot_product")
+            # Counters by simplified type token
+            ct_key = None
+            if isinstance(meta.get("content_type"), str):
+                low = meta["content_type"].lower()
+                if "pdf" in low:
+                    ct_key = "pdf"
+                elif "presentation" in low or "ppt" in low:
+                    ct_key = "pptx"
+                elif "spreadsheet" in low or "xlsx" in low:
+                    ct_key = "xlsx"
+                elif "html" in low:
+                    ct_key = "html"
+                elif "wordprocessingml" in low or "docx" in low:
+                    ct_key = "docx"
+                elif "plain" in low or "markdown" in low or "txt" in low:
+                    ct_key = "txt"
+            if ct_key:
+                content_counts[ct_key] = content_counts.get(ct_key, 0) + len(chunks_text)
+
+            for idx, ctext in enumerate(chunks_text, start=1):
+                chunk_id = f"{doc_id_base}_chunk_{item_idx}_{idx}"
+                meta_out = dict(meta)
+                meta_out.update(
+                    {
+                        "doc_id": doc_id_base,
+                        "chunk_id": chunk_id,
+                        "profile": profile_name,
+                        "index_name": index_name,
+                        "distance_metric": profile_cfg.get("distance_metric", "dot_product"),
+                    }
+                )
                 if dedupe_enabled:
-                    meta["hash_norm"] = _hash_normalize(chunk.text)
-                vector_buffer.append({"text": chunk.text, "metadata": meta})
-            total_chunks += len(chunks)
+                    meta_out["hash_norm"] = _hash_normalize(ctext)
+                vector_buffer.append({"text": ctext, "metadata": meta_out})
+            total_chunks += len(chunks_text)
 
     if max_workers is not None and max_workers <= 0:
         raise ValueError("workers must be a positive integer")
@@ -736,6 +785,23 @@ def run_embed_job(
         summary.errors,
         summary.dry_run,
     )
+    # Log per content type counters
+    try:
+        logger.info("Chunk counts by type: %s", {k: v for k, v in content_counts.items() if v})
+    except Exception:
+        pass
+    # Optional: include PDF OCR counters if available
+    try:
+        from backend.ingest.loaders import pdf_loader as _pdf_loader  # type: ignore
+
+        logger.info(
+            "PDF counters: pages_total=%s pages_ocr=%s pages_native_empty=%s",
+            getattr(_pdf_loader, "pages_total", "-"),
+            getattr(_pdf_loader, "pages_ocr", "-"),
+            getattr(_pdf_loader, "pages_native_empty", "-"),
+        )
+    except Exception:
+        pass
 
     # Update alias only after successful inserts
     if not dry_run and update_alias and alias_name and ensured_table:

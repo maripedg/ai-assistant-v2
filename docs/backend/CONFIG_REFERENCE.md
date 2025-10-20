@@ -78,3 +78,55 @@ Configuration is loaded by [backend/app/deps.py](../../backend/app/deps.py), whi
 - `min_total_context_chars` (int, default `0`): require at least this many bytes of assembled context; otherwise fallback.
 - When a gate forces fallback, `decision_explain.reason` is set to one of `gate_failed_min_similarity`, `gate_failed_min_chunks`, or `gate_failed_min_context`.
 - If the primary LLM returns the exact `prompts.no_context_token`, the runtime falls back to the fallback LLM and sets `decision_explain.reason=llm_no_context_token`.
+# Configuration Reference
+
+## Purpose
+Authoritative mapping of environment variables, YAML settings, and where they are used in code.
+
+## Components / Architecture
+- App config: `backend/config/app.yaml`
+- Provider config: `backend/config/providers.yaml`
+- Loader: `backend/app/deps.py` reads YAML, resolves env, and wires clients.
+
+## Environment Variables (.env.example)
+
+| VAR | Default/Example | Required? | Used by (module/path) | Notes |
+| --- | --- | --- | --- | --- |
+| DB_DSN | `10.0.0.3:1529/FREEPDB1` | Yes (for OracleVS) | `backend/config/providers.yaml` → `oraclevs.dsn` | Oracle 23ai DSN |
+| DB_USER | `sys` | Yes | `backend/config/providers.yaml` → `oraclevs.user` | DB user; `SYS` requires proper auth mode |
+| DB_PASSWORD | `YourSysPassword` | Yes | `backend/config/providers.yaml` → `oraclevs.password`; `backend/app/deps.py` (logs masked) | Keep secret |
+| ORACLEVS_TABLE | `MY_DEMO` | Yes | `backend/config/providers.yaml` → `oraclevs.table` | Physical table base name |
+| OCI_REGION | `us-chicago-1` | Yes | `backend/config/providers.yaml` → `oci.region` | Region must match endpoint |
+| OCI_GENAI_ENDPOINT | `https://inference.generativeai.us-chicago-1.oci.oraclecloud.com` | Yes | `backend/config/providers.yaml` → `oci.endpoint`; embeddings/LLM sections | OCI GenAI Inference endpoint |
+| OCI_COMPARTMENT_OCID | `ocid1.compartment.oc1..xxxxxxx` | Yes | `backend/config/providers.yaml` → `oci.compartment_id` | Target compartment for GenAI |
+| OCI_AUTH_MODE | `config_file` | Yes | `backend/config/providers.yaml` → `oci.auth_mode` | Auth mode hint |
+| OCI_CONFIG_PATH | `~/.oci/config` | Yes (for API key auth) | `backend/config/providers.yaml` → `oci.config_path`; used by adapters | Path to OCI config file |
+| OCI_CONFIG_PROFILE | `DEFAULT` | Yes | `backend/config/providers.yaml` → `oci.config_profile` | Profile name in config |
+| OCI_EMBED_MODEL_ID | `cohere.embed-english-v3.0` | Yes | `backend/config/providers.yaml` → `oci.models.embeddings` and `oci.embeddings` | Embedding model alias/OCID |
+| OCI_LLM_MODEL_ID | `cohere.command-english-v3.0` | Yes (if used) | `backend/config/providers.yaml` (models.chat) | Generic chat alias (not primary/fallback) |
+
+Additional LLM primary/fallback envs may be referenced in `providers.yaml` (e.g., `OCI_LLM_PRIMARY_*`, `OCI_LLM_FALLBACK_*`). If present in your environment, the loader maps them under `oci.llm_primary` and `oci.llm_fallback` in `deps.py`.
+
+## YAML Parameters
+- `backend/config/app.yaml`: retrieval thresholds, distance metric, embeddings profiles (active/legacy/standard), prompts.
+- `backend/config/providers.yaml`: OCI endpoints/region/compartment/auth profile; OracleVS DSN/user/password/table; distance default.
+
+## Examples
+Load `.env` in development is automatic via `python-dotenv` in `backend/app/deps.py` (project root and `backend/`). In Docker, pass env via `--env-file` (see [Setup & Run](./SETUP_AND_RUN.md)).
+
+```bash
+# Local
+python -m uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Docker (example)
+docker run --rm -p 8000:8000 --env-file backend/.env <image>
+```
+
+## Ops Notes
+- Keep region and endpoint aligned.
+- Ensure DB user/password and alias view are valid before serving traffic.
+- For secrets, prefer environment or secret managers; do not commit real values.
+
+## See also
+- [Setup & Run](./SETUP_AND_RUN.md)
+- [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md)

@@ -41,3 +41,60 @@ Tests rely on fakes for most services but may skip OCI-specific adapters unless 
 ## Next Steps
 - Populate the vector index using the ingestion workflow in [INGESTION_AND_MANIFESTS.md](./INGESTION_AND_MANIFESTS.md).
 - Validate retrieval quality with golden queries before exposing the assistant to users.
+# Setup and Run
+
+## Purpose
+Guide to run the backend locally and in Docker, with smoke tests and troubleshooting.
+
+## Components / Architecture
+- FastAPI app at `backend/app/main.py`
+- Dependencies and clients wired in `backend/app/deps.py`
+- Requirements in `backend/requirements.txt`
+
+## Parameters & Env
+- Copy `backend/.env.example` to `backend/.env` and fill values.
+- See [Config](./CONFIG_REFERENCE.md) for variable meanings.
+
+## Local Setup
+
+```bash
+# 1) Create and activate venv (Python 3.11+ recommended)
+python -m venv backend/.venv
+.\backend\.venv\Scripts\activate  # PowerShell on Windows
+
+# 2) Install dependencies
+pip install -r backend/requirements.txt
+
+# 3) Set env (optional if backend/.env exists)
+set -a; source backend/.env 2>/dev/null || true; set +a
+
+# 4) Run the API
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Smoke test:
+
+```bash
+curl -s http://localhost:8000/healthz | jq .
+curl -s -X POST http://localhost:8000/chat -H 'Content-Type: application/json' -d '{"question":"hello"}' | jq .
+```
+
+## Docker (if applicable)
+The repository includes `backend/Dockerfile` (TODO: current file is empty; add build steps if using Docker).
+
+Example run:
+
+```bash
+docker build -t ai-assistant-backend -f backend/Dockerfile .
+docker run --rm -p 8000:8000 --env-file backend/.env ai-assistant-backend
+```
+
+## Troubleshooting
+- Health shows embeddings down: verify OCI config file/profile and IAM permissions. Ensure `OCI_CONFIG_PATH` points to a file and key file exists.
+- Oracle vector errors: confirm alias view exists and `oraclevs` DSN/user/password are correct.
+- 400 from embed service: remove empty/whitespace texts before embedding.
+
+## See also
+- [Config](./CONFIG_REFERENCE.md)
+- [API Reference](./API_REFERENCE.md)
+- [Runbook](./RUNBOOK.md)

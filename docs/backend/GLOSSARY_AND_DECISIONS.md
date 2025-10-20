@@ -23,3 +23,36 @@
 - How should extractive answers (`answer2`, `answer3`) be populated, or should these fields be removed from the API schema?
 - The `standard_profile` declares `chunker.type: tokens`, but no tokenizer-backed implementation exists yet; confirm strategy expectations or adjust config.
 - Define a process for distributing tenant-specific sanitization packs beyond the default profile.
+# Glossary & Decisions
+
+## Purpose
+Define key terms and record architecture decisions relevant to embedding/retrieval.
+
+## Components / Architecture
+- Retrieval logic in `backend/core/services/retrieval_service.py`.
+- Vector store wrapper in `backend/providers/oci/vectorstore.py`.
+
+## Glossary
+- Chunk: A segment of source text produced by the chunker (char/tokens + overlap) prior to embedding.
+- Profile: A named configuration under `embeddings.profiles` describing index name, chunker, and distance metric.
+- Distance metric: Similarity function used for retrieval. Supported: `dot_product`, `cosine`.
+- Manifest: JSONL file listing documents to ingest (`backend/ingest/examples/*.jsonl`).
+- Sanitizer: Regex‑based preprocessor that redacts/pseudonymizes PII before embedding.
+- Alias view: Oracle view projecting `(ID, TEXT, METADATA, EMBEDDING)` for stable read surface.
+
+## Decisions
+1. Metric alignment: For Oracle `VECTOR_DISTANCE`, DOT returns a distance. We sort ASC (lower is better) and normalize as `(-raw + 1)/2` when docs are unit‑norm.
+2. Normalized scoring: Use `score_mode=normalized` by default to stabilize thresholds and UI.
+3. Chunking policy: `legacy_profile` uses char chunks (2000/100 overlap); `standard_profile` uses token chunks (900/0.15 overlap) for denser retrieval.
+4. Sanitization scope: Emails/phones/cards detected with allowlist support; `shadow` mode used to observe before redaction.
+5. OracleVS projection: METADATA is serialized to CLOB to avoid driver type ambiguity and maintain compatibility.
+
+## Examples
+N/A
+
+## Ops Notes
+- Keep app/provider configs aligned to avoid mis‑ranking.
+
+## See also
+- [Embedding & Retrieval](./EMBEDDING_AND_RETRIEVAL.md)
+- [Sanitization](./SANITIZATION.md)

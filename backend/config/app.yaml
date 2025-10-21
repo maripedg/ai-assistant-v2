@@ -64,6 +64,10 @@ embeddings:
   profiles:
     legacy_profile:
       index_name: MY_DEMO_v1
+      # Embedding input guardrails
+      max_input_tokens: 512        # default 512 if missing
+      on_token_limit: split        # split | truncate | skip
+      token_estimator: auto        # auto | heuristic
       chunker:
         type: char
         separator: "."

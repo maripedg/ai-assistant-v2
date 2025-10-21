@@ -42,6 +42,11 @@ class EmbeddingJobSummary:
     errors: int
     dry_run: bool
     evaluation: Optional[Dict[str, Any]] = None
+    # Token-limit handling counters
+    errors_token_limit: int = 0
+    token_limit_splits: int = 0
+    token_limit_truncations: int = 0
+    skipped_token_limit: int = 0
 
 
 def format_summary(summary: EmbeddingJobSummary) -> str:
@@ -58,6 +63,10 @@ def format_summary(summary: EmbeddingJobSummary) -> str:
             base += f" eval_hit_rate={hit_rate:.3f} eval_mrr={mrr:.3f}"
         elif "error" in summary.evaluation:
             base += f" eval_error={summary.evaluation['error']}"
+    base += (
+        f" Token-limit: splits={summary.token_limit_splits} truncations={summary.token_limit_truncations}"
+        f" skipped={summary.skipped_token_limit} provider_errors={summary.errors_token_limit}"
+    )
     return base
 
 PDF_EXTENSIONS = {".pdf"}
@@ -728,7 +737,15 @@ def run_embed_job(
         if not dry_run and not ensured_table:
             if not embeddings:
                 continue
-            dim = len(embeddings[0])
+            # Find first non-empty embedding to determine dimension
+            dim = 0
+            for _vec in embeddings:
+                if isinstance(_vec, list) and len(_vec) > 0:
+                    dim = len(_vec)
+                    break
+            if dim == 0:
+                # No valid vectors in this batch; skip table ensure for now
+                continue
             from backend.providers.oracle_vs.index_admin import ensure_alias, ensure_index_table
             ensure_index_table(conn, index_name, profile_cfg.get("distance_metric", "dot_product"), dim=dim)
             ensured_table = True
@@ -742,7 +759,8 @@ def run_embed_job(
         for idx, embedding in zip(non_empty_idx, embeddings):
             batch[idx]["embedding"] = embedding
         # Only upsert items that actually have embeddings
-        upsert_batch = [item for item in batch if "embedding" in item]
+        # Only upsert items with a non-empty embedding vector
+        upsert_batch = [item for item in batch if ("embedding" in item and isinstance(item["embedding"], list) and len(item["embedding"]) > 0)]
         if not upsert_batch:
             continue
         batch_inserted, batch_skipped = upserter.upsert_vectors(upsert_batch, dedupe_enabled, dry_run=dry_run)
@@ -767,6 +785,12 @@ def run_embed_job(
             }
             logger.exception("Golden query evaluation failed: %s", exc)
 
+    # Collect token-limit counters from adapter if available
+    tl_errors = int(getattr(embedder, "errors_token_limit", 0) or 0)
+    tl_splits = int(getattr(embedder, "token_limit_splits", 0) or 0)
+    tl_truncs = int(getattr(embedder, "token_limit_truncations", 0) or 0)
+    tl_skipped = int(getattr(embedder, "skipped_token_limit", 0) or 0)
+
     summary = EmbeddingJobSummary(
         docs=total_docs,
         chunks=total_chunks,
@@ -775,6 +799,10 @@ def run_embed_job(
         errors=errors,
         dry_run=dry_run,
         evaluation=evaluation_metrics,
+        errors_token_limit=tl_errors,
+        token_limit_splits=tl_splits,
+        token_limit_truncations=tl_truncs,
+        skipped_token_limit=tl_skipped,
     )
     logger.info(
         "Job summary: docs=%d chunks=%d inserted=%d skipped=%d errors=%d dry_run=%s",
@@ -788,6 +816,17 @@ def run_embed_job(
     # Log per content type counters
     try:
         logger.info("Chunk counts by type: %s", {k: v for k, v in content_counts.items() if v})
+    except Exception:
+        pass
+    # Log token-limit counters
+    try:
+        logger.info(
+            "Token-limit counters: splits=%d truncations=%d skipped=%d provider_errors=%d",
+            tl_splits,
+            tl_truncs,
+            tl_skipped,
+            tl_errors,
+        )
     except Exception:
         pass
     # Optional: include PDF OCR counters if available

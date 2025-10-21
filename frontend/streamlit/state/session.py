@@ -1,8 +1,16 @@
-﻿import streamlit as st
+import streamlit as st
 
-DEFAULT_KEYS = {
+AUTH_KEYS = {
+    "is_authenticated": False,
+    "username": "",
+    "role": "user",
+    # Back-compat keys used elsewhere
     "authenticated": False,
     "auth_user": None,
+}
+
+DEFAULT_KEYS = {
+    **AUTH_KEYS,
     "history": [],
     "metadata": [],
     "feedback_mode": {},
@@ -20,4 +28,23 @@ def init_session():
 
 def add_history(role: str, content: str):
     st.session_state.history.append((role, content))
+
+
+def get_bool(key: str, default: bool = False) -> bool:
+    return bool(st.session_state.get(key, default))
+
+
+def get_str(key: str, default: str = "") -> str:
+    v = st.session_state.get(key)
+    return v if isinstance(v, str) else default
+
+
+def set_kv(key: str, value):
+    st.session_state[key] = value
+
+
+def clear_auth_state():
+    for k in ("is_authenticated", "username", "role", "authenticated", "auth_user"):
+        if k in st.session_state:
+            st.session_state[k] = DEFAULT_KEYS[k]
 

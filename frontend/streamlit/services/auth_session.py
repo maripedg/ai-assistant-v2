@@ -8,6 +8,9 @@ import time
 from typing import Optional
 
 import streamlit as st
+from app_config.env import get_config
+from services import storage
+from services import api_client
 
 try:
     import extra_streamlit_components as stx
@@ -121,7 +124,127 @@ def get_cookie(name: str) -> Optional[str]:
 def delete_cookie(name: str) -> None:
     manager = get_cookie_manager()
     if manager is not None:
-        manager.delete(name)
+        try:
+            manager.delete(name)
+        except KeyError:
+            # Cookie not present; ignore
+            pass
+        except Exception:
+            # Non-fatal: fall through to fallback store cleanup
+            pass
     store = _get_fallback_store()
     store.pop(name, None)
+
+
+# ---------------- New session helpers (mode-aware auth) ----------------
+def _set_auth_state(email: str, role: str) -> None:
+    st.session_state["is_authenticated"] = True
+    st.session_state["username"] = email
+    st.session_state["role"] = role
+    # Back-compat keys
+    st.session_state["authenticated"] = True
+    st.session_state["auth_user"] = email
+
+
+def _clear_auth_state() -> None:
+    st.session_state["is_authenticated"] = False
+    st.session_state["username"] = ""
+    st.session_state["role"] = "user"
+    st.session_state["authenticated"] = False
+    st.session_state["auth_user"] = None
+
+
+def issue_session_token(username: str, role: str, ttl_min: int, secret: str) -> str:
+    body = {"u": username, "r": role, "exp": int(time.time()) + max(1, int(ttl_min)) * 60}
+    raw = json.dumps(body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    sig = hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).digest()
+    return f"{_b64url(raw)}.{_b64url(sig)}"
+
+
+def verify_session_token(token: Optional[str], secret: Optional[str]) -> Optional[dict]:
+    if not token or not secret:
+        return None
+    try:
+        b, s = token.split(".", 1)
+        raw = _b64url_decode(b)
+        sig = _b64url_decode(s)
+        exp_sig = hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).digest()
+        if not hmac.compare_digest(exp_sig, sig):
+            return None
+        data = json.loads(raw.decode("utf-8"))
+        if int(data.get("exp", 0)) < int(time.time()):
+            return None
+        u = data.get("u"); r = data.get("r", "user")
+        if not isinstance(u, str):
+            return None
+        return {"username": u, "role": r}
+    except Exception:
+        return None
+
+
+def try_restore_session_from_token() -> bool:
+    cfg = get_config()
+    token = get_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"))
+    data = verify_session_token(token, cfg.get("SESSION_SECRET"))
+    if not data:
+        return False
+    _set_auth_state(data["username"], data.get("role", "user"))
+    return True
+
+
+def is_authenticated() -> bool:
+    return bool(st.session_state.get("is_authenticated") or st.session_state.get("authenticated"))
+
+
+def current_user() -> dict:
+    return {
+        "username": st.session_state.get("username") or st.session_state.get("auth_user"),
+        "role": st.session_state.get("role", "user"),
+    }
+
+
+def require_role(role: str) -> bool:
+    return is_authenticated() and (st.session_state.get("role", "user") == role)
+
+
+def login(email: str, password: str, remember: bool) -> tuple[bool, Optional[str]]:
+    cfg = get_config()
+    mode = str(cfg.get("AUTH_MODE", "local")).lower()
+    if mode == "local":
+        users = storage.load_users(cfg["AUTH_STORAGE_DIR"])
+        hashed = storage.hash_password(password)
+        if email not in users or users[email] != hashed:
+            return False, "Invalid credentials"
+        _set_auth_state(email, "user")
+    else:
+        # db mode: call backend auth
+        try:
+            resp = api_client.auth_login(email, password)
+        except Exception as exc:  # noqa: BLE001
+            return False, f"Login failed: {exc}"
+        user = (resp or {}).get("user") or {}
+        if (user.get("status") or "").lower() == "suspended":
+            return False, "User suspended"
+        role = user.get("role") or "user"
+        _set_auth_state(user.get("email") or email, role)
+
+    if remember and cfg.get("SESSION_SECRET"):
+        try:
+            token = issue_session_token(email, st.session_state.get("role", "user"), cfg.get("SESSION_TTL_MIN", 1440), cfg["SESSION_SECRET"])
+            set_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"), token, max_age=max(60, int(cfg.get("SESSION_TTL_MIN", 1440)) * 60))
+            # Persist backend token if provided
+            if st.session_state.get("is_authenticated") and 'resp' in locals():
+                api_tok = (resp or {}).get("token")
+                if api_tok:
+                    set_cookie(f"{cfg.get('SESSION_COOKIE_NAME','assistant_session')}_api", api_tok, max_age=max(60, int(cfg.get("SESSION_TTL_MIN", 1440)) * 60))
+        except Exception:
+            # non-fatal
+            pass
+    return True, None
+
+
+def logout() -> None:
+    cfg = get_config()
+    delete_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"))
+    _clear_auth_state()
 

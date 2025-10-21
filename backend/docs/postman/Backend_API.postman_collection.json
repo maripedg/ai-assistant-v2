@@ -1,0 +1,167 @@
+{
+  "info": {
+    "name": "Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "auth_token", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/healthz", "host": ["{{base_url}}"], "path": ["healthz"]}
+          },
+          "event": [
+            {"listen": "test", "script": {"exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ], "type": "text/javascript"}}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "POST /chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/chat", "host": ["{{base_url}}"], "path": ["chat"]},
+            "body": {"mode": "raw", "raw": "{\n  \"question\": \"How do I configure Oracle SBC TLS?\"\n}"}
+          },
+          "event": [
+            {"listen": "test", "script": {"exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has answer', function () { pm.expect(pm.response.json().answer).to.be.a('string'); });"
+            ], "type": "text/javascript"}}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "POST /api/v1/users/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/", "host": ["{{base_url}}"], "path": ["api","v1","users",""]},
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"name\": \"User One\",\n  \"password\": \"secret\"\n}"}
+          },
+          "event": [
+            {"listen": "test", "script": {"exec": ["pm.test('Status 200/201', function () { pm.expect([200,201]).to.include(pm.response.code); });"], "type": "text/javascript"}}
+          ]
+        },
+        {
+          "name": "GET /api/v1/users/",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","users",""], "query": [
+              {"key": "limit", "value": "20"}, {"key": "offset", "value": "0"}
+            ]}
+          },
+          "event": [
+            {"listen": "test", "script": {"exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"], "type": "text/javascript"}}
+          ]
+        },
+        {
+          "name": "GET /api/v1/users/{id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api","v1","users","1"]}
+          },
+          "event": [
+            {"listen": "test", "script": {"exec": ["pm.test('Status is 200 or 404', function () { pm.expect([200,404]).to.include(pm.response.code); });"], "type": "text/javascript"}}
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/users/{id}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api","v1","users","1"]},
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}"}
+          }
+        },
+        {
+          "name": "DELETE /api/v1/users/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/1?hard=false", "host": ["{{base_url}}"], "path": ["api","v1","users","1"], "query": [{"key":"hard","value":"false"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "item": [
+        {
+          "name": "POST /api/v1/feedback/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/feedback/", "host": ["{{base_url}}"], "path": ["api","v1","feedback",""]},
+            "body": {"mode": "raw", "raw": "{\n  \"user_id\": 1,\n  \"session_id\": \"abc123\",\n  \"rating\": 5,\n  \"category\": \"like\",\n  \"comment\": \"Found card 4111 1111 1111 1111\",\n  \"metadata\": {\"app_version\": \"1.2.3\"}\n}"}
+          }
+        },
+        {
+          "name": "GET /api/v1/feedback/",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/feedback/?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","feedback",""], "query": [
+              {"key": "limit", "value": "20"}, {"key": "offset", "value": "0"}
+            ]}
+          }
+        },
+        {
+          "name": "GET /api/v1/feedback/{id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/feedback/1", "host": ["{{base_url}}"], "path": ["api","v1","feedback","1"]}
+          }
+        }
+      ]
+    }
+  ]
+}

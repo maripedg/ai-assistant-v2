@@ -11,49 +11,39 @@ from app_config.env import get_config
 from services.api_client import APIClient
 from services import storage
 from services import auth_session
-from state.session import init_session
+from state.session import init_session, get_bool, get_str
 from app.views import chat as view_chat
 from app.views import status as view_status
+from app.views import users as view_users
 
 cfg = get_config()
-st.set_page_config(page_title=cfg["ASSISTANT_TITLE"], layout="wide", page_icon="🤖")
+st.set_page_config(page_title=cfg["ASSISTANT_TITLE"], layout="wide")
 
 init_session()
 st.session_state.config_cache = cfg
 
-# Inicializa gestor de cookies (si está disponible)
+# Initialize cookie manager and attempt session restore
 auth_session.get_cookie_manager()
+auth_session.try_restore_session_from_token()
 
-# Notificación diferida de feedback
+# Deferred feedback toast
 if st.session_state.get("last_feedback_ok"):
     st.toast("Thanks for your feedback!", icon="✅")
     st.session_state["last_feedback_ok"] = False
 
-# Asegura admin y usuarios en storage
+# Ensure local admin user exists when using local auth
 storage.ensure_admin(cfg["AUTH_STORAGE_DIR"])
 
-# Auto-login por cookie si aplica
-if not st.session_state.authenticated and cfg.get("SESSION_SECRET"):
-    token = auth_session.get_cookie(cfg["SESSION_COOKIE_NAME"])
-    username = auth_session.verify_token(token, cfg["SESSION_SECRET"])
-    if username:
-        st.session_state.authenticated = True
-        st.session_state.auth_user = username
-    elif token:
-        auth_session.delete_cookie(cfg["SESSION_COOKIE_NAME"])
-
-# Sidebar: login y utilidades
+# Sidebar: login / account
 with st.sidebar:
     st.markdown(f"## {cfg['ASSISTANT_TITLE']}")
 
-    if not st.session_state.authenticated:
-        username = st.text_input("Username")
+    if not (get_bool("is_authenticated") or get_bool("authenticated")):
+        email = st.text_input("Email")
         password = st.text_input("Password", type="password")
 
         remember_supported = bool(cfg.get("SESSION_SECRET")) and auth_session.cookies_available()
-        remember_help = None
-        if not remember_supported:
-            remember_help = "Set SESSION_SECRET and install extra-streamlit-components to enable remember me."
+        remember_help = None if remember_supported else "Set SESSION_SECRET to enable remember me."
         remember_me = st.checkbox(
             "Remember me",
             value=False,
@@ -61,33 +51,19 @@ with st.sidebar:
             help=remember_help,
         )
 
+        st.caption("Use your email and password.")
+
         if st.button("Log In"):
-            users = storage.load_users(cfg["AUTH_STORAGE_DIR"])
-            hashed = storage.hash_password(password)
-            if username in users and users[username] == hashed:
-                st.session_state.authenticated = True
-                st.session_state.auth_user = username
-
-                if remember_me and remember_supported:
-                    token = auth_session.issue_token(
-                        username,
-                        cfg["SESSION_TTL_MIN"],
-                        cfg["SESSION_SECRET"],
-                    )
-                    auth_session.set_cookie(
-                        cfg["SESSION_COOKIE_NAME"],
-                        token,
-                        max_age=max(1, cfg["SESSION_TTL_MIN"]) * 60,
-                    )
-                else:
-                    auth_session.delete_cookie(cfg["SESSION_COOKIE_NAME"])
-
+            ok, reason = auth_session.login(email, password, remember_me)
+            if ok:
+                st.toast(f"Welcome, {email}")
                 st.rerun()
             else:
-                auth_session.delete_cookie(cfg["SESSION_COOKIE_NAME"])
-                st.error("Invalid username or password.")
+                st.error(reason or "Login failed")
     else:
-        st.success(f"Logged in as **{st.session_state.auth_user}**")
+        display_user = get_str("username") or get_str("auth_user")
+        role = get_str("role", "user")
+        st.success(f"Logged in as **{display_user}** ({role})")
 
         with st.expander("Account Settings", expanded=False):
             with st.form("change_password_form", clear_on_submit=True):
@@ -97,18 +73,13 @@ with st.sidebar:
                 change_pw = st.form_submit_button("Update Password")
 
             if change_pw:
-                users = storage.load_users(cfg["AUTH_STORAGE_DIR"])
-                stored_hash = users.get(st.session_state.auth_user)
-                if stored_hash != storage.hash_password(current_pw):
-                    st.error("Current password is incorrect.")
-                elif new_pw != confirm_pw:
+                if new_pw != confirm_pw:
                     st.error("New passwords do not match.")
                 elif not new_pw:
                     st.error("New password cannot be empty.")
                 else:
-                    users[st.session_state.auth_user] = storage.hash_password(new_pw)
-                    storage.save_users(cfg["AUTH_STORAGE_DIR"], users)
-                    st.success("Password updated successfully.")
+                    # Local change is handled by previous UI in legacy mode; here we inform the user.
+                    st.info("Password change is managed by the backend in DB mode.")
 
         st.divider()
         st.markdown("### Feedback")
@@ -117,12 +88,12 @@ with st.sidebar:
             submit_feedback = st.form_submit_button("Submit Feedback")
 
         if submit_feedback:
-            feedback_text_clean = feedback_text.strip()
+            feedback_text_clean = (feedback_text or "").strip()
             if not feedback_text_clean:
                 st.warning("Please enter feedback before submitting.")
             else:
                 record = {
-                    "username": st.session_state.auth_user,
+                    "username": display_user,
                     "feedback": feedback_text_clean,
                     "ts": datetime.utcnow().isoformat(timespec="seconds"),
                 }
@@ -135,9 +106,8 @@ with st.sidebar:
                     st.rerun()
 
         if st.button("Log Out"):
-            auth_session.delete_cookie(cfg["SESSION_COOKIE_NAME"])
-            st.session_state.authenticated = False
-            st.session_state.auth_user = None
+            auth_session.logout()
+            # Clear transient state
             st.session_state.history = []
             st.session_state.metadata = []
             st.session_state.feedback_mode = {}
@@ -146,17 +116,22 @@ with st.sidebar:
             st.session_state.last_feedback_ok = False
             st.rerun()
 
-# Bloquea app si no está autenticado
-if not st.session_state.authenticated:
+# Auth guard
+if not (get_bool("is_authenticated") or get_bool("authenticated")):
     st.stop()
 
-# Navegación principal
-tab = st.sidebar.radio("Navigation", ["Assistant", "Status"])
+# Navigation
+tabs = ["Assistant", "Status"]
+if get_str("role", "user") == "admin":
+    tabs.append("Users (Admin)")
+tab = st.sidebar.radio("Navigation", tabs)
 
-# Cliente del backend
+# Backend client
 client = APIClient(cfg["BACKEND_API_BASE"], timeout=cfg["REQUEST_TIMEOUT"])
 
 if tab == "Assistant":
     view_chat.render(client, cfg["ASSISTANT_TITLE"], cfg["FEEDBACK_STORAGE_DIR"])
 elif tab == "Status":
     view_status.render(client)
+elif tab == "Users (Admin)":
+    view_users.render(client)

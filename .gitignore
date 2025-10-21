@@ -14,7 +14,8 @@ venv/
 env/
 ENV/
 
-/data/
+/data/*
+!/data/.gitkeep
 
 # --- Archivos de entorno ---
 .env

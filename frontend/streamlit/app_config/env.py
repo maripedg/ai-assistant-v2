@@ -15,6 +15,13 @@ def _int_env(name: str, default: int) -> int:
         return default
 
 
+def _bool_env(name: str, default: bool) -> bool:
+    val = os.getenv(name)
+    if val is None or val == "":
+        return default
+    return str(val).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_config():
     # Defaults seguros
     backend = os.getenv("BACKEND_API_BASE", "http://localhost:5000")
@@ -30,4 +37,8 @@ def get_config():
         "SESSION_SECRET": session_secret,
         "REQUEST_TIMEOUT": _int_env("REQUEST_TIMEOUT", 60),
         "LOG_LEVEL": os.getenv("LOG_LEVEL", "INFO").upper(),
+        # Auth/Feedback toggles
+        "AUTH_MODE": os.getenv("AUTH_MODE", "local"),              # local | db
+        "FEEDBACK_MODE": os.getenv("FEEDBACK_MODE", "local"),      # local | db
+        "DUAL_WRITE_FEEDBACK": _bool_env("DUAL_WRITE_FEEDBACK", False),
     }

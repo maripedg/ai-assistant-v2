@@ -147,3 +147,27 @@ prompts:
 fallback:
   enabled: true
   policy: always_on_low_confidence
+
+features:
+  users_api: true
+  feedback_api: true
+
+storage:
+  users:
+    mode: db          # db | json
+    json_path: data/users.json
+  feedback:
+    mode: db          # db | json
+    json_path: data/feedback.json
+  dual_write: false   # if true, writes go to both backends; reads follow `mode`
+
+auth:
+  mode: local         # local | sso | hybrid  (today: local)
+  password_algo: bcrypt  # bcrypt | pbkdf2_sha256 (fallback)
+  require_signup_approval: false
+
+database:
+  sqlalchemy_url: ""  # if empty, build from existing Oracle settings (user/pass/host/port/service)
+  pool_min: 1
+  pool_max: 5
+  pool_timeout_seconds: 30

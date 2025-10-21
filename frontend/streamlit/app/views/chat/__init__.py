@@ -45,12 +45,14 @@ def render(api_client, assistant_title: str, feedback_dir: str):
                 avatar_style="bottts",
                 seed="AssistantSeed",
             )
-
+            # Feedback controls
+            msg_id = f"{idx}_{abs(hash(content)) % 1000000}"
+            already = st.session_state.get(f"fb_done_{msg_id}", False)
             state = st.session_state.feedback_mode.setdefault(idx, {"icon": None})
 
             cols = st.columns([1, 1, 6], gap="small")
-            like_clicked = cols[0].button("\U0001F44D", key=f"like_{idx}")
-            dislike_clicked = cols[1].button("\U0001F44E", key=f"dislike_{idx}")
+            like_clicked = cols[0].button("\U0001F44D", key=f"like_{msg_id}", disabled=already)
+            dislike_clicked = cols[1].button("\U0001F44E", key=f"dislike_{msg_id}", disabled=already)
             if like_clicked:
                 state["icon"] = "like"
                 state["needs_reset"] = True
@@ -60,34 +62,48 @@ def render(api_client, assistant_title: str, feedback_dir: str):
                 state["needs_reset"] = True
                 st.session_state.feedback_mode[idx] = state
 
-            if state.get("icon"):
-                comment_key = f"feedback_comment_{idx}"
+            if already:
+                with cols[2]:
+                    st.caption("Thanks for your feedback.")
+            elif state.get("icon"):
+                comment_key = f"feedback_comment_{msg_id}"
 
                 if state.pop("needs_reset", None):
                     st.session_state.pop(comment_key, None)
                     st.session_state.feedback_mode[idx] = state
 
                 with cols[2]:
-                    st.text_area("Comment (optional)", key=comment_key)
-                    if st.button("Submit feedback", key=f"submit_feedback_{idx}"):
-                        feedback_text = st.session_state.get(comment_key, "").strip()
-                        record = {
-                            "username": st.session_state.auth_user,
-                            "question": _latest_user_question(st.session_state.history, idx),
-                            "answer": content,
-                            "icon": state["icon"],
-                            "feedback": feedback_text,
-                            "ts": datetime.utcnow().isoformat(timespec="seconds"),
-                        }
-                        try:
-                            storage.append_icon_feedback(feedback_dir, record)
-                        except Exception as exc:  # noqa: BLE001
-                            st.error(f"Failed to save message feedback: {exc}")
+                    st.text_area("Add a note (optional)", key=comment_key)
+                    if st.button("Submit feedback", key=f"submit_feedback_{msg_id}"):
+                        if not (st.session_state.get("is_authenticated") or st.session_state.get("authenticated")):
+                            st.warning("Please login to send feedback")
                         else:
-                            st.session_state.feedback_mode.pop(idx, None)
-                            st.session_state.pop(comment_key, None)
-                            st.session_state["last_feedback_ok"] = True
-                            st.rerun()
+                            feedback_text = (st.session_state.get(comment_key) or "").strip()
+                            username = st.session_state.get("username") or st.session_state.get("auth_user") or ""
+                            question = _latest_user_question(st.session_state.history, idx)
+                            answer_text = content or ""
+                            if not question or not answer_text:
+                                st.warning("Nothing to send for feedback")
+                            else:
+                                try:
+                                    result = storage.feedback_thumb(
+                                        username=username,
+                                        question=question,
+                                        answer=answer_text,
+                                        is_like=(state["icon"] == "like"),
+                                        comment=feedback_text,
+                                        ts=None,
+                                    )
+                                except Exception as exc:  # noqa: BLE001
+                                    st.error(f"Failed to save message feedback: {exc}")
+                                else:
+                                    if isinstance(result, dict) and result.get("warning"):
+                                        st.warning(result["warning"])
+                                    st.session_state[f"fb_done_{msg_id}"] = True
+                                    st.session_state.feedback_mode.pop(idx, None)
+                                    st.session_state.pop(comment_key, None)
+                                    st.session_state["last_feedback_ok"] = True
+                                    st.rerun()
             else:
                 st.caption("How was this answer?")
 

@@ -5,6 +5,9 @@ pydantic==2.9.2
 python-dotenv==1.0.1
 PyYAML==6.0.2
 oracledb==2.2.1
+SQLAlchemy>=2.0
+alembic>=1.13
+bcrypt>=4.1
 oci==2.131.1
 pydantic-settings
 langchain-core>=0.3.10,<0.4.0

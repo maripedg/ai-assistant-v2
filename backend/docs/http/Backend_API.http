@@ -1,0 +1,64 @@
+@base_url = http://localhost:8000
+
+### Health
+GET {{base_url}}/healthz
+Accept: application/json
+
+### Chat
+POST {{base_url}}/chat
+Content-Type: application/json
+
+{
+  "question": "How do I configure Oracle SBC TLS?"
+}
+
+### Users: Create
+POST {{base_url}}/api/v1/users/
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "name": "User One",
+  "password": "secret"
+}
+
+### Users: List
+GET {{base_url}}/api/v1/users/?limit=20&offset=0
+Accept: application/json
+
+### Users: Get by ID
+GET {{base_url}}/api/v1/users/1
+Accept: application/json
+
+### Users: Patch
+PATCH {{base_url}}/api/v1/users/1
+Content-Type: application/json
+
+{
+  "name": "Updated Name"
+}
+
+### Users: Delete (soft)
+DELETE {{base_url}}/api/v1/users/1?hard=false
+
+### Feedback: Create
+POST {{base_url}}/api/v1/feedback/
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "session_id": "abc123",
+  "rating": 5,
+  "category": "like",
+  "comment": "Found card 4111 1111 1111 1111",
+  "metadata": {"app_version": "1.2.3"}
+}
+
+### Feedback: List
+GET {{base_url}}/api/v1/feedback/?limit=20&offset=0
+Accept: application/json
+
+### Feedback: Get by ID
+GET {{base_url}}/api/v1/feedback/1
+Accept: application/json
+

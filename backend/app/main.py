@@ -17,6 +17,7 @@ from backend.app.routers import auth as auth_router
 from backend.app.routers import users as users_router
 from backend.app.routers import feedback as feedback_router
 from backend.app.routers import debug as debug_router
+from backend.app.routers import ingest as ingest_router
 from backend.app.deps import settings, validate_startup
 import os
 
@@ -66,6 +67,7 @@ if features.get("users_api", True):
     app.include_router(users_router.router)
 if features.get("feedback_api", True):
     app.include_router(feedback_router.router)
+app.include_router(ingest_router.router, prefix="/api/v1")
 
 # Dev-only debug endpoints
 debug_flag = False

@@ -67,3 +67,10 @@ Quick Links
 - Index: ./INDEX.md
 - Configuration: ./CONFIGURATION.md
 
+Quick Start: Documents & Embeddings (Admin)
+
+1. Ensure the backend API is running (see backend README) and `GET /healthz` returns ok.
+2. Set `DEFAULT_PROFILE`, `UPLOAD_CONCURRENCY`, and auth scope env vars as needed, then `streamlit run app/main.py`.
+3. Sign in as an admin user, open **Documents & Embeddings (Admin)**.
+4. Select three sample files (PDF/TXT/DOCX), click **Upload**, confirm statuses reach Uploaded with `upload_id` badges.
+5. Click **Create Embedding Job**, capture the returned `job_id`, and follow **Go to Assistant** to validate chat is reachable.

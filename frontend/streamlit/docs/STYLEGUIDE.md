@@ -30,3 +30,10 @@ Quick Links
 - Index: ./INDEX.md
 - Testing: ./TESTING.md
 
+Admin Microcopy
+
+- Upload success toast: "Uploaded `{{filename}}` (id `{{upload_id}}`)"
+- Upload error (415): "File type not allowed. Try PDF, DOCX, PPTX, XLSX, TXT, or HTML."
+- Upload error (413): "File exceeds backend limit. Split the document and retry."
+- Job success: "Embedding job `{{job_id}}` created. Continue in Assistant."
+- Job error: "Job creation failed. Check backend logs and retry."

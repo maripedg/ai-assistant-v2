@@ -62,8 +62,19 @@ Dependency Notes
 - services/auth_session.py provides HMAC-signed tokens saved as cookies (via extra-streamlit-components) or in-memory fallback.
 - services/storage.py persists users in data/credentials/usuarios.json and feedback in data/feedback/.
 
+Documents & Embeddings Flow
+
+```mermaid
+flowchart LR
+    A[Streamlit Admin View] -->|POST /api/v1/uploads| B[Backend Uploads Controller]
+    B --> C[Staging Storage]
+    A -->|POST /api/v1/ingest/jobs| D[Ingest Job Orchestrator]
+    D --> E[Embedding Pipeline]
+    E --> F[Vector Store]
+    F --> G[Assistant Chat Retrieval]
+```
+
 Quick Links
 
 - Index: ./INDEX.md
 - Setup: ./SETUP_AND_RUN.md
-

@@ -1,6 +1,7 @@
+import io
 import json
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from app_config.env import get_config
@@ -56,6 +57,192 @@ def _request(method: str, path: str, *, params: Optional[Dict[str, Any]] = None,
     if r.status_code == 422:
         raise ApiError(422, "validation_error", "Validation error", details)
     raise ApiError(r.status_code, "api_error", "Unexpected API error", details)
+
+
+def _backend_base_url() -> str:
+    """Resolve backend base URL preferring FRONTEND_BASE_URL over BACKEND_API_BASE."""
+    cfg = get_config()
+    base = cfg.get("FRONTEND_BASE_URL") or cfg.get("BACKEND_API_BASE") or ""
+    return base.rstrip("/")
+
+
+def _auth_headers(content_type: Optional[str] = None) -> Dict[str, str]:
+    headers: Dict[str, str] = {"Accept": "application/json"}
+    if content_type:
+        headers["Content-Type"] = content_type
+
+    cfg = get_config()
+    auth_enabled = str(cfg.get("AUTH_ENABLED", "")).lower() in {"1", "true", "yes", "on"}
+    if not auth_enabled:
+        return headers
+
+    token: Optional[str] = None
+    try:
+        from services import auth_session  # Local import to avoid circular at module import time
+
+        cookie_name = f"{cfg.get('SESSION_COOKIE_NAME', 'assistant_session')}_api"
+        token = auth_session.get_cookie(cookie_name)
+    except Exception:
+        token = None
+
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _request_timeout() -> int:
+    cfg = get_config()
+    try:
+        return int(cfg.get("REQUEST_TIMEOUT", 60))
+    except (TypeError, ValueError):
+        return 60
+
+
+def upload_file(file, source: Optional[str] = None, tags: Optional[str] = None, lang_hint: Optional[str] = None) -> Dict[str, Any]:
+    """Upload a single document using `POST /api/v1/uploads`.
+
+    Contracts documented in ../../backend/docs/API_REFERENCE.md (Documents & Embeddings)
+    and ../../backend/docs/API_ERRORS.md.
+    """
+    if not isinstance(file, tuple) or len(file) < 2:
+        raise ValueError("file must be a (filename, data[, content_type]) tuple")
+
+    filename = file[0]
+    payload = file[1]
+    content_type = file[2] if len(file) > 2 else "application/octet-stream"
+
+    if isinstance(payload, (bytes, bytearray)):
+        file_obj = io.BytesIO(payload)
+    else:
+        file_obj = payload
+        try:
+            file_obj.seek(0)
+        except Exception:  # noqa: BLE001
+            pass
+
+    form_fields: Dict[str, str] = {}
+    if source:
+        form_fields["source"] = source
+    if tags:
+        form_fields["tags"] = tags
+    if lang_hint:
+        form_fields["lang_hint"] = lang_hint
+
+    url = f"{_backend_base_url()}/api/v1/uploads"
+    try:
+        response = requests.post(
+            url,
+            data=form_fields or None,
+            files={"file": (filename, file_obj, content_type)},
+            headers=_auth_headers(),
+            timeout=_request_timeout(),
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(0, "network_error", "Network error calling POST /api/v1/uploads", str(exc)) from exc
+    finally:
+        if isinstance(payload, (bytes, bytearray)):
+            file_obj.close()
+
+    if 200 <= response.status_code < 300:
+        body = _json_or_text(response)
+        if isinstance(body, dict):
+            return body
+        return {"raw": body}
+
+    details = _json_or_text(response)
+    status = response.status_code
+    if status == 415:
+        raise ApiError(415, "unsupported_media_type", "Format not allowed", details)
+    if status == 413:
+        raise ApiError(413, "payload_too_large", "File exceeds size limit", details)
+    if status == 400:
+        raise ApiError(400, "bad_request", "Invalid upload request", details)
+    if status == 404:
+        raise ApiError(404, "not_found", "Upload not found", details)
+    if status == 409:
+        raise ApiError(409, "conflict", "Upload conflict", details)
+    raise ApiError(status, "api_error", "Unexpected API error", details)
+
+
+def create_ingest_job(
+    upload_ids: List[str],
+    profile: str,
+    tags: Optional[List[str]] = None,
+    lang_hint: Optional[str] = None,
+    priority: Optional[int] = None,
+    update_alias: bool = False,
+    evaluate: bool = False,
+) -> Dict[str, Any]:
+    """Create an ingestion job via `POST /api/v1/ingest/jobs`.
+
+    Contracts documented in ../../backend/docs/API_REFERENCE.md (Documents & Embeddings)
+    and ../../backend/docs/API_ERRORS.md.
+    """
+    payload: Dict[str, Any] = {
+        "upload_ids": upload_ids,
+        "profile": profile,
+        "update_alias": update_alias,
+        "evaluate": evaluate,
+    }
+    if tags:
+        payload["tags"] = tags
+    if lang_hint:
+        payload["lang_hint"] = lang_hint
+    if priority is not None:
+        payload["priority"] = priority
+
+    url = f"{_backend_base_url()}/api/v1/ingest/jobs"
+    try:
+        response = requests.post(
+            url,
+            json=payload,
+            headers=_auth_headers("application/json"),
+            timeout=_request_timeout(),
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(0, "network_error", "Network error calling POST /api/v1/ingest/jobs", str(exc)) from exc
+
+    if 200 <= response.status_code < 300:
+        body = _json_or_text(response)
+        if isinstance(body, dict):
+            return body
+        return {"raw": body}
+
+    details = _json_or_text(response)
+    status = response.status_code
+    if status == 422:
+        raise ApiError(422, "validation_error", "Unknown profile", details)
+    if status == 404:
+        raise ApiError(404, "not_found", "Upload not found", details)
+    if status == 409:
+        raise ApiError(409, "conflict", "Conflicting job", details)
+    if status >= 500:
+        raise ApiError(status, "server_error", "Unable to create job", details)
+    raise ApiError(status, "api_error", "Unexpected API error", details)
+
+
+def get_job(job_id: str) -> Dict[str, Any]:
+    """Fetch an ingestion job via `GET /api/v1/ingest/jobs/{job_id}`.
+
+    Contracts documented in ../../backend/docs/API_REFERENCE.md (Documents & Embeddings)
+    and ../../backend/docs/API_ERRORS.md.
+    """
+    url = f"{_backend_base_url()}/api/v1/ingest/jobs/{job_id}"
+    try:
+        response = requests.get(url, headers=_auth_headers(), timeout=_request_timeout())
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(0, "network_error", f"Network error calling GET /api/v1/ingest/jobs/{job_id}", str(exc)) from exc
+
+    if 200 <= response.status_code < 300:
+        body = _json_or_text(response)
+        if isinstance(body, dict):
+            return body
+        return {"raw": body}
+
+    details = _json_or_text(response)
+    if response.status_code == 404:
+        raise ApiError(404, "not_found", "Job not found", details)
+    raise ApiError(response.status_code, "api_error", "Unexpected API error", details)
 
 
 # ------- Users endpoints -------

@@ -13,6 +13,7 @@ Sources
 Environment Variables
 
 - BACKEND_API_BASE: Base URL of backend API (default http://localhost:5000)
+- FRONTEND_BASE_URL: Override for backend base URL when different from BACKEND_API_BASE (used by Admin uploads)
 - FRONTEND_PORT: Port for Streamlit server (default 8501)
 - AUTH_STORAGE_DIR: Directory for users (default ./data/credenciales)
 - FEEDBACK_STORAGE_DIR: Directory for feedback (default ./data/feedback)
@@ -22,6 +23,12 @@ Environment Variables
 - SESSION_SECRET: HMAC secret for cookies (required to enable remember me)
 - REQUEST_TIMEOUT: HTTP timeout for backend calls in seconds (default 60)
 - LOG_LEVEL: Log level (default INFO)
+- DEFAULT_PROFILE: Embedding profile id used in Admin view (e.g., legacy_profile)
+- UPLOAD_CONCURRENCY: Max simultaneous uploads in Admin view (recommend 3-5)
+- ALLOWED_MIME_HINT: Optional CSV of MIME types to display in Admin copy (enforcement remains backend)
+- AUTH_ENABLED: Toggle auth headers/JWT handling for admin calls (true|false)
+- AUTH_TOKEN_SCOPE_UPLOAD: Scope/claim required for `POST /api/v1/uploads`
+- AUTH_TOKEN_SCOPE_INGEST: Scope/claim required for `POST /api/v1/ingest/jobs`
 
 Paths & Expectations
 
@@ -32,6 +39,7 @@ Paths & Expectations
 Override Strategy
 
 - All settings are read once at startup; update .env and rerun the app.
+- MIME type and size checks are ultimately enforced by the backend; the frontend only surfaces hints/warnings based on ALLOWED_MIME_HINT and MAX_UPLOAD_MB.
 
 Quick Links
 

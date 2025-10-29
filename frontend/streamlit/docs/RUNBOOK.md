@@ -35,6 +35,15 @@ Quick Links
 - Index: ./INDEX.md
 - Configuration: ./CONFIGURATION.md
 
+## Admin Documents View
+
+- 415 unsupported media type: confirm backend ALLOW_MIME or override, update `ALLOWED_MIME_HINT` copy, and retry with a supported format.
+- 413 payload too large: check backend `MAX_UPLOAD_MB`; remind user of size limit and split the document if needed.
+- 422 unknown profile: ensure `DEFAULT_PROFILE` matches backend configuration (`app.ingest_profiles` or embeddings profiles).
+- 404 upload not found: the upload cache expired; ask user to re-upload before creating a job.
+- 409 conflict on job create: another job references one of the uploads; wait for completion or clear the local list.
+- After a successful job creation, prompt operator to clear the staged list to avoid resubmitting the same `upload_id`s.
+
 ## Smoke Tests (Users & Feedback)
 
 ### Local auth

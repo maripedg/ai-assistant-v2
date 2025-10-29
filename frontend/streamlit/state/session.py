@@ -17,6 +17,15 @@ DEFAULT_KEYS = {
     "health_status": None,
     "config_cache": {},
     "last_feedback_ok": False,
+    "profile": "legacy_profile",
+    "tags": "",
+    "lang_hint": "auto",
+    "update_alias": False,
+    "evaluate": False,
+    "upload_concurrency": 3,
+    "files": [],
+    "last_job_id": "",
+    "job_snapshot": {},
 }
 
 
@@ -47,4 +56,3 @@ def clear_auth_state():
     for k in ("is_authenticated", "username", "role", "authenticated", "auth_user"):
         if k in st.session_state:
             st.session_state[k] = DEFAULT_KEYS[k]
-

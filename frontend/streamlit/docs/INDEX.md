@@ -37,3 +37,6 @@ Quick Links
 - Runbook: ./RUNBOOK.md
 - Changelog: ./CHANGELOG.md
 
+Admin Features
+
+- Documents & Embeddings (Admin): ./EMBEDDINGS_ADMIN.md

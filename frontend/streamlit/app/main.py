@@ -15,6 +15,7 @@ from state.session import init_session, get_bool, get_str
 from app.views import chat as view_chat
 from app.views import status as view_status
 from app.views import users as view_users
+from app.views.admin import embeddings as view_admin_embeddings
 
 cfg = get_config()
 st.set_page_config(page_title=cfg["ASSISTANT_TITLE"], layout="wide")
@@ -121,17 +122,29 @@ if not (get_bool("is_authenticated") or get_bool("authenticated")):
     st.stop()
 
 # Navigation
-tabs = ["Assistant", "Status"]
+tabs = {
+    "Assistant": "assistant",
+    "Status": "status",
+}
 if get_str("role", "user") == "admin":
-    tabs.append("Users (Admin)")
-tab = st.sidebar.radio("Navigation", tabs)
+    tabs["Documents & Embeddings (Admin)"] = "admin_embeddings"
+    tabs["Users (Admin)"] = "users_admin"
+
+tab_labels = list(tabs.keys())
+default_label = st.session_state.pop("nav_target", None)
+default_index = tab_labels.index(default_label) if default_label in tab_labels else 0
+tab_label = st.sidebar.radio("Navigation", tab_labels, index=default_index, key="nav_selection")
+tab = tabs[tab_label]
 
 # Backend client
+# Admin uploads use services.api_client helpers that prefer FRONTEND_BASE_URL over BACKEND_API_BASE.
 client = APIClient(cfg["BACKEND_API_BASE"], timeout=cfg["REQUEST_TIMEOUT"])
 
-if tab == "Assistant":
+if tab == "assistant":
     view_chat.render(client, cfg["ASSISTANT_TITLE"], cfg["FEEDBACK_STORAGE_DIR"])
-elif tab == "Status":
+elif tab == "status":
     view_status.render(client)
-elif tab == "Users (Admin)":
+elif tab == "users_admin":
     view_users.render(client)
+elif tab == "admin_embeddings":
+    view_admin_embeddings.render(client)

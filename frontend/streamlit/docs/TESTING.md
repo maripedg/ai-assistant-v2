@@ -31,3 +31,10 @@ Quick Links
 - Index: ./INDEX.md
 - Styleguide: ./STYLEGUIDE.md
 
+Manual Checklist - Documents & Embeddings (Admin)
+
+- Upload three files (PDF, TXT, DOCX). Each should reach Uploaded status with a visible `upload_id`.
+- Create an embedding job using the staged `upload_ids`; confirm toast shows the returned `job_id`.
+- Attempt to upload an unsupported file (e.g., `.exe`) and verify the 415 message.
+- Attempt to upload a file larger than backend limit and confirm the 413 guidance.
+- Log in as a non-admin and confirm the Admin page shows the access-restricted notice.

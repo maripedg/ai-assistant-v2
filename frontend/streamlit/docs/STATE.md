@@ -14,6 +14,14 @@ Session Keys (state/session.py)
 - health_status: health payload from backend status view
 - config_cache: snapshot of get_config() for quick access
 - last_feedback_ok: flag to show toast after feedback submit
+- profile: selected embedding profile for Admin view
+- tags: list of tags attached to the next embedding job
+- lang_hint: language hint field (auto|es|en|pt)
+- update_alias: bool flag forwarding to ingest job payload
+- evaluate: bool flag to trigger optional evaluation run
+- upload_concurrency: max simultaneous uploads allowed
+- files: list of dicts `{name, size, status, progress, upload_id, error}`
+- last_job_id: most recent embedding job identifier returned
 
 Lifecycle
 
@@ -30,4 +38,3 @@ Quick Links
 
 - Index: ./INDEX.md
 - Architecture: ./ARCHITECTURE.md
-

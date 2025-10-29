@@ -1,0 +1,32 @@
+{
+  "format": {
+    "headers": [
+      "TC Name",
+      "Module",
+      "Functiona area",
+      "Test Description",
+      "Steps",
+      "Expected Output",
+      "Customer Segment",
+      "Service Type",
+      "Document Reference \nRD Name",
+      "Requirement id"
+    ],
+    "sheet_name": "SIT Test Cases",
+    "examples": [
+      {
+        "row_hint": "Structure Only",
+        "TC Name": "Short business-readable title",
+        "Module": "Billing | Invoicing",
+        "Functiona area": "Subdomain/topic",
+        "Test Description": "1–2 lines max summary",
+        "Steps": "Given... When... Then... (single cell)",
+        "Expected Output": "Specific, verifiable result",
+        "Customer Segment": "Residential | Corporate | All",
+        "Service Type": "Broadband | Licenses | All",
+        "Document Reference \nRD Name": "Chunk ID + title",
+        "Requirement id": "Cross-reference if available"
+      }
+    ]
+  }
+}

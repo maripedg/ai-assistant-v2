@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "type": "GENERATION_RESULT",
+    "created_at": "2025-10-27T16:12:20.345923Z"
+  },
+  "result": {
+    "rows": 5,
+    "sheet_name": "SIT Test Cases",
+    "columns_order": [
+      "TC Name",
+      "Module",
+      "Functiona area",
+      "Test Description",
+      "Steps",
+      "Expected Output",
+      "Customer Segment",
+      "Service Type",
+      "Document Reference \nRD Name",
+      "Requirement id"
+    ],
+    "destination_path": "C:\\Users\\Mario Pedraza\\Desktop\\Development\\ai-assistant-v2\\backend\\test-cases\\Test_Case_Matrix_Generatedv2.xlsx"
+  },
+  "traceability": "Each row should cite a DS-140 chunk id/title.",
+  "durations": {
+    "ai_seconds": 6.76
+  }
+}

@@ -10,6 +10,7 @@ from backend.app.services.ingest import (
     ConflictError,
     EmptyUploadError,
     FileTooLargeError,
+    UnknownProfileError,
     UnsupportedContentTypeError,
     ingest_service,
 )
@@ -69,6 +70,12 @@ def get_upload(upload_id: str) -> UploadMeta:
 def create_ingest_job(payload: CreateIngestJobRequest, background_tasks: BackgroundTasks) -> IngestJobStatus:
     try:
         job = ingest_service.create_job(payload)
+    except UnknownProfileError as exc:
+        logger.error("Unknown ingest profile requested: %s", exc.profile)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     except ValueError as exc:
         message = str(exc)
         status_code = status.HTTP_400_BAD_REQUEST

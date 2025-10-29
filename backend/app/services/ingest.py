@@ -20,6 +20,7 @@ from backend.app.services.storage import (
     StorageService,
     UnsupportedContentTypeError,
 )
+from backend.app.deps import settings as app_settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,14 @@ MAX_LOG_LINES = 40
 
 class ConflictError(Exception):
     """Raised when a conflicting active job already exists."""
+
+
+class UnknownProfileError(Exception):
+    """Raised when an ingest profile is not recognised."""
+
+    def __init__(self, profile: Optional[str]) -> None:
+        self.profile = profile or ""
+        super().__init__(f"Unknown profile: {self.profile}")
 
 
 def _utc_iso() -> str:
@@ -41,10 +50,12 @@ def _ensure_parent(path: Path) -> None:
 class IngestService:
     def __init__(
         self,
+        settings: Optional[Any] = None,
         staging_dir: Optional[str] = None,
         allow_mime: Optional[List[str]] = None,
         max_upload_bytes: Optional[int] = None,
     ) -> None:
+        self.settings = settings
         self._storage = StorageService(staging_dir, allow_mime, max_upload_bytes)
         self._uploads_path = self._storage.base_dir / "uploads.json"
         self._jobs_path = self._storage.base_dir / "jobs.json"
@@ -80,6 +91,39 @@ class IngestService:
             uploads[stored.upload_id] = upload_record
             self._write_json(self._uploads_path, uploads)
         return UploadMeta(**self._public_upload(upload_record))
+
+    def register_external_upload(
+        self,
+        abs_path: str,
+        storage_path: str,
+        size_bytes: int,
+        content_type: str,
+        checksum_sha256: str,
+        source: str = "sharepoint-sync",
+        lang_hint: str = "auto",
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> UploadMeta:
+        upload_id = str(uuid.uuid4())
+        record = {
+            "upload_id": upload_id,
+            "filename": Path(storage_path).name,
+            "size_bytes": size_bytes,
+            "content_type": content_type,
+            "source": source,
+            "tags": tags or ["sharepoint"],
+            "lang_hint": lang_hint,
+            "storage_path": storage_path,
+            "abs_path": str(Path(abs_path).resolve()),
+            "checksum_sha256": checksum_sha256,
+            "created_at": _utc_iso(),
+            "metadata": metadata or {},
+        }
+        with self._lock:
+            uploads = self._read_json(self._uploads_path)
+            uploads[upload_id] = record
+            self._write_json(self._uploads_path, uploads)
+        return UploadMeta(**self._public_upload(record))
 
     def get_upload(self, upload_id: str) -> Optional[UploadMeta]:
         with self._lock:
@@ -276,17 +320,61 @@ class IngestService:
         return f"emb-{dt.datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6]}"
 
     def _resolve_profile(self, profile: Optional[str]) -> str:
-        cfg = settings.app if isinstance(settings.app, dict) else {}
-        embeddings = cfg.get("embeddings", {}) if isinstance(cfg, dict) else {}
-        profiles = embeddings.get("profiles", {}) if isinstance(embeddings, dict) else {}
+        app_cfg = self._settings_app()
+        embeddings_cfg = app_cfg.get("embeddings", {}) if isinstance(app_cfg, dict) else {}
+        configured_profiles = self._configured_profiles(app_cfg, embeddings_cfg)
+        builtin_profiles = self._builtin_profiles()
+        builtin_set = set(builtin_profiles)
+
         if profile:
-            if profile not in profiles:
-                raise ValueError(f"Unknown profile '{profile}'")
-            return profile
-        active = embeddings.get("active_profile") if isinstance(embeddings, dict) else None
-        if not active:
-            raise ValueError("No active embedding profile configured")
-        return active
+            if profile in configured_profiles:
+                return profile
+            if profile in builtin_set:
+                return profile
+            raise UnknownProfileError(profile)
+
+        active = None
+        if isinstance(embeddings_cfg, dict):
+            active = embeddings_cfg.get("active_profile")
+
+        if active and (active in configured_profiles or active in builtin_set):
+            return active
+
+        if configured_profiles:
+            return next(iter(configured_profiles))
+
+        if builtin_profiles:
+            return builtin_profiles[0]
+
+        raise ValueError("No active embedding profile configured")
+
+    def _settings_app(self) -> Dict[str, Any]:
+        if not self.settings:
+            return {}
+        app_section = getattr(self.settings, "app", {})
+        return app_section if isinstance(app_section, dict) else {}
+
+    @staticmethod
+    def _configured_profiles(app_cfg: Dict[str, Any], embeddings_cfg: Dict[str, Any]) -> List[str]:
+        ingest_profiles = app_cfg.get("ingest_profiles", {})
+        if isinstance(ingest_profiles, dict) and ingest_profiles:
+            return list(ingest_profiles.keys())
+        if isinstance(embeddings_cfg, dict):
+            embed_profiles = embeddings_cfg.get("profiles", {})
+            if isinstance(embed_profiles, dict):
+                return list(embed_profiles.keys())
+        return []
+
+    @staticmethod
+    def _builtin_profiles() -> List[str]:
+        defaults: List[str] = []
+        env_profile = app_config.embed_profile()
+        if env_profile and env_profile not in defaults:
+            defaults.append(env_profile)
+        for candidate in ("legacy_profile", "standard_profile"):
+            if candidate not in defaults:
+                defaults.append(candidate)
+        return defaults
 
     def _has_conflict(self, jobs: Dict[str, Any], upload_ids: List[str]) -> bool:
         active_states = {"queued", "running"}
@@ -397,8 +485,10 @@ class IngestService:
         return IngestJobStatus(**payload)
 
 
-def build_ingest_service() -> IngestService:
+def build_ingest_service(settings_obj: Optional[Any] = None) -> IngestService:
+    settings_obj = settings_obj or app_settings
     return IngestService(
+        settings=settings_obj,
         staging_dir=app_config.staging_dir(),
         allow_mime=list(app_config.allow_mime()),
         max_upload_bytes=app_config.max_upload_bytes(),
@@ -416,4 +506,5 @@ __all__ = [
     "UnsupportedContentTypeError",
     "ConflictError",
     "IngestService",
+    "UnknownProfileError",
 ]

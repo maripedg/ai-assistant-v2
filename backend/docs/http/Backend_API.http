@@ -1,4 +1,7 @@
 @base_url = http://localhost:8000
+@auth_token = REPLACE_WITH_JWT
+@upload_id = upl-PLACEHOLDER
+@job_id = emb-PLACEHOLDER
 
 ### Health
 GET {{base_url}}/healthz
@@ -11,6 +14,20 @@ Content-Type: application/json
 {
   "question": "How do I configure Oracle SBC TLS?"
 }
+
+### Auth: Login
+POST {{base_url}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "secret"
+}
+
+### Auth: Refresh
+POST {{base_url}}/api/v1/auth/refresh
+Authorization: Bearer {{auth_token}}
+Accept: application/json
 
 ### Users: Create
 POST {{base_url}}/api/v1/users/
@@ -41,6 +58,15 @@ Content-Type: application/json
 ### Users: Delete (soft)
 DELETE {{base_url}}/api/v1/users/1?hard=false
 
+### Users: Change Password
+POST {{base_url}}/api/v1/users/1/password
+Content-Type: application/json
+
+{
+  "current_password": "optional",
+  "new_password": "Strong#2025"
+}
+
 ### Feedback: Create
 POST {{base_url}}/api/v1/feedback/
 Content-Type: application/json
@@ -62,3 +88,64 @@ Accept: application/json
 GET {{base_url}}/api/v1/feedback/1
 Accept: application/json
 
+### Documents: Upload (update file contents before sending)
+POST {{base_url}}/api/v1/uploads
+Content-Type: multipart/form-data; boundary=--------------------------boundary
+
+--------------------------boundary
+Content-Disposition: form-data; name="file"; filename="sample.txt"
+Content-Type: text/plain
+
+Sample file contents for ingestion.
+--------------------------boundary
+Content-Disposition: form-data; name="source"
+
+manual-upload
+--------------------------boundary
+Content-Disposition: form-data; name="tags"
+
+product,public
+--------------------------boundary
+Content-Disposition: form-data; name="lang_hint"
+
+auto
+--------------------------boundary--
+
+### Documents: Get Upload Metadata
+GET {{base_url}}/api/v1/uploads/{{upload_id}}
+Accept: application/json
+
+### Documents: Create Ingest Job
+POST {{base_url}}/api/v1/ingest/jobs
+Content-Type: application/json
+
+{
+  "upload_ids": ["{{upload_id}}"],
+  "profile": "legacy_profile",
+  "tags": ["product:demo"],
+  "lang_hint": "auto",
+  "priority": 10,
+  "update_alias": false,
+  "evaluate": false
+}
+
+### Documents: Get Job Status
+GET {{base_url}}/api/v1/ingest/jobs/{{job_id}}
+Accept: application/json
+
+### SharePoint: Trigger Sync
+POST {{base_url}}/api/v1/sharepoint/sync/run
+Content-Type: application/json
+
+{
+  "mode": "update",
+  "folder_name": "rolling"
+}
+
+### SharePoint: History
+GET {{base_url}}/api/v1/sharepoint/history
+Accept: application/json
+
+### Debug (dev only)
+GET {{base_url}}/api/_debug/db
+Accept: application/json

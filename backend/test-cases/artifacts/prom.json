@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "type": "PROM",
+    "created_at": "2025-10-27T16:12:11.558991Z",
+    "engine": "rag",
+    "requested_rows": 5
+  },
+  "instructions": "You are a test-case designer. Use ONLY the provided RAG context:\n1) WORD_CHUNKS: requirements from DS-140.\n2) MATRIX_CHUNKS: target Excel format (headers, sheet name, examples).\n\nTASK: Produce EXACTLY 5 test cases strictly derived from WORD_CHUNKS.\nRespect the column names and order from MATRIX_CHUNKS.format.headers.\nIf any field cannot be derived, write \"TBD\".\nWrite Steps in concise Gherkin (Given/When/Then) inside a single cell.\nAlways cite the source chunk in \"Document Reference \\nRD Name\".\n\nOUTPUT FORMAT: Return ONLY a JSON array (no markdown, no code fences) with EXACTLY 5 objects.\nEach object MUST use these keys:\n- tc_name\n- module\n- functional_area\n- test_description\n- steps_gwt\n- expected_output\n- customer_segment\n- service_type\n- document_reference_rd_name\n- requirement_id\nDo not include any other fields.",
+  "context": {
+    "WORD_CHUNKS": [
+      {
+        "doc": "DS-140 Billing",
+        "chunks": [
+          {
+            "id": "BIL-3.2",
+            "title": "Due Date Calculation +5 days",
+            "text": "Payment term is 5 natural days after cycle close (DOM=1)."
+          },
+          {
+            "id": "BIL-3.3",
+            "title": "First Bill (BillNow)",
+            "text": "Activation triggers BillNow and updates STATUS_FAC."
+          },
+          {
+            "id": "BIL-3.5",
+            "title": "Trial Billing",
+            "text": "Trial invoices are created only in open cycles as /invoice/trial."
+          },
+          {
+            "id": "BIL-3.7",
+            "title": "Credit Note for Proration",
+            "text": "Negative items are netted by opposite adjustments; credit note is prepared."
+          }
+        ]
+      },
+      {
+        "doc": "DS-140 Invoicing",
+        "chunks": [
+          {
+            "id": "INV-3.1",
+            "title": "pin_inv_accts",
+            "text": "Populates /brm_inv_header and /brm_inv_detalle with required fields."
+          },
+          {
+            "id": "INV-3.1-SEQ",
+            "title": "Global Sequences",
+            "text": "Single global, non-reusable invoice numbering via /data_sequence."
+          },
+          {
+            "id": "INV-3.1-GRP",
+            "title": "Grouping >50 Items",
+            "text": "Detail >50 triggers grouped + detailed (annex) records."
+          },
+          {
+            "id": "INV-3.2",
+            "title": "Alterbios/SRI Integration",
+            "text": "Persist claveAcceso, numeroAutorizacion, fechaAutorizacion, estadoSri."
+          }
+        ]
+      }
+    ],
+    "MATRIX_CHUNKS": {
+      "format": {
+        "headers": [
+          "TC Name",
+          "Module",
+          "Functiona area",
+          "Test Description",
+          "Steps",
+          "Expected Output",
+          "Customer Segment",
+          "Service Type",
+          "Document Reference \nRD Name",
+          "Requirement id"
+        ],
+        "sheet_name": "SIT Test Cases",
+        "examples": [
+          {
+            "row_hint": "Structure Only",
+            "TC Name": "Short business-readable title",
+            "Module": "Billing | Invoicing",
+            "Functiona area": "Subdomain/topic",
+            "Test Description": "1–2 lines max summary",
+            "Steps": "Given... When... Then... (single cell)",
+            "Expected Output": "Specific, verifiable result",
+            "Customer Segment": "Residential | Corporate | All",
+            "Service Type": "Broadband | Licenses | All",
+            "Document Reference \nRD Name": "Chunk ID + title",
+            "Requirement id": "Cross-reference if available"
+          }
+        ]
+      }
+    }
+  },
+  "output_target": {
+    "sheet_name": "SIT Test Cases",
+    "columns_order": [
+      "TC Name",
+      "Module",
+      "Functiona area",
+      "Test Description",
+      "Steps",
+      "Expected Output",
+      "Customer Segment",
+      "Service Type",
+      "Document Reference \nRD Name",
+      "Requirement id"
+    ],
+    "destination_path": "C:\\Users\\Mario Pedraza\\Desktop\\Development\\ai-assistant-v2\\backend\\test-cases\\Test_Case_Matrix_Generatedv2.xlsx",
+    "rows_expected": 5
+  },
+  "output_format": {
+    "type": "json_array",
+    "json_keys_order": [
+      "tc_name",
+      "module",
+      "functional_area",
+      "test_description",
+      "steps_gwt",
+      "expected_output",
+      "customer_segment",
+      "service_type",
+      "document_reference_rd_name",
+      "requirement_id"
+    ],
+    "json_to_excel_mapping": {
+      "tc_name": "TC Name",
+      "module": "Module",
+      "functional_area": "Functiona area",
+      "test_description": "Test Description",
+      "steps_gwt": "Steps",
+      "expected_output": "Expected Output",
+      "customer_segment": "Customer Segment",
+      "service_type": "Service Type",
+      "document_reference_rd_name": "Document Reference \\nRD Name",
+      "requirement_id": "Requirement id"
+    }
+  }
+}

@@ -1,11 +1,14 @@
 {
   "info": {
     "name": "Backend API",
+    "description": "Synced with API_REFERENCE.md",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-    },
+  },
   "variable": [
     {"key": "base_url", "value": "http://localhost:8000"},
-    {"key": "auth_token", "value": ""}
+    {"key": "auth_token", "value": ""},
+    {"key": "upload_id", "value": "upl-PLACEHOLDER"},
+    {"key": "job_id", "value": "emb-PLACEHOLDER"}
   ],
   "item": [
     {
@@ -21,9 +24,9 @@
             "url": {"raw": "{{base_url}}/healthz", "host": ["{{base_url}}"], "path": ["healthz"]}
           },
           "event": [
-            {"listen": "test", "script": {"exec": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
               "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
-            ], "type": "text/javascript"}}
+            ]}}
           ]
         }
       ]
@@ -42,10 +45,48 @@
             "body": {"mode": "raw", "raw": "{\n  \"question\": \"How do I configure Oracle SBC TLS?\"\n}"}
           },
           "event": [
-            {"listen": "test", "script": {"exec": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
               "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
-              "pm.test('Has answer', function () { pm.expect(pm.response.json().answer).to.be.a('string'); });"
-            ], "type": "text/javascript"}}
+              "pm.test('Response has answer', function () { var json = pm.response.json(); pm.expect(json.answer).to.be.a('string'); });"
+            ]}}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"]},
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret\"\n}"}
+          },
+          "event": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Capture auth token', function () { var json = pm.response.json(); pm.expect(json.token).to.be.a('string'); pm.collectionVariables.set('auth_token', json.token); });"
+            ]}}
+          ]
+        },
+        {
+          "name": "POST /api/v1/auth/refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/auth/refresh", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "refresh"]}
+          },
+          "event": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]}}
           ]
         }
       ]
@@ -61,12 +102,9 @@
               {"key": "Content-Type", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/users/", "host": ["{{base_url}}"], "path": ["api","v1","users",""]},
+            "url": {"raw": "{{base_url}}/api/v1/users/", "host": ["{{base_url}}"], "path": ["api", "v1", "users", ""]},
             "body": {"mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"name\": \"User One\",\n  \"password\": \"secret\"\n}"}
-          },
-          "event": [
-            {"listen": "test", "script": {"exec": ["pm.test('Status 200/201', function () { pm.expect([200,201]).to.include(pm.response.code); });"], "type": "text/javascript"}}
-          ]
+          }
         },
         {
           "name": "GET /api/v1/users/",
@@ -76,48 +114,65 @@
               {"key": "Accept", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/users/?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","users",""], "query": [
-              {"key": "limit", "value": "20"}, {"key": "offset", "value": "0"}
-            ]}
-          },
-          "event": [
-            {"listen": "test", "script": {"exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"], "type": "text/javascript"}}
-          ]
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""],
+              "query": [
+                {"key": "limit", "value": "20"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
+          }
         },
         {
-          "name": "GET /api/v1/users/{id}",
+          "name": "GET /api/v1/users/{user_id}",
           "request": {
             "method": "GET",
             "header": [
               {"key": "Accept", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api","v1","users","1"]}
-          },
-          "event": [
-            {"listen": "test", "script": {"exec": ["pm.test('Status is 200 or 404', function () { pm.expect([200,404]).to.include(pm.response.code); });"], "type": "text/javascript"}}
-          ]
+            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "1"]}
+          }
         },
         {
-          "name": "PATCH /api/v1/users/{id}",
+          "name": "PATCH /api/v1/users/{user_id}",
           "request": {
             "method": "PATCH",
             "header": [
               {"key": "Content-Type", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api","v1","users","1"]},
+            "url": {"raw": "{{base_url}}/api/v1/users/1", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "1"]},
             "body": {"mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}"}
           }
         },
         {
-          "name": "DELETE /api/v1/users/{id}",
+          "name": "DELETE /api/v1/users/{user_id}",
           "request": {
             "method": "DELETE",
             "header": [
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/users/1?hard=false", "host": ["{{base_url}}"], "path": ["api","v1","users","1"], "query": [{"key":"hard","value":"false"}]}
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/1?hard=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1"],
+              "query": [{"key": "hard", "value": "false"}]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/users/{user_id}/password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/users/1/password", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "1", "password"]},
+            "body": {"mode": "raw", "raw": "{\n  \"current_password\": \"optional\",\n  \"new_password\": \"Strong#2025\"\n}"}
           }
         }
       ]
@@ -133,7 +188,7 @@
               {"key": "Content-Type", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/feedback/", "host": ["{{base_url}}"], "path": ["api","v1","feedback",""]},
+            "url": {"raw": "{{base_url}}/api/v1/feedback/", "host": ["{{base_url}}"], "path": ["api", "v1", "feedback", ""]},
             "body": {"mode": "raw", "raw": "{\n  \"user_id\": 1,\n  \"session_id\": \"abc123\",\n  \"rating\": 5,\n  \"category\": \"like\",\n  \"comment\": \"Found card 4111 1111 1111 1111\",\n  \"metadata\": {\"app_version\": \"1.2.3\"}\n}"}
           }
         },
@@ -145,20 +200,139 @@
               {"key": "Accept", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/feedback/?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","feedback",""], "query": [
-              {"key": "limit", "value": "20"}, {"key": "offset", "value": "0"}
-            ]}
+            "url": {
+              "raw": "{{base_url}}/api/v1/feedback/?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "feedback", ""],
+              "query": [
+                {"key": "limit", "value": "20"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
           }
         },
         {
-          "name": "GET /api/v1/feedback/{id}",
+          "name": "GET /api/v1/feedback/{fb_id}",
           "request": {
             "method": "GET",
             "header": [
               {"key": "Accept", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{auth_token}}"}
             ],
-            "url": {"raw": "{{base_url}}/api/v1/feedback/1", "host": ["{{base_url}}"], "path": ["api","v1","feedback","1"]}
+            "url": {"raw": "{{base_url}}/api/v1/feedback/1", "host": ["{{base_url}}"], "path": ["api", "v1", "feedback", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents & Embeddings",
+      "item": [
+        {
+          "name": "POST /api/v1/uploads",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/uploads", "host": ["{{base_url}}"], "path": ["api", "v1", "uploads"]},
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "file", "type": "file", "src": ["./sample.txt"]},
+                {"key": "source", "type": "text", "value": "manual-upload"},
+                {"key": "tags", "type": "text", "value": "product,public"},
+                {"key": "lang_hint", "type": "text", "value": "auto"}
+              ]
+            }
+          },
+          "event": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('Created upload', function () { pm.response.to.have.status(201); });",
+              "pm.test('Capture upload id', function () { var json = pm.response.json(); pm.expect(json.upload_id).to.be.a('string'); pm.collectionVariables.set('upload_id', json.upload_id); });"
+            ]}}
+          ]
+        },
+        {
+          "name": "GET /api/v1/uploads/{upload_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/uploads/{{upload_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "uploads", "{{upload_id}}"]}
+          }
+        },
+        {
+          "name": "POST /api/v1/ingest/jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/ingest/jobs", "host": ["{{base_url}}"], "path": ["api", "v1", "ingest", "jobs"]},
+            "body": {"mode": "raw", "raw": "{\n  \"upload_ids\": [\"{{upload_id}}\"],\n  \"profile\": \"legacy_profile\",\n  \"tags\": [\"product:demo\"],\n  \"lang_hint\": \"auto\",\n  \"priority\": 10,\n  \"update_alias\": false,\n  \"evaluate\": false\n}"}
+          },
+          "event": [
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('Job accepted', function () { pm.expect([200,202]).to.include(pm.response.code); });",
+              "pm.test('Capture job id', function () { var json = pm.response.json(); pm.expect(json.job_id).to.be.a('string'); pm.collectionVariables.set('job_id', json.job_id); });"
+            ]}}
+          ]
+        },
+        {
+          "name": "GET /api/v1/ingest/jobs/{job_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/ingest/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "ingest", "jobs", "{{job_id}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "SharePoint",
+      "item": [
+        {
+          "name": "POST /api/v1/sharepoint/sync/run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/sharepoint/sync/run", "host": ["{{base_url}}"], "path": ["api", "v1", "sharepoint", "sync", "run"]},
+            "body": {"mode": "raw", "raw": "{\n  \"mode\": \"update\",\n  \"folder_name\": \"rolling\"\n}"}
+          }
+        },
+        {
+          "name": "GET /api/v1/sharepoint/history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "url": {"raw": "{{base_url}}/api/v1/sharepoint/history", "host": ["{{base_url}}"], "path": ["api", "v1", "sharepoint", "history"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Debug",
+      "item": [
+        {
+          "name": "GET /api/_debug/db",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/_debug/db", "host": ["{{base_url}}"], "path": ["api", "_debug", "db"]}
           }
         }
       ]

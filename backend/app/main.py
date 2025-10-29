@@ -18,7 +18,9 @@ from backend.app.routers import users as users_router
 from backend.app.routers import feedback as feedback_router
 from backend.app.routers import debug as debug_router
 from backend.app.routers import ingest as ingest_router
+from backend.app.routers import sharepoint as sharepoint_router
 from backend.app.deps import settings, validate_startup
+from backend.app.services.scheduler import start_scheduler, shutdown_scheduler
 import os
 
 app = FastAPI(title="AI Assistant Backend")
@@ -68,6 +70,7 @@ if features.get("users_api", True):
 if features.get("feedback_api", True):
     app.include_router(feedback_router.router)
 app.include_router(ingest_router.router, prefix="/api/v1")
+app.include_router(sharepoint_router.router, prefix="/api/v1")
 
 # Dev-only debug endpoints
 debug_flag = False
@@ -81,3 +84,12 @@ if debug_flag:
     app.include_router(debug_router.router)
 
 # Nota: /chat implementa retrieval híbrido (DB→LLM) sin colas.
+
+@app.on_event("startup")
+def _startup_scheduler() -> None:
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def _shutdown_scheduler() -> None:
+    shutdown_scheduler()

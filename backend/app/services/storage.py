@@ -18,6 +18,16 @@ from backend.app import config as app_config
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "StorageService",
+    "StorageError",
+    "EmptyUploadError",
+    "FileTooLargeError",
+    "UnsupportedContentTypeError",
+    "parse_tags_field",
+    "detect_content_type_for_path",
+]
+
 
 class StorageError(Exception):
     """Base storage error."""
@@ -67,7 +77,8 @@ def _detect_office_subtype(path: Path) -> Optional[str]:
     return None
 
 
-def _sniff_mime(path: Path, filename: str) -> str:
+def detect_content_type_for_path(path: Path, filename: Optional[str] = None) -> str:
+    probe_name = filename or path.name
     with path.open("rb") as handle:
         head = handle.read(4096)
     if head.startswith(b"%PDF"):
@@ -83,7 +94,7 @@ def _sniff_mime(path: Path, filename: str) -> str:
     # Naive text detection
     if all((32 <= b <= 126) or b in (9, 10, 13) for b in head[:128]):
         return "text/plain"
-    guessed, _ = mimetypes.guess_type(filename)
+    guessed, _ = mimetypes.guess_type(probe_name)
     if guessed:
         return guessed
     return "application/octet-stream"
@@ -177,7 +188,7 @@ class StorageService:
             target_path.unlink(missing_ok=True)
             raise EmptyUploadError("Uploaded file is empty")
 
-        content_type = _sniff_mime(target_path, sanitized_name).lower()
+        content_type = detect_content_type_for_path(target_path, sanitized_name).lower()
         if content_type not in self._allow_mime:
             target_path.unlink(missing_ok=True)
             raise UnsupportedContentTypeError(f"Unsupported MIME type: {content_type}")

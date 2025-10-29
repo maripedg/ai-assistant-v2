@@ -1,0 +1,24 @@
+{
+  "timestamp": "2025-10-27T16:12:30.122399Z",
+  "status": "OK",
+  "output_excel": "C:\\Users\\Mario Pedraza\\Desktop\\Development\\ai-assistant-v2\\backend\\test-cases\\Test_Case_Matrix_Generatedv2.xlsx",
+  "artifacts_dir": "C:\\Users\\Mario Pedraza\\Desktop\\Development\\ai-assistant-v2\\backend\\test-cases\\artifacts",
+  "rows": 5,
+  "sheet_name": "SIT Test Cases",
+  "columns_order": [
+    "TC Name",
+    "Module",
+    "Functiona area",
+    "Test Description",
+    "Steps",
+    "Expected Output",
+    "Customer Segment",
+    "Service Type",
+    "Document Reference \nRD Name",
+    "Requirement id"
+  ],
+  "durations": {
+    "ai_seconds": 6.76,
+    "write_seconds": 9.71
+  }
+}

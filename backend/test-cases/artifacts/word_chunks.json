@@ -1,0 +1,54 @@
+{
+  "docs": [
+    {
+      "doc": "DS-140 Billing",
+      "chunks": [
+        {
+          "id": "BIL-3.2",
+          "title": "Due Date Calculation +5 days",
+          "text": "Payment term is 5 natural days after cycle close (DOM=1)."
+        },
+        {
+          "id": "BIL-3.3",
+          "title": "First Bill (BillNow)",
+          "text": "Activation triggers BillNow and updates STATUS_FAC."
+        },
+        {
+          "id": "BIL-3.5",
+          "title": "Trial Billing",
+          "text": "Trial invoices are created only in open cycles as /invoice/trial."
+        },
+        {
+          "id": "BIL-3.7",
+          "title": "Credit Note for Proration",
+          "text": "Negative items are netted by opposite adjustments; credit note is prepared."
+        }
+      ]
+    },
+    {
+      "doc": "DS-140 Invoicing",
+      "chunks": [
+        {
+          "id": "INV-3.1",
+          "title": "pin_inv_accts",
+          "text": "Populates /brm_inv_header and /brm_inv_detalle with required fields."
+        },
+        {
+          "id": "INV-3.1-SEQ",
+          "title": "Global Sequences",
+          "text": "Single global, non-reusable invoice numbering via /data_sequence."
+        },
+        {
+          "id": "INV-3.1-GRP",
+          "title": "Grouping >50 Items",
+          "text": "Detail >50 triggers grouped + detailed (annex) records."
+        },
+        {
+          "id": "INV-3.2",
+          "title": "Alterbios/SRI Integration",
+          "text": "Persist claveAcceso, numeroAutorizacion, fechaAutorizacion, estadoSri."
+        }
+      ]
+    }
+  ]
+}

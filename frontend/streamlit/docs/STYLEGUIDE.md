@@ -7,7 +7,7 @@ Overview
 Python
 
 - Use Black and Flake8; keep functions small and testable.
-- Avoid side effects in import time; prefer explicit init at app startup.
+- Avoid side effects at import time; prefer explicit init at app startup.
 
 Streamlit
 
@@ -25,15 +25,30 @@ Error Handling
 - Catch request exceptions in api_client and return user-friendly messages.
 - Log or surface actionable guidance in Status view.
 
+Chat Answer Microcopy & Styling
+
+- Mode chip label: "[ICON] MODE" with subtle border colors (rag=blue, hybrid=purple, fallback=amber, direct=green).
+- Tooltip copy:
+  - rag: "Answer grounded on your documents"
+  - hybrid: "Combined documents + model judgment"
+  - fallback: "No sufficient evidence; controlled backup answer"
+  - direct: "Answered without retrieval"
+- Summary line: "Mode: {mode}. Evidence: {n}. Confidence: {bucket}."
+- Answer content renders above the summary card using Markdown. Precedence: answer -> answer2 -> answer3 -> placeholder "No answer content returned." Encourage short paragraphs, bullets for procedures, and fenced code blocks for snippets.
+- Evidence list title: "Sources ({n})". Add "Used a subset of available context." when sources_used == "partial".
+- Hide the entire Sources section when mode is fallback, gate_failed is true, or sim_max < threshold_low. In that case, show "No sources displayed because they did not meet the quality threshold." inside the Why panel.
+- Confidence bar buckets: Low (< threshold_low), Medium (between thresholds), High (>= threshold_high). Clamp 0-100%.
+- Snippet copy stays under 300 characters, no absolute paths, display file name and doc_id.
+
+Admin Microcopy
+
+- Upload success toast: "Uploaded {filename} (id {upload_id})"
+- Upload error (415): "File type not allowed. Try PDF, DOCX, PPTX, XLSX, TXT, or HTML."
+- Upload error (413): "File exceeds backend limit. Split the document and retry."
+- Job success: "Embedding job {job_id} created. Continue in Assistant."
+- Job error: "Job creation failed. Check backend logs and retry."
+
 Quick Links
 
 - Index: ./INDEX.md
 - Testing: ./TESTING.md
-
-Admin Microcopy
-
-- Upload success toast: "Uploaded `{{filename}}` (id `{{upload_id}}`)"
-- Upload error (415): "File type not allowed. Try PDF, DOCX, PPTX, XLSX, TXT, or HTML."
-- Upload error (413): "File exceeds backend limit. Split the document and retry."
-- Job success: "Embedding job `{{job_id}}` created. Continue in Assistant."
-- Job error: "Job creation failed. Check backend logs and retry."

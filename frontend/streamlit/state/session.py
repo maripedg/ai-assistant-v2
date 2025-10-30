@@ -26,6 +26,7 @@ DEFAULT_KEYS = {
     "files": [],
     "last_job_id": "",
     "job_snapshot": {},
+    "assistant_meta": [],
 }
 
 

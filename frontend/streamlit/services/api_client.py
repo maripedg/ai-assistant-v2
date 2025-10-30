@@ -321,9 +321,12 @@ class APIClient:
         """
         url = f"{self.base_url}/chat"
         payload = {"question": question}
+        debug_enabled = bool(get_config().get("DEBUG_CHAT_UI", False))
+        chat_logger = logging.getLogger("chat_ui")
         out = {
             "answer": "",
             "answer2": None,
+            "answer3": None,
             "retrieved_chunks_metadata": [],
             "mode": None,
             "used_chunks": [],
@@ -335,6 +338,16 @@ class APIClient:
             r.raise_for_status()
             # Backends pueden responder JSON directo con el objeto final:
             data = r.json()
+            if debug_enabled:
+                raw_keys = list(data.keys()) if isinstance(data, dict) else []
+                len_answer = len((data.get("answer") or "")) if isinstance(data, dict) else 0
+                try:
+                    chat_logger.debug(
+                        "API:chat_response_raw",
+                        extra={"keys": raw_keys, "len_answer": len_answer, "type": type(data).__name__},
+                    )
+                except Exception:  # noqa: BLE001
+                    print(f"API:chat_response_raw | keys={raw_keys} len_answer={len_answer} type={type(data).__name__}")
             # Algunos backends anidan respuesta serializada en data["response"]:
             raw = data.get("response", data)
             out["raw"] = raw
@@ -346,6 +359,7 @@ class APIClient:
                     out.update({
                         "answer": parsed.get("answer", "") or "",
                         "answer2": parsed.get("answer2"),
+                        "answer3": parsed.get("answer3"),
                         "retrieved_chunks_metadata": parsed.get("retrieved_chunks_metadata", []) or [],
                         "mode": parsed.get("mode"),
                         "used_chunks": parsed.get("used_chunks", []) or [],
@@ -358,6 +372,7 @@ class APIClient:
                 out.update({
                     "answer": raw.get("answer", "") or "",
                     "answer2": raw.get("answer2"),
+                    "answer3": raw.get("answer3"),
                     "retrieved_chunks_metadata": raw.get("retrieved_chunks_metadata", []) or [],
                     "mode": raw.get("mode"),
                     "used_chunks": raw.get("used_chunks", []) or [],
@@ -366,7 +381,31 @@ class APIClient:
             else:
                 # Formato inesperado: intenta mapear campos del data base
                 out["answer"] = data.get("answer", "") or ""
+                out["answer2"] = data.get("answer2")
+                out["answer3"] = data.get("answer3")
                 out["retrieved_chunks_metadata"] = data.get("retrieved_chunks_metadata", []) or []
+            if debug_enabled:
+                decision = out.get("decision_explain") or {}
+                summary = {
+                    "keys": sorted(out.keys()),
+                    "answer_type": type(out.get("answer")).__name__,
+                    "answer_len": len(str(out.get("answer") or "")),
+                    "answer2_type": type(out.get("answer2")).__name__,
+                    "answer3_type": type(out.get("answer3")).__name__,
+                    "mode": out.get("mode"),
+                    "sim_max": decision.get("max_similarity"),
+                    "used_chunks_count": len(out.get("used_chunks") or []),
+                    "retrieved_chunks_count": len(out.get("retrieved_chunks_metadata") or []),
+                }
+                try:
+                    chat_logger.debug("API:chat_response | %s", json.dumps(summary, default=str))
+                except Exception:  # noqa: BLE001
+                    print(f"API:chat_response | {summary}")
             return out
         except Exception as e:
-            return {**out, "answer": f"❌ Error contacting backend: {e}"}
+            if debug_enabled:
+                try:
+                    chat_logger.exception("API:chat_response_error")
+                except Exception:  # noqa: BLE001
+                    print(f"API:chat_response_error | {e}")
+            return {**out, "answer": f"Error contacting backend: {e}"}

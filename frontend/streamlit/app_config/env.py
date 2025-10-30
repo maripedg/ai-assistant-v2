@@ -41,4 +41,6 @@ def get_config():
         "AUTH_MODE": os.getenv("AUTH_MODE", "local"),              # local | db
         "FEEDBACK_MODE": os.getenv("FEEDBACK_MODE", "local"),      # local | db
         "DUAL_WRITE_FEEDBACK": _bool_env("DUAL_WRITE_FEEDBACK", False),
+        "DEBUG_CHAT_UI": _bool_env("DEBUG_CHAT_UI", False),
+        "DEBUG_CHAT_UI_STRICT": _bool_env("DEBUG_CHAT_UI_STRICT", False),
     }

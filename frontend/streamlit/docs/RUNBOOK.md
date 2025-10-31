@@ -52,6 +52,11 @@ Quick Links
 4. In the chat view, expand **Debug: Raw payload** to inspect the backend response and confirm which answer fields were populated.
 5. Confirm the visible **DEBUG — Answer Box** appears above the rendered Markdown when strict mode is enabled.
 
+## Feedback Troubleshooting
+
+- If you encounter `name 'datetime' is not defined`, ensure the patched frontend with the UTC helper import is deployed.
+- If the backend rejects `created_at`, the client now retries without it. Verify server timestamps or allow the backend to set the creation time.
+
 ## Smoke Tests (Chat Answer Panel)
 
 - Mock or force responses for rag, hybrid, and fallback modes via the status view or local fixtures.

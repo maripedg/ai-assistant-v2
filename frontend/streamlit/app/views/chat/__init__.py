@@ -5,12 +5,12 @@ import logging
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import uuid
 
 import streamlit as st
 from streamlit_chat import message
 
 from app_config.env import get_config
-from services import storage
 
 CONFIG = get_config()
 DEBUG_CHAT_UI_STRICT = bool(CONFIG.get("DEBUG_CHAT_UI_STRICT", False))
@@ -342,7 +342,7 @@ def _latest_user_question(history: List[Tuple[str, str]], current_index: int) ->
     return ""
 
 
-def _render_feedback_controls(idx: int, content: str) -> None:
+def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, Any]], api_client) -> None:
     msg_id = f"{idx}_{abs(hash(content)) % 1_000_000}"
     already = st.session_state.get(f"fb_done_{msg_id}", False)
     state = st.session_state.feedback_mode.setdefault(idx, {"icon": None})
@@ -377,26 +377,83 @@ def _render_feedback_controls(idx: int, content: str) -> None:
                     st.warning("Please login to send feedback")
                 else:
                     feedback_text = (st.session_state.get(comment_key) or "").strip()
-                    username = st.session_state.get("username") or st.session_state.get("auth_user") or ""
                     question = _latest_user_question(st.session_state.history, idx)
                     answer_text = content or ""
                     if not question or not answer_text:
                         st.warning("Nothing to send for feedback")
                     else:
+                        rating = 1 if state.get("icon") == "like" else -1
+                        if DEBUG_CHAT_UI:
+                            logp(
+                                "feedback_submit:start",
+                                message_id=msg_id,
+                                rating=rating,
+                                has_note=bool(feedback_text),
+                            )
+                        mode_value = None
+                        payload_value = None
+                        if isinstance(meta, dict):
+                            mode_value = meta.get("mode")
+                            if DEBUG_CHAT_UI_STRICT:
+                                payload_value = meta.get("raw_result")
+                        rating = 1 if state.get("icon") == "like" else -1
+                        if DEBUG_CHAT_UI:
+                            logp(
+                                "feedback_submit:start",
+                                message_id=msg_id,
+                                rating=rating,
+                                has_note=bool(feedback_text),
+                            )
+                        mode_value = None
+                        payload_value = None
+                        if isinstance(meta, dict):
+                            mode_value = meta.get("mode")
+                            if DEBUG_CHAT_UI_STRICT:
+                                payload_value = meta.get("raw_result")
+
+                        user_id_raw = st.session_state.get("user_id", CONFIG.get("FEEDBACK_DEFAULT_USER_ID"))
+                        user_id_value: Optional[int] = None
+                        if user_id_raw not in (None, ""):
+                            try:
+                                user_id_value = int(user_id_raw)
+                            except (TypeError, ValueError):
+                                logp("feedback_submit:user_id_invalid", raw=user_id_raw)
+                                user_id_value = None
+                        session_identifier = st.session_state.get("feedback_session_id")
+                        if not session_identifier:
+                            session_identifier = str(uuid.uuid4())
+                            st.session_state["feedback_session_id"] = session_identifier
+                        category_value = "like" if rating > 0 else "dislike"
+                        comment_text = feedback_text or answer_text or question or "Feedback"
+                        metadata_payload: Dict[str, Any] = {
+                            "question": question,
+                            "answer_preview": (answer_text or "")[:200],
+                            "mode": mode_value,
+                            "message_id": msg_id,
+                        }
+                        if feedback_text:
+                            metadata_payload["note"] = feedback_text
+                        if payload_value and DEBUG_CHAT_UI_STRICT:
+                            metadata_payload["raw_response"] = payload_value
+
                         try:
-                            result = storage.feedback_thumb(
-                                username=username,
-                                question=question,
-                                answer=answer_text,
-                                is_like=(state["icon"] == "like"),
-                                comment=feedback_text,
-                                ts=None,
+                            result = api_client.send_feedback(
+                                user_id=user_id_value,
+                                session_id=session_identifier,
+                                rating=rating,
+                                category=category_value,
+                                comment=comment_text,
+                                metadata=metadata_payload,
+                                message_id=msg_id,
                             )
                         except Exception as exc:  # noqa: BLE001
+                            logp("feedback_submit:error", message_id=msg_id, error=str(exc))
                             st.error(f"Failed to save message feedback: {exc}")
                         else:
+                            logp("feedback_submit:success", message_id=msg_id)
                             if isinstance(result, dict) and result.get("warning"):
                                 st.warning(result["warning"])
+                            st.success("Feedback saved.")
                             st.session_state[f"fb_done_{msg_id}"] = True
                             st.session_state.feedback_mode.pop(idx, None)
                             st.session_state.pop(comment_key, None)
@@ -483,4 +540,4 @@ def render(api_client, assistant_title: str, feedback_dir: str) -> None:
                 answer_for_feedback = answer_markdown or (payload_for_render.get("answer") or content or ANSWER_PLACEHOLDER)
                 if not answer_markdown:
                     logp("guard:feedback_placeholder", idx=idx, source=answer_source)
-                _render_feedback_controls(idx, answer_for_feedback)
+                _render_feedback_controls(idx, answer_for_feedback, meta, api_client)

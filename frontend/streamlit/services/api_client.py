@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -284,6 +285,10 @@ def feedback_list(**filters: Any) -> Any:
     return _request("GET", "/api/v1/feedback/", params=filters)
 
 
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
 # ------- Auth endpoints -------
 def auth_login(email: str, password: str) -> Any:
     """Perform backend login. Returns JSON with at least {token, user:{email,role,status}}.
@@ -409,3 +414,68 @@ class APIClient:
                 except Exception:  # noqa: BLE001
                     print(f"API:chat_response_error | {e}")
             return {**out, "answer": f"Error contacting backend: {e}"}
+
+    def send_feedback(
+        self,
+        *,
+        user_id: Optional[int],
+        session_id: str,
+        rating: int,
+        category: str,
+        comment: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        message_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        debug_enabled = bool(get_config().get("DEBUG_CHAT_UI", False))
+        chat_logger = logging.getLogger("chat_ui")
+
+        body: Dict[str, Any] = {
+            "rating": rating,
+            "category": category,
+            "comment": comment,
+            "session_id": session_id,
+            "metadata": metadata or {},
+        }
+        if user_id is not None:
+            body["user_id"] = user_id
+        body["metadata"]["client"] = "streamlit"
+        body["metadata"]["ui_version"] = "chat-v2"
+        if debug_enabled:
+            try:
+                chat_logger.debug(
+                    "FEEDBACK:sending",
+                    extra={
+                        "message_id": message_id,
+                        "rating": rating,
+                        "category": category,
+                    },
+                )
+            except Exception:  # noqa: BLE001
+                print(f"FEEDBACK:sending | message_id={message_id} rating={rating} category={category}")
+
+        def _post(body_data: Dict[str, Any]) -> Dict[str, Any]:
+            return _request("POST", "/api/v1/feedback/", json_body=body_data)
+
+        try:
+            try:
+                result = _post(body)
+            except ApiError as err:
+                status = getattr(err, "status", None)
+                if status in {400, 422} and "created_at" in body:
+                    if debug_enabled:
+                        chat_logger.debug("FEEDBACK:retry_without_created_at", extra={"message_id": message_id, "status": status})
+                    body_retry = dict(body)
+                    body_retry.pop("created_at", None)
+                    result = _post(body_retry)
+                else:
+                    raise RuntimeError(err.message or "Failed to submit feedback") from err
+            if debug_enabled:
+                chat_logger.debug("FEEDBACK:success", extra={"message_id": message_id})
+            return result
+        except Exception as exc:  # noqa: BLE001
+            if debug_enabled:
+                try:
+                    chat_logger.exception("FEEDBACK:failed")
+                except Exception:  # noqa: BLE001
+                    print(f"FEEDBACK:failed | {exc}")
+            raise RuntimeError(str(exc)) from exc

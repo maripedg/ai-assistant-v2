@@ -40,6 +40,16 @@ Chat Answer Microcopy & Styling
 - Confidence bar buckets: Low (< threshold_low), Medium (between thresholds), High (>= threshold_high). Clamp 0-100%.
 - Snippet copy stays under 300 characters, no absolute paths, display file name and doc_id.
 
+Message Layout (Chat)
+
+- Each assistant turn renders the originating question first as a right-aligned bubble (max-width 75%) with soft blue background and rounded corners.
+- The bubble may include inline emphasis (`**bold**`, `_italics_`, `` `code` ``) and shows a muted timestamp underneath, aligned to the right.
+- The assistant answer follows immediately below as Markdown, then the mode chip, decision summary, evidence cards (when allowed), and the Why panel.
+- Hide the Sources section when the fallback/gate/threshold rules short-circuit; still render the question bubble and answer to keep context clear.
+- Keep the bubble CSS scoped under `.aiv2-chat` to avoid bleeding styles into other Streamlit components.
+- Optional debug: when `DEBUG_CHAT_UI=true`, log question length and surface a "Debug: Question" expander with the text preview.
+- Render each history item inside its own container; add a subtle horizontal divider between messages when helpful for scanability.
+
 Admin Microcopy
 
 - Upload success toast: "Uploaded {filename} (id {upload_id})"

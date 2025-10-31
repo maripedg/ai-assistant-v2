@@ -4,11 +4,12 @@ import json
 import logging
 import re
 from pathlib import Path
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 import uuid
+import html
 
 import streamlit as st
-from streamlit_chat import message
 
 from app_config.env import get_config
 
@@ -67,6 +68,43 @@ MODE_DETAILS = {
 
 ANSWER_FIELD_ORDER = ("answer", "answer2", "answer3")
 ANSWER_PLACEHOLDER = "No answer content returned."
+QUESTION_TIME_FORMAT = "%Y-%m-%d %H:%M"
+
+
+def inject_chat_css() -> None:
+    st.markdown(
+        """
+<style>
+.aiv2-chat .user-row {
+    display: flex;
+    justify-content: flex-end;
+}
+.aiv2-chat .user-bubble {
+    display: inline-block;
+    width: fit-content;
+    max-width: 75%;
+    background: #eaf2ff;
+    border: 1px solid #cfe0ff;
+    color: #1b2a4e;
+    border-radius: 14px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    vertical-align: top;
+}
+.aiv2-chat .user-bubble__text {
+    white-space: pre-wrap;
+    line-height: 1.45;
+}
+.aiv2-chat .user-bubble__ts {
+    text-align: right;
+    font-size: .78rem;
+    color: #6b7280;
+    margin-top: 4px;
+}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _safe_float(value: Any) -> Optional[float]:
@@ -74,6 +112,35 @@ def _safe_float(value: Any) -> Optional[float]:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def render_user_question(question: str, ts: Optional[str], key: str) -> None:
+    clean = (question or "").strip()
+    if not clean:
+        return
+    inject_chat_css()
+    ts_label = ""
+    if ts:
+        try:
+            ts_label = datetime.fromisoformat(ts).strftime(QUESTION_TIME_FORMAT)
+        except ValueError:
+            ts_label = ts
+    if not ts_label:
+        ts_label = datetime.now().strftime(QUESTION_TIME_FORMAT)
+    safe_text = html.escape(clean).replace("\n", "<br>")
+    st.markdown(
+        f"""
+<div class="aiv2-chat">
+  <div class="user-row">
+    <div class="user-bubble" id="q-{html.escape(key)}">
+      <div class="user-bubble__text">{safe_text}</div>
+      <div class="user-bubble__ts">{html.escape(ts_label)}</div>
+    </div>
+  </div>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _compute_confidence(decision: Dict[str, Any], mode: str) -> Dict[str, Optional[float]]:
@@ -283,7 +350,7 @@ def _render_mode_explanation(
             st.info("No sources displayed because they didn’t meet the quality threshold.")
 
 
-def _render_decision_details(meta: Dict[str, Any]) -> None:
+def render_mode_chip_and_summary(meta: Dict[str, Any], key: Optional[str] = None) -> Dict[str, Any]:
     mode_key = (meta.get("mode") or "unknown").lower()
     _render_mode_chip(mode_key)
 
@@ -300,6 +367,22 @@ def _render_decision_details(meta: Dict[str, Any]) -> None:
     summary_evidence = len(meta.get("used_chunks") or []) or kept_n_value
     summary_line = f"Mode: {MODE_DETAILS.get(mode_key, MODE_DETAILS['unknown'])['label']}. Evidence: {summary_evidence}. Confidence: {confidence.get('label')}."
     st.markdown(summary_line)
+
+    return {"mode_key": mode_key, "decision": decision, "confidence": confidence}
+
+
+def render_decision_explain(
+    meta: Dict[str, Any],
+    context: Optional[Dict[str, Any]] = None,
+    key: Optional[str] = None,
+) -> None:
+    ctx = context or {}
+    mode_key = ctx.get("mode_key") or (meta.get("mode") or "unknown").lower()
+    decision = ctx.get("decision") or meta.get("decision_explain") or {}
+    confidence = ctx.get("confidence") or _compute_confidence(decision, mode_key)
+    sim_max = confidence.get("sim_max")
+    thr_low = confidence.get("threshold_low")
+    thr_high = confidence.get("threshold_high")
 
     raw_chunks = meta.get("used_chunks") or []
     filtered_chunks = _filter_evidence_chunks(raw_chunks, decision, mode_key)
@@ -322,6 +405,7 @@ def _render_decision_details(meta: Dict[str, Any]) -> None:
 
 def _build_answer_meta(result: Dict[str, Any], answer_text: Optional[str], answer_field: str) -> Dict[str, Any]:
     clean_text = (answer_text or "").strip()
+    question_text = (result.get("question") or "").strip()
     return {
         "mode": (result.get("mode") or "unknown").lower(),
         "used_chunks": result.get("used_chunks") or [],
@@ -331,19 +415,21 @@ def _build_answer_meta(result: Dict[str, Any], answer_text: Optional[str], answe
         "answer_field": answer_field,
         "has_answer": bool(clean_text),
         "raw_result": result,
+        "question_text": question_text,
+        "question_ts": datetime.now().strftime(QUESTION_TIME_FORMAT) if question_text else None,
     }
 
 
-def _latest_user_question(history: List[Tuple[str, str]], current_index: int) -> str:
-    for idx in range(current_index - 1, -1, -1):
-        role, content = history[idx]
-        if role == "user":
-            return content
-    return ""
-
-
-def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, Any]], api_client) -> None:
-    msg_id = f"{idx}_{abs(hash(content)) % 1_000_000}"
+def _render_feedback_controls(
+    idx: int,
+    question: str,
+    answer_text: str,
+    meta: Optional[Dict[str, Any]],
+    payload: Dict[str, Any],
+    api_client,
+) -> None:
+    msg_seed = f"{idx}_{question}_{answer_text}"
+    msg_id = f"{idx}_{abs(hash(msg_seed)) % 1_000_000}"
     already = st.session_state.get(f"fb_done_{msg_id}", False)
     state = st.session_state.feedback_mode.setdefault(idx, {"icon": None})
 
@@ -365,6 +451,8 @@ def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, A
         return
 
     if state.get("icon"):
+        question_text = (question or "").strip()
+        answer_value = (answer_text or "").strip()
         comment_key = f"feedback_comment_{msg_id}"
         if state.pop("needs_reset", None):
             st.session_state.pop(comment_key, None)
@@ -377,40 +465,20 @@ def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, A
                     st.warning("Please login to send feedback")
                 else:
                     feedback_text = (st.session_state.get(comment_key) or "").strip()
-                    question = _latest_user_question(st.session_state.history, idx)
-                    answer_text = content or ""
-                    if not question or not answer_text:
+                    if not question_text or not answer_value:
                         st.warning("Nothing to send for feedback")
                     else:
-                        rating = 1 if state.get("icon") == "like" else -1
                         if DEBUG_CHAT_UI:
+                            rating_preview = 1 if state.get("icon") == "like" else -1
                             logp(
                                 "feedback_submit:start",
                                 message_id=msg_id,
-                                rating=rating,
+                                rating=rating_preview,
                                 has_note=bool(feedback_text),
                             )
-                        mode_value = None
-                        payload_value = None
-                        if isinstance(meta, dict):
-                            mode_value = meta.get("mode")
-                            if DEBUG_CHAT_UI_STRICT:
-                                payload_value = meta.get("raw_result")
+                        mode_value = meta.get("mode") if isinstance(meta, dict) else None
                         rating = 1 if state.get("icon") == "like" else -1
-                        if DEBUG_CHAT_UI:
-                            logp(
-                                "feedback_submit:start",
-                                message_id=msg_id,
-                                rating=rating,
-                                has_note=bool(feedback_text),
-                            )
-                        mode_value = None
-                        payload_value = None
-                        if isinstance(meta, dict):
-                            mode_value = meta.get("mode")
-                            if DEBUG_CHAT_UI_STRICT:
-                                payload_value = meta.get("raw_result")
-
+                        payload_value = payload if DEBUG_CHAT_UI_STRICT else None
                         user_id_raw = st.session_state.get("user_id", CONFIG.get("FEEDBACK_DEFAULT_USER_ID"))
                         user_id_value: Optional[int] = None
                         if user_id_raw not in (None, ""):
@@ -424,16 +492,16 @@ def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, A
                             session_identifier = str(uuid.uuid4())
                             st.session_state["feedback_session_id"] = session_identifier
                         category_value = "like" if rating > 0 else "dislike"
-                        comment_text = feedback_text or answer_text or question or "Feedback"
+                        comment_text = feedback_text or answer_value or question_text or "Feedback"
                         metadata_payload: Dict[str, Any] = {
-                            "question": question,
-                            "answer_preview": (answer_text or "")[:200],
+                            "question": question_text,
+                            "answer_preview": answer_value[:200],
                             "mode": mode_value,
                             "message_id": msg_id,
                         }
                         if feedback_text:
                             metadata_payload["note"] = feedback_text
-                        if payload_value and DEBUG_CHAT_UI_STRICT:
+                        if payload_value is not None:
                             metadata_payload["raw_response"] = payload_value
 
                         try:
@@ -463,81 +531,118 @@ def _render_feedback_controls(idx: int, content: str, meta: Optional[Dict[str, A
         st.caption("How was this answer?")
 
 
-def render(api_client, assistant_title: str, feedback_dir: str) -> None:
-    st.header(assistant_title)
+def render_assistant_answer(payload: Dict[str, Any], key: str) -> Tuple[str, str]:
+    _ = key  # Reserved for future key-aware rendering
+    return render_primary_answer(payload)
 
-    st.session_state.setdefault("assistant_meta", [])
+
+def render_message(item: Dict[str, Any], idx: int, api_client) -> None:
+    raw_payload = item.get("payload")
+    payload = raw_payload if isinstance(raw_payload, dict) else {}
+    question = (item.get("question") or "").strip()
+    message_id = str(item.get("id") or f"legacy-{idx}")
+    timestamp = item.get("ts_local") or item.get("timestamp") or ""
+
+    if DEBUG_CHAT_UI:
+        logp(
+            "message_render:start",
+            idx=idx,
+            message_id=message_id,
+            len_question=len(question),
+            answer_len=len((payload.get("answer") or "")),
+        )
+
+    render_user_question(question, timestamp, key=message_id)
+
+    answer_markdown, answer_source = render_assistant_answer(payload, key=f"a-{message_id}")
+    meta = _build_answer_meta(payload, answer_markdown, answer_source)
+
+    if DEBUG_CHAT_UI:
+        logp(
+            "message_render:post_answer",
+            idx=idx,
+            message_id=message_id,
+            len_answer=len(answer_markdown),
+            answer_source=answer_source,
+        )
+
+    context = render_mode_chip_and_summary(meta, key=f"m-{message_id}")
+    render_decision_explain(meta, context, key=f"d-{message_id}")
+
+    if DEBUG_CHAT_UI_STRICT:
+        with st.expander(f"Debug: Raw payload ({message_id})", expanded=False):
+            st.json(raw_payload if isinstance(raw_payload, dict) else {"raw": raw_payload})
+        decision_debug = meta.get("decision_explain") or {}
+        debug_stats = {
+            "answer_source": answer_source,
+            "len_answer": len(answer_markdown),
+            "len_question": len(question),
+            "used_chunks_count": len(meta.get("used_chunks") or []),
+            "retrieved_chunks_count": len(payload.get("retrieved_chunks_metadata") or []),
+            "mode": meta.get("mode"),
+            "sim_max": decision_debug.get("max_similarity"),
+            "threshold_low": decision_debug.get("threshold_low"),
+            "threshold_high": decision_debug.get("threshold_high"),
+        }
+        with st.expander(f"Debug: Keys & lengths ({message_id})", expanded=False):
+            st.json(debug_stats)
+        logp("message_render:debug_stats", idx=idx, stats=debug_stats)
+
+    answer_for_feedback = answer_markdown or (payload.get("answer") if isinstance(payload, dict) else "")
+    answer_for_feedback = answer_for_feedback or ANSWER_PLACEHOLDER
+    payload_for_feedback = payload if isinstance(payload, dict) else {}
+    _render_feedback_controls(idx, question, answer_for_feedback, meta, payload_for_feedback, api_client)
+
+
+def render(api_client, assistant_title: str, feedback_dir: str) -> None:
+    inject_chat_css()
+    st.header(assistant_title)
+    _ = feedback_dir  # legacy arg: feedback handled via service calls
+
+    st.session_state.setdefault("chat_history", [])
+    chat_history: List[Dict[str, Any]] = st.session_state.chat_history
 
     user_prompt = st.chat_input("Ask a question...")
     if user_prompt:
-        st.session_state.history.append(("user", user_prompt))
+        if DEBUG_CHAT_UI:
+            logp("chat_submit", len_prompt=len(user_prompt))
         with st.spinner("Thinking..."):
             result = api_client.chat(user_prompt)
-        answer_text, answer_field = _select_answer_text(result)
-        st.session_state.history.append(("assistant", (answer_text or "").strip()))
-        st.session_state.assistant_meta.append(_build_answer_meta(result, answer_text, answer_field))
+        question_from_response = ""
+        if isinstance(result, dict):
+            question_from_response = (result.get("question") or "").strip()
+        chat_history.append(
+            {
+                "id": str(uuid.uuid4()),
+                "question": question_from_response or user_prompt,
+                "payload": result,
+                "ts_local": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            }
+        )
+        if DEBUG_CHAT_UI:
+            logp(
+                "chat_history:append",
+                new_index=len(chat_history) - 1,
+                history_length=len(chat_history),
+            )
         st.rerun()
 
-    assistant_counter = 0
-    assistant_total = sum(1 for role, _ in st.session_state.history if role == "assistant")
-    if len(st.session_state.assistant_meta) > assistant_total:
-        st.session_state.assistant_meta = st.session_state.assistant_meta[-assistant_total:]
+    if DEBUG_CHAT_UI:
+        logp("chat_history:length", length=len(chat_history))
+        st.write({"debug_len_history": len(chat_history)})
+    if DEBUG_CHAT_UI_STRICT:
+        with st.expander("Debug: History length & indices", expanded=False):
+            st.json({"length": len(chat_history), "indices": list(range(len(chat_history)))})
 
-    for idx, (role, content) in enumerate(st.session_state.history):
-        if role == "user":
-            message(
-                content,
-                is_user=True,
-                key=f"user_{idx}",
-                avatar_style="bottts-neutral",
-                seed="UserSeed",
+    if not chat_history:
+        st.info("Ask something to get started.")
+        return
+
+    for idx, item in enumerate(chat_history):
+        with st.container():
+            render_message(item, idx, api_client)
+        if idx < len(chat_history) - 1:
+            st.markdown(
+                "<hr style='border:0;border-top:1px solid #e5e7eb;margin:1.5rem 0;'/>",
+                unsafe_allow_html=True,
             )
-        elif role == "assistant":
-            meta: Dict[str, Any] = (
-                st.session_state.assistant_meta[assistant_counter]
-                if assistant_counter < len(st.session_state.assistant_meta)
-                else {}
-            )
-            assistant_counter += 1
-            if not meta:
-                logp("guard:missing_meta", idx=idx)
-
-            payload_for_render: Optional[Dict[str, Any]] = meta.get("raw_result") if isinstance(meta, dict) else None
-            if not payload_for_render:
-                logp("guard:missing_raw_result", idx=idx)
-                payload_for_render = {"answer": content}
-
-            logp("answer_section:enter", idx=idx, meta_present=bool(meta))
-
-            with st.container():
-                answer_markdown, answer_source = render_primary_answer(payload_for_render)
-                logp(
-                    "answer_section:exit",
-                    idx=idx,
-                    source=answer_source,
-                    len_answer=len(answer_markdown),
-                )
-                if DEBUG_CHAT_UI_STRICT:
-                    with st.expander("Debug: Raw payload", expanded=False):
-                        st.json(payload_for_render)
-                    decision_debug = meta.get("decision_explain") or {}
-                    debug_stats = {
-                        "answer_source": answer_source,
-                        "len_answer": len(answer_markdown),
-                        "len_answer2": len(payload_for_render.get("answer2") or ""),
-                        "len_answer3": len(payload_for_render.get("answer3") or ""),
-                        "used_chunks_count": len(meta.get("used_chunks") or []),
-                        "retrieved_chunks_count": len(payload_for_render.get("retrieved_chunks_metadata") or []),
-                        "mode": meta.get("mode"),
-                        "sim_max": decision_debug.get("max_similarity"),
-                        "threshold_low": decision_debug.get("threshold_low"),
-                        "threshold_high": decision_debug.get("threshold_high"),
-                    }
-                    with st.expander("Debug: Keys & lengths", expanded=False):
-                        st.json(debug_stats)
-                    logp("answer_debug_panels:shown", stats=debug_stats)
-                _render_decision_details(meta or {})
-                answer_for_feedback = answer_markdown or (payload_for_render.get("answer") or content or ANSWER_PLACEHOLDER)
-                if not answer_markdown:
-                    logp("guard:feedback_placeholder", idx=idx, source=answer_source)
-                _render_feedback_controls(idx, answer_for_feedback, meta, api_client)

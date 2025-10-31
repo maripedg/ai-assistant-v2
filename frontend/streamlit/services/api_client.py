@@ -337,6 +337,7 @@ class APIClient:
             "used_chunks": [],
             "decision_explain": {},
             "raw": None,
+            "question": question,
         }
         try:
             r = requests.post(url, json=payload, timeout=self.timeout, headers={"Content-Type": "application/json"})
@@ -369,6 +370,7 @@ class APIClient:
                         "mode": parsed.get("mode"),
                         "used_chunks": parsed.get("used_chunks", []) or [],
                         "decision_explain": parsed.get("decision_explain", {}) or {},
+                        "question": parsed.get("question", out.get("question")),
                     })
                 except json.JSONDecodeError:
                     # Texto plano
@@ -382,6 +384,7 @@ class APIClient:
                     "mode": raw.get("mode"),
                     "used_chunks": raw.get("used_chunks", []) or [],
                     "decision_explain": raw.get("decision_explain", {}) or {},
+                    "question": raw.get("question", out.get("question")),
                 })
             else:
                 # Formato inesperado: intenta mapear campos del data base
@@ -389,6 +392,7 @@ class APIClient:
                 out["answer2"] = data.get("answer2")
                 out["answer3"] = data.get("answer3")
                 out["retrieved_chunks_metadata"] = data.get("retrieved_chunks_metadata", []) or []
+                out["question"] = data.get("question", out.get("question"))
             if debug_enabled:
                 decision = out.get("decision_explain") or {}
                 summary = {

@@ -27,6 +27,8 @@ DEFAULT_KEYS = {
     "last_job_id": "",
     "job_snapshot": {},
     "assistant_meta": [],
+    "chat_history": [],
+    "_chat_css_injected": False,
 }
 
 

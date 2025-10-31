@@ -33,6 +33,7 @@ Answer Rendering & Debug
 
 - The chat view displays the first non-empty answer value (answer -> answer2 -> answer3) as Markdown above the decision/evidence panel.
 - When all answer fields are empty, the UI shows the placeholder text "No answer content returned."
+- If the normalized payload includes `question`, the frontend shows it as a right-aligned user bubble above the answer—no additional fields are required from the backend.
 - Set `DEBUG_CHAT_UI=true` in `.env` to emit verbose console logs (`API:chat_response`, `UI:render_start`, etc.) and show debug expanders with the raw payload inside the chat view.
 - Disable the flag for normal operation to keep the console quiet and hide the debug UI.
 

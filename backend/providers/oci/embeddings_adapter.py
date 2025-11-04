@@ -14,7 +14,7 @@ from langchain_core.embeddings import Embeddings
 import oci
 
 try:
-    # Cliente real de LangChain para OCI GenAI
+    # LangChain client for OCI GenAI
     from langchain_community.embeddings import OCIGenAIEmbeddings
 except Exception as exc:  # pragma: no cover
     raise
@@ -75,7 +75,7 @@ class OCIEmbeddingsAdapter(Embeddings):
             inspect.signature(_models.EmbedTextDetails.__init__).parameters.keys()
         )
 
-    # Métodos esperados por LangChain:
+    # Methods expected by LangChain:
 
     def embed_documents(self, texts: List[str], input_type: str | None = None) -> List[List[float]]:
         # Determine serving mode

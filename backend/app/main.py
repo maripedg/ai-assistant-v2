@@ -83,7 +83,7 @@ if not debug_flag and os.getenv("ENV", "").lower() in {"dev", "development", "lo
 if debug_flag:
     app.include_router(debug_router.router)
 
-# Nota: /chat implementa retrieval híbrido (DB→LLM) sin colas.
+# Note: /chat uses hybrid retrieval (DB + LLM) without queues.
 
 @app.on_event("startup")
 def _startup_scheduler() -> None:

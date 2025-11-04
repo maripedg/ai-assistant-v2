@@ -57,7 +57,7 @@ def _load_env_file() -> None:
 
 _load_env_file()
 
-# Forzar uso de config del repo (idéntico a test_embed)
+# Force using repo config (identical to test_embed)
 os.environ.setdefault("OCI_CONFIG_FILE", str(CFG_PATH))
 os.environ.setdefault("OCI_CONFIG_PROFILE", "DEFAULT")
 
@@ -426,7 +426,7 @@ def _probe_service(section: str) -> Dict[str, Any]:
 
     try:
         if section == "embeddings":
-            # Probar vía adapter (Embeddings de LangChain) para asegurar compatibilidad
+            # Test through the adapter (LangChain embeddings) to ensure compatibility
             emb_app = _get_embeddings_settings()
             input_types = (emb_app.get("profiles", {}) or {}).get(
                 emb_app.get("active_profile"), {}
@@ -724,4 +724,3 @@ def validate_startup(verbose: bool = True) -> None:
 def health_probe(section: str) -> Dict[str, Any]:
     """Public helper for health checks."""
     return _probe_service(section)
-

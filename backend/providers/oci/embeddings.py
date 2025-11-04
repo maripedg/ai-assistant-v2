@@ -19,7 +19,7 @@ class OciEmbeddings(EmbeddingsPort):
         doc_input_type: str = "search_document",
         query_input_type: str = "search_query",
     ) -> None:
-        # Para embeddings LangChain no hace falta el cliente low-level; basta con endpoint + compartment.
+        # LangChain embeddings do not require the low-level client; endpoint plus compartment is enough.
         self._emb = OCIGenAIEmbeddings(
             model_id=model_id,
             service_endpoint=endpoint,

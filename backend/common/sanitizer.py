@@ -4,7 +4,7 @@ from collections import Counter
 from pathlib import Path
 
 # -----------------------
-# Config vía entorno
+# Environment configuration
 # -----------------------
 SAN_ENABLED = os.getenv("SANITIZE_ENABLED", "off").lower()    # off | shadow | on
 SAN_PROFILE = os.getenv("SANITIZE_PROFILE", "default")
@@ -14,7 +14,7 @@ SAN_SALT    = os.getenv("SANITIZE_HASH_SALT", "changeme")
 SAN_AUDIT   = os.getenv("SANITIZE_AUDIT_ENABLED", "true").lower() == "true"
 
 # -----------------------
-# Logger de auditoría
+# Audit logger
 # -----------------------
 _san_logger = logging.getLogger("sanitizer")
 if not _san_logger.handlers:
@@ -24,7 +24,7 @@ if not _san_logger.handlers:
     _san_logger.addHandler(fh)
 
 # -----------------------
-# Utilidades
+# Utilities
 # -----------------------
 _FLAG_MAP = {
     "i": re.IGNORECASE,
@@ -61,7 +61,7 @@ def _luhn_ok(s: str) -> bool:
     return checksum % 10 == 0
 
 # -----------------------
-# Carga de configuración
+# Configuration loading
 # -----------------------
 class _SanitizeConfig:
     def __init__(self, cfg: Dict):
@@ -71,7 +71,7 @@ class _SanitizeConfig:
         self.ph_fmt_pseudo = ph.get("format_pseudonym", "[{TYPE}:{HASH}]")
         aw = self.cfg.get("allowlist", {})
         self.allow_tokens = set(aw.get("tokens", []) or [])
-        # Compilar reglas
+        # Compile rules
         self.rules = self._compile_rules(self.cfg.get("pii", {}))
 
     @staticmethod
@@ -81,7 +81,7 @@ class _SanitizeConfig:
             if not spec or not spec.get("enabled", False):
                 continue
             entry = {"label": label, "items": []}
-            # una sola pattern o lista de patterns
+            # Single pattern or list of patterns
             if "pattern" in spec:
                 entry["items"].append({
                     "pattern": _compile_pattern(spec["pattern"], spec.get("flags")),
@@ -114,10 +114,10 @@ def _load_config() -> _SanitizeConfig:
     return cfg
 
 # -----------------------
-# Núcleo de sanitización
+# Sanitization core
 # -----------------------
 def _should_skip_by_allowlist(match_text: str, allow_tokens: set[str]) -> bool:
-    # Muy simple: si el match contiene exactamente un token permitido o coincide totalmente con uno.
+    # Simple check: allow match when it contains exactly one allowed token or equals one.
     mt = match_text.strip()
     for tok in allow_tokens:
         if tok in mt or mt == tok:
@@ -125,7 +125,7 @@ def _should_skip_by_allowlist(match_text: str, allow_tokens: set[str]) -> bool:
     return False
 
 def _apply_rule(text: str, label: str, items: List[Dict], counters: Counter, cfg: _SanitizeConfig) -> str:
-    # Para cada regex del label, hacemos sustitución con función para poder decidir group_value/validator/allowlist
+    # For each regex on the label, use a callback to decide group_value, validator, or allowlist.
     for it in items:
         pat: re.Pattern = it["pattern"]
         gidx = it.get("group_value", None)
@@ -136,17 +136,17 @@ def _apply_rule(text: str, label: str, items: List[Dict], counters: Counter, cfg
             # allowlist
             if _should_skip_by_allowlist(full, cfg.allow_tokens):
                 return full
-            # valor que vamos a ocultar
+            # Value to redact
             value = m.group(gidx) if gidx else full
-            # validación opcional
+            # Optional validation
             if validator == "luhn" and not _luhn_ok(value):
                 return full
-            # construye placeholder
+            # Build placeholder
             ph = _placeholder(label, value, cfg.ph_fmt, cfg.ph_fmt_pseudo)
             counters.update({label: 1})
-            # Si hubo group_value, reconstruimos el match sustituyendo solo ese grupo
+            # If group_value exists, rebuild the match by replacing only that group
             if gidx:
-                # reconstrucción: reemplaza el grupo capturado por el placeholder
+                # Reconstruction: replace the captured group with the placeholder
                 start, end = m.start(gidx) - m.start(0), m.end(gidx) - m.start(0)
                 return full[:start] + ph + full[end:]
             return ph
@@ -168,7 +168,7 @@ def sanitize_if_enabled(text: str, doc_id: str) -> Tuple[str, Dict[str, int]]:
     cfg = _load_config()
     counters = Counter()
 
-    # Ejecutar sustituciones sobre una copia para medir
+    # Apply substitutions on a copy to measure
     processed = text
     for rule in cfg.rules:
         processed = _apply_rule(processed, rule["label"], rule["items"], counters, cfg)

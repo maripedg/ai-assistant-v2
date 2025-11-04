@@ -2,9 +2,9 @@ import streamlit as st
 from typing import Any, Dict, List, Optional
 
 from app_config.env import get_config
-from services import storage
-from services.api_client import ApiError  # for error mapping
-from services import api_client
+from app.services import storage
+from app.services.api_client import ApiError  # for error mapping
+from app.services import api_client
 
 
 def _auth_mode() -> str:

@@ -8,8 +8,8 @@ from uuid import uuid4
 
 import streamlit as st
 
-from services import api_client
-from services.api_client import ApiError
+from app.services import api_client
+from app.services.api_client import ApiError
 
 HOW_IT_WORKS_MD = (
     "This admin workspace coordinates document uploads before triggering embedding jobs. "

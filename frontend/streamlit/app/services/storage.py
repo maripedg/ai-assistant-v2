@@ -140,7 +140,7 @@ def auth_find_user_by_email(email: str) -> Optional[Dict[str, Any]]:
             return {"email": email}
         return None
     # db mode
-    from services import api_client as _api
+    from app.services import api_client as _api
 
     try:
         result = _api.users_list(email=email, limit=1, offset=0)
@@ -169,7 +169,7 @@ def auth_create_user(user: Dict[str, Any]) -> Dict[str, Any]:
             "role": user.get("role", "user"),
             "status": user.get("status", "active"),
         }
-    from services import api_client as _api
+    from app.services import api_client as _api
 
     return _api.users_create(user)
 
@@ -177,7 +177,7 @@ def auth_create_user(user: Dict[str, Any]) -> Dict[str, Any]:
 def auth_patch_user(user_id: int, payload: Dict[str, Any]) -> Dict[str, Any]:
     if is_auth_local():
         return {"ok": True, "id": user_id, "updated": list(payload.keys())}
-    from services import api_client as _api
+    from app.services import api_client as _api
 
     return _api.users_patch(user_id, payload)
 
@@ -185,7 +185,7 @@ def auth_patch_user(user_id: int, payload: Dict[str, Any]) -> Dict[str, Any]:
 def auth_delete_user(user_id: int, *, hard: bool = False) -> Dict[str, Any]:
     if is_auth_local():
         return {"ok": True}
-    from services import api_client as _api
+    from app.services import api_client as _api
 
     return _api.users_delete(user_id, hard=hard)
 
@@ -193,7 +193,7 @@ def auth_delete_user(user_id: int, *, hard: bool = False) -> Dict[str, Any]:
 def auth_change_password(user_id: int, new_password: str) -> Dict[str, Any]:
     if is_auth_local():
         raise StorageError("Local password change by id is not supported in this UI mode")
-    from services import api_client as _api
+    from app.services import api_client as _api
 
     return _api.users_change_password(user_id, {"new_password": new_password})
 

@@ -39,11 +39,18 @@ def _request(method: str, path: str, *, params: Optional[Dict[str, Any]] = None,
     cfg = get_config()
     base = cfg.get("BACKEND_API_BASE", "").rstrip("/")
     url = f"{base}{path}"
-    headers = {"Accept": "application/json"}
-    if json_body is not None:
-        headers["Content-Type"] = "application/json"
+    content_type = "application/json" if json_body is not None else None
+    headers = _auth_headers(content_type)
+    effective_timeout = timeout if timeout is not None else _request_timeout()
     try:
-        r = requests.request(method.upper(), url, params=params or {}, json=json_body, timeout=timeout, headers=headers)
+        r = requests.request(
+            method.upper(),
+            url,
+            params=params or {},
+            json=json_body,
+            timeout=effective_timeout,
+            headers=headers,
+        )
     except Exception as exc:  # noqa: BLE001
         raise ApiError(0, "network_error", f"Network error calling {method} {path}", str(exc)) from exc
 
@@ -72,22 +79,14 @@ def _auth_headers(content_type: Optional[str] = None) -> Dict[str, str]:
     if content_type:
         headers["Content-Type"] = content_type
 
-    cfg = get_config()
-    auth_enabled = str(cfg.get("AUTH_ENABLED", "")).lower() in {"1", "true", "yes", "on"}
-    if not auth_enabled:
-        return headers
-
-    token: Optional[str] = None
     try:
-        from services import auth_session  # Local import to avoid circular at module import time
-
-        cookie_name = f"{cfg.get('SESSION_COOKIE_NAME', 'assistant_session')}_api"
-        token = auth_session.get_cookie(cookie_name)
+        from app.services import auth_session  # Local import to avoid circular at module import time
+        token_headers = auth_session.get_auth_headers()
     except Exception:
-        token = None
+        token_headers = {}
 
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if token_headers:
+        headers.update(token_headers)
     return headers
 
 

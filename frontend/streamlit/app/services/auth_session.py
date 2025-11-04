@@ -9,8 +9,8 @@ from typing import Optional
 
 import streamlit as st
 from app_config.env import get_config
-from services import storage
-from services import api_client
+from app.services import storage
+from app.services import api_client
 
 try:
     import extra_streamlit_components as stx
@@ -19,6 +19,7 @@ except ImportError:  # pragma: no cover - optional dependency
 
 _COOKIE_MANAGER = None
 _FALLBACK_STORE_KEY = "_cookie_fallback_store"
+_API_TOKEN_KEY = "api_token"
 
 
 def _b64url(data: bytes) -> str:
@@ -136,11 +137,17 @@ def delete_cookie(name: str) -> None:
     store.pop(name, None)
 
 
+def _api_cookie_name(cfg: Optional[dict] = None) -> str:
+    cfg = cfg or get_config()
+    return f"{cfg.get('SESSION_COOKIE_NAME', 'assistant_session')}_api"
+
+
 # ---------------- New session helpers (mode-aware auth) ----------------
 def _set_auth_state(email: str, role: str) -> None:
     st.session_state["is_authenticated"] = True
     st.session_state["username"] = email
     st.session_state["role"] = role
+    st.session_state["email"] = email
     # Back-compat keys
     st.session_state["authenticated"] = True
     st.session_state["auth_user"] = email
@@ -150,6 +157,8 @@ def _clear_auth_state() -> None:
     st.session_state["is_authenticated"] = False
     st.session_state["username"] = ""
     st.session_state["role"] = "user"
+    st.session_state.pop("email", None)
+    st.session_state.pop("user_id", None)
     st.session_state["authenticated"] = False
     st.session_state["auth_user"] = None
 
@@ -189,6 +198,9 @@ def try_restore_session_from_token() -> bool:
     if not data:
         return False
     _set_auth_state(data["username"], data.get("role", "user"))
+    api_cookie = get_cookie(_api_cookie_name(cfg))
+    if api_cookie:
+        st.session_state[_API_TOKEN_KEY] = api_cookie
     return True
 
 
@@ -210,6 +222,8 @@ def require_role(role: str) -> bool:
 def login(email: str, password: str, remember: bool) -> tuple[bool, Optional[str]]:
     cfg = get_config()
     mode = str(cfg.get("AUTH_MODE", "local")).lower()
+    api_token: Optional[str] = None
+    st.session_state["user_id"] = None
     if mode == "local":
         users = storage.load_users(cfg["AUTH_STORAGE_DIR"])
         hashed = storage.hash_password(password)
@@ -227,24 +241,47 @@ def login(email: str, password: str, remember: bool) -> tuple[bool, Optional[str
             return False, "User suspended"
         role = user.get("role") or "user"
         _set_auth_state(user.get("email") or email, role)
+        st.session_state["user_id"] = user.get("id")
+        st.session_state["email"] = user.get("email") or email
+        api_token = (resp or {}).get("token")
+
+    if api_token:
+        st.session_state[_API_TOKEN_KEY] = api_token
+    else:
+        st.session_state.pop(_API_TOKEN_KEY, None)
 
     if remember and cfg.get("SESSION_SECRET"):
         try:
             token = issue_session_token(email, st.session_state.get("role", "user"), cfg.get("SESSION_TTL_MIN", 1440), cfg["SESSION_SECRET"])
             set_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"), token, max_age=max(60, int(cfg.get("SESSION_TTL_MIN", 1440)) * 60))
-            # Persist backend token if provided
-            if st.session_state.get("is_authenticated") and 'resp' in locals():
-                api_tok = (resp or {}).get("token")
-                if api_tok:
-                    set_cookie(f"{cfg.get('SESSION_COOKIE_NAME','assistant_session')}_api", api_tok, max_age=max(60, int(cfg.get("SESSION_TTL_MIN", 1440)) * 60))
+            if api_token:
+                set_cookie(_api_cookie_name(cfg), api_token, max_age=max(60, int(cfg.get("SESSION_TTL_MIN", 1440)) * 60))
         except Exception:
             # non-fatal
             pass
+    if bool(cfg.get("DEBUG_CHAT_UI", False)) or bool(cfg.get("DEBUG_HTTP", False)):
+        print("[auth] logged in user_id=", st.session_state.get("user_id"))
     return True, None
 
 
 def logout() -> None:
     cfg = get_config()
     delete_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"))
+    delete_cookie(_api_cookie_name(cfg))
+    st.session_state.pop(_API_TOKEN_KEY, None)
     _clear_auth_state()
+
+
+def get_token() -> Optional[str]:
+    token = st.session_state.get(_API_TOKEN_KEY)
+    if token:
+        return token
+    return get_cookie(_api_cookie_name())
+
+
+def get_auth_headers() -> dict:
+    token = get_token()
+    if not token:
+        return {}
+    return {"Authorization": f"Bearer {token}"}
 

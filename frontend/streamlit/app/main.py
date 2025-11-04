@@ -8,13 +8,14 @@ if str(PARENT) not in sys.path:
 
 import streamlit as st
 from app_config.env import get_config
-from services.api_client import APIClient
-from services import storage
-from services import auth_session
+from app.services.api_client import APIClient
+from app.services import storage
+from app.services import auth_session
 from state.session import init_session, get_bool, get_str
 from app.views import chat as view_chat
 from app.views import status as view_status
 from app.views import users as view_users
+from app.views.admin import feedback as view_admin_feedback
 from app.views.admin import embeddings as view_admin_embeddings
 
 cfg = get_config()
@@ -129,6 +130,7 @@ tabs = {
 if get_str("role", "user") == "admin":
     tabs["Documents & Embeddings (Admin)"] = "admin_embeddings"
     tabs["Users (Admin)"] = "users_admin"
+    tabs["Feedback (Admin)"] = "admin_feedback"
 
 tab_labels = list(tabs.keys())
 default_label = st.session_state.pop("nav_target", None)
@@ -137,7 +139,7 @@ tab_label = st.sidebar.radio("Navigation", tab_labels, index=default_index, key=
 tab = tabs[tab_label]
 
 # Backend client
-# Admin uploads use services.api_client helpers that prefer FRONTEND_BASE_URL over BACKEND_API_BASE.
+# Admin uploads use app.services.api_client helpers that prefer FRONTEND_BASE_URL over BACKEND_API_BASE.
 client = APIClient(cfg["BACKEND_API_BASE"], timeout=cfg["REQUEST_TIMEOUT"])
 
 if tab == "assistant":
@@ -148,3 +150,5 @@ elif tab == "users_admin":
     view_users.render(client)
 elif tab == "admin_embeddings":
     view_admin_embeddings.render(client)
+elif tab == "admin_feedback":
+    view_admin_feedback.render(client)

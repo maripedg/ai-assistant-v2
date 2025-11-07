@@ -11,6 +11,7 @@ import html
 
 import streamlit as st
 
+from app.services.feedback_api import build_feedback_payload
 from app_config.env import get_config
 
 CONFIG = get_config()
@@ -465,6 +466,7 @@ def _render_feedback_controls(
                     st.warning("Please login to send feedback")
                 else:
                     feedback_text = (st.session_state.get(comment_key) or "").strip()
+                    comment_text = feedback_text if feedback_text else ""
                     if not question_text or not answer_value:
                         st.warning("Nothing to send for feedback")
                     else:
@@ -492,7 +494,6 @@ def _render_feedback_controls(
                             session_identifier = str(uuid.uuid4())
                             st.session_state["feedback_session_id"] = session_identifier
                         category_value = "like" if rating > 0 else "dislike"
-                        comment_text = feedback_text or answer_value or question_text or "Feedback"
                         metadata_payload: Dict[str, Any] = {
                             "question": question_text,
                             "answer_preview": answer_value[:200],
@@ -505,13 +506,16 @@ def _render_feedback_controls(
                             metadata_payload["raw_response"] = payload_value
 
                         try:
-                            result = api_client.send_feedback(
+                            feedback_request = build_feedback_payload(
                                 user_id=user_id_value,
                                 session_id=session_identifier,
                                 rating=rating,
                                 category=category_value,
                                 comment=comment_text,
                                 metadata=metadata_payload,
+                            )
+                            result = api_client.send_feedback(
+                                **feedback_request,
                                 message_id=msg_id,
                             )
                         except Exception as exc:  # noqa: BLE001
@@ -523,8 +527,8 @@ def _render_feedback_controls(
                                 st.warning(result["warning"])
                             st.success("Feedback saved.")
                             st.session_state[f"fb_done_{msg_id}"] = True
-                            st.session_state.feedback_mode.pop(idx, None)
                             st.session_state.pop(comment_key, None)
+                            st.session_state.feedback_mode.pop(idx, None)
                             st.session_state["last_feedback_ok"] = True
                             st.rerun()
     else:

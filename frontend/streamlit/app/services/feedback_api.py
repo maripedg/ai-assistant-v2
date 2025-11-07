@@ -84,3 +84,31 @@ def list_feedback(
         return {"items": response, "total": len(response)}
 
     return {"items": [], "total": 0}
+
+
+def build_feedback_payload(
+    *,
+    user_id: Optional[int],
+    session_id: str,
+    rating: int,
+    category: str,
+    comment: str,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Prepare the keyword arguments used by chat feedback submissions.
+
+    Comment is passed through verbatim (allowing empty strings) so the backend receives
+    exactly what the user typed.
+    """
+
+    payload: Dict[str, Any] = {
+        "session_id": session_id,
+        "rating": rating,
+        "category": category,
+        "comment": comment,
+        "metadata": metadata or {},
+    }
+    if user_id is not None:
+        payload["user_id"] = user_id
+    return payload

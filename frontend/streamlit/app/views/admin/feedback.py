@@ -94,6 +94,7 @@ def _show_debug_keys() -> None:
 
 
 def render(_api_client) -> None:
+    # Feedback listing renders Q/A content exclusively via the table component.
     _clear_legacy_keys()
     _init_state()
     filters = _get_filters()
@@ -191,8 +192,6 @@ def render(_api_client) -> None:
     except ApiError as err:
         placeholder.empty()
         st.error("Failed to load feedback.")
-        if err.details:
-            st.caption(str(err.details))
         if st.button("Retry", key="fb_retry"):
             st.rerun()
         _show_debug_keys()

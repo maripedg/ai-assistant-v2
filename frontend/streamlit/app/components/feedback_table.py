@@ -73,6 +73,16 @@ def derive_feedback_item(item: Dict[str, Any]) -> Dict[str, Any]:
         user_display = f"{user_display} | {session_short}"
     timestamp = _format_timestamp(item.get("created_at"))
     comment = (item.get("comment") or "").strip()
+    question_truncated = _truncate(question)
+    question_single = question.replace("\n", " ").strip()
+    answer_single = answer_preview.replace("\n", " ").strip()
+    qa_full_title = f"Q: {question_single}\nA: {answer_single}" if (question_single or answer_single) else ""
+    qa_preview = _truncate(question_single, 60)
+    answer_short = _truncate(answer_single, 80)
+    if answer_short:
+        qa_preview = f"{qa_preview} | {answer_short}" if qa_preview else answer_short
+    qa_title_attr = qa_full_title.replace("\r", " ").replace("\n", " ").strip()
+
     csv_row = {
         "id": item.get("id"),
         "created_at": item.get("created_at"),
@@ -94,7 +104,7 @@ def derive_feedback_item(item: Dict[str, Any]) -> Dict[str, Any]:
         "metadata": metadata,
         "metadata_error": metadata_error,
         "question": question,
-        "question_truncated": _truncate(question),
+        "question_truncated": question_truncated,
         "answer_preview": answer_preview,
         "comment": comment,
         "comment_truncated": _truncate(comment),
@@ -111,6 +121,9 @@ def derive_feedback_item(item: Dict[str, Any]) -> Dict[str, Any]:
         "ui_version": ui_version,
         "csv": csv_row,
         "search_blob": f"{question} {comment}".lower(),
+        "qa_full_title": qa_full_title,
+        "qa_preview": qa_preview,
+        "qa_title_attr": qa_title_attr,
     }
 
 
@@ -120,7 +133,7 @@ def _build_table(rows: List[Dict[str, Any]]) -> None:
         "<th>Time</th>"
         "<th>User</th>"
         "<th>Rating</th>"
-        "<th>Question</th>"
+        "<th>Q / A</th>"
         "<th>Comment</th>"
         "<th>Mode</th>"
         "<th>Client</th>"
@@ -129,8 +142,8 @@ def _build_table(rows: List[Dict[str, Any]]) -> None:
     )
     body_cells: List[str] = []
     for row in rows:
-        question_title = _escape(row["question"])
-        comment_title = _escape(row["comment"])
+        qa_title = _escape(row["qa_title_attr"])
+        qa_cell = _escape(row["qa_preview"])
         mode_cell = _escape(row["mode"])
         rating_text = f"{row['rating_icon']} {row['rating_label']}"
         if row["metadata_error"]:
@@ -140,8 +153,8 @@ def _build_table(rows: List[Dict[str, Any]]) -> None:
             f"<td>{_escape(row['created_at_display'])}</td>"
             f"<td>{_escape(row['user_display'])}</td>"
             f"<td>{_escape(rating_text)}</td>"
-            f"<td title=\"{question_title}\">{_escape(row['question_truncated'])}</td>"
-            f"<td title=\"{comment_title}\">{_escape(row['comment_truncated'])}</td>"
+            f"<td class='qa' title=\"{qa_title}\">{qa_cell}</td>"
+            f"<td title=\"{_escape(row['comment'])}\">{_escape(row['comment_truncated'])}</td>"
             f"<td>{mode_cell}</td>"
             f"<td>{_escape(row['client_tag'] or 'n/a')}</td>"
             f"<td>{_escape(row['id'])}</td>"
@@ -152,6 +165,7 @@ def _build_table(rows: List[Dict[str, Any]]) -> None:
         ".feedback-table{width:100%;border-collapse:collapse;font-size:0.92rem;}"
         ".feedback-table th,.feedback-table td{padding:0.4rem 0.6rem;border-bottom:1px solid rgba(49,51,63,0.2);text-align:left;vertical-align:top;}"
         ".feedback-table tbody tr:nth-child(even){background-color:rgba(240,242,246,0.6);}"
+        ".feedback-table td.qa{max-width:640px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
         "</style>"
         f"<table class='feedback-table'><thead>{header}</thead><tbody>{''.join(body_cells)}</tbody></table>"
     )

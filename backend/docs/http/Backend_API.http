@@ -1,7 +1,9 @@
+# Last updated: 2025-11-07
 @base_url = http://localhost:8000
 @auth_token = REPLACE_WITH_JWT
 @upload_id = upl-PLACEHOLDER
 @job_id = emb-PLACEHOLDER
+@feedback_id = 1
 
 ### Health
 GET {{base_url}}/healthz
@@ -10,14 +12,16 @@ Accept: application/json
 ### Chat
 POST {{base_url}}/chat
 Content-Type: application/json
+Accept: application/json
 
 {
-  "question": "How do I configure Oracle SBC TLS?"
+  "question": "List hybrid decision gates."
 }
 
 ### Auth: Login
 POST {{base_url}}/api/v1/auth/login
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "user@example.com",
@@ -31,92 +35,112 @@ Accept: application/json
 
 ### Users: Create
 POST {{base_url}}/api/v1/users/
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "user@example.com",
   "name": "User One",
+  "role": "admin",
   "password": "secret"
 }
 
 ### Users: List
 GET {{base_url}}/api/v1/users/?limit=20&offset=0
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### Users: Get by ID
 GET {{base_url}}/api/v1/users/1
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### Users: Patch
 PATCH {{base_url}}/api/v1/users/1
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "name": "Updated Name"
+  "status": "active"
 }
 
 ### Users: Delete (soft)
 DELETE {{base_url}}/api/v1/users/1?hard=false
+Authorization: Bearer {{auth_token}}
 
-### Users: Change Password
+### Users: Change Password (local mode only)
 POST {{base_url}}/api/v1/users/1/password
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "current_password": "optional",
   "new_password": "Strong#2025"
 }
 
 ### Feedback: Create
 POST {{base_url}}/api/v1/feedback/
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
   "user_id": 1,
-  "session_id": "abc123",
-  "rating": 5,
-  "category": "like",
-  "comment": "Found card 4111 1111 1111 1111",
-  "metadata": {"app_version": "1.2.3"}
+  "session_id": "session-123",
+  "rating": 1,
+  "category": "dislike",
+  "comment": "Answer referenced outdated KB.",
+  "metadata": {
+    "question": "When was the alias rotated?",
+    "answer_preview": "Alias rotated November 2025.",
+    "mode": "hybrid",
+    "message_id": "msg-123",
+    "client": "streamlit",
+    "ui_version": "chat-v2"
+  }
 }
 
-### Feedback: List
-GET {{base_url}}/api/v1/feedback/?limit=20&offset=0
+### Feedback: List with filters
+GET {{base_url}}/api/v1/feedback/?limit=50&offset=0&category=like&date_from=2025-11-01&date_to=2025-11-07
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### Feedback: Get by ID
-GET {{base_url}}/api/v1/feedback/1
+GET {{base_url}}/api/v1/feedback/{{feedback_id}}
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
-### Documents: Upload (update file contents before sending)
+### Documents: Upload
 POST {{base_url}}/api/v1/uploads
-Content-Type: multipart/form-data; boundary=--------------------------boundary
+Authorization: Bearer {{auth_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
---------------------------boundary
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="file"; filename="sample.txt"
 Content-Type: text/plain
 
 Sample file contents for ingestion.
---------------------------boundary
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="source"
 
 manual-upload
---------------------------boundary
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="tags"
 
 product,public
---------------------------boundary
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="lang_hint"
 
 auto
---------------------------boundary--
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### Documents: Get Upload Metadata
 GET {{base_url}}/api/v1/uploads/{{upload_id}}
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### Documents: Create Ingest Job
 POST {{base_url}}/api/v1/ingest/jobs
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
@@ -131,10 +155,12 @@ Content-Type: application/json
 
 ### Documents: Get Job Status
 GET {{base_url}}/api/v1/ingest/jobs/{{job_id}}
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### SharePoint: Trigger Sync
 POST {{base_url}}/api/v1/sharepoint/sync/run
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
@@ -144,6 +170,7 @@ Content-Type: application/json
 
 ### SharePoint: History
 GET {{base_url}}/api/v1/sharepoint/history
+Authorization: Bearer {{auth_token}}
 Accept: application/json
 
 ### Debug (dev only)

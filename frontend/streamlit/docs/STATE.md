@@ -1,40 +1,37 @@
 # State
+Last updated: 2025-11-07
 
-Overview
+Streamlit stores UI state in `st.session_state`. We centralise defaults in two places:
+- `state/session.py` – global keys (auth flags, chat history, upload trackers).
+- `app/state/*.py` – feature-specific namespaces (currently `feedback_filters`).
 
-- Session state lives in state/session.py and governs authentication flags, chat history, metadata, and transient UI flags.
+## Global Keys (`state/session.py`)
+| Key | Description |
+| --- | --- |
+| `is_authenticated` / `authenticated` | Boolean flags for login state (new + legacy). |
+| `username`, `auth_user`, `role` | Current principal metadata. |
+| `chat_history` | List of chat turns rendered in `app/views/chat`. |
+| `feedback_mode` | Map of message index ➜ `{icon, needs_reset}` for thumbs UI. |
+| `health_status` | Cached `/healthz` payload for the Status tab. |
+| `config_cache` | Result of `get_config()` to avoid repeated reads. |
+| `last_feedback_ok` | Toggles the toast shown after general feedback submission. |
+| `profile`, `tags`, `lang_hint`, `update_alias`, `evaluate`, `upload_concurrency`, `files`, `last_job_id`, `job_snapshot` | Documents & Embeddings admin state. |
+| `_chat_css_injected` | Guards CSS injection so we only insert styles once per session. |
 
-Session Keys (state/session.py)
+## Feedback History Keys
+The admin Feedback view (see `app/views/admin/feedback.py`) uses namespaced keys to avoid collisions:
+- `fb_date_from`, `fb_date_to` – ISO dates bound to Streamlit date pickers.
+- `fb_rating` – `"all" | "like" | "dislike"`.
+- `fb_mode` – `"all" | "rag" | "hybrid" | "fallback" | "n/a"`.
+- `fb_user_filter` – Substring filter for `user_id` or `session_id`.
+- `fb_search` – Text search over question + comment.
+- `fb_page`, `fb_page_size` – Remote pagination hints while the view still applies client-side filters.
+- `fb_admin_raw` – Toggles the “Raw JSON” tab in `app/components/feedback_table.py`.
+- `fb_table` – Selection key passed into the table component so multiple users can inspect different rows without colliding.
 
-- authenticated: bool, login status
-- auth_user: str|None, username
-- history: list[(role, content)] for chat
-- metadata: list, retrieved chunks metadata
-- feedback_mode: dict[int -> {icon, needs_reset?}] per answer index
-- health_status: health payload from backend status view
-- config_cache: snapshot of get_config() for quick access
-- last_feedback_ok: flag to show toast after feedback submit
-- profile: selected embedding profile for Admin view
-- tags: list of tags attached to the next embedding job
-- lang_hint: language hint field (auto|es|en|pt)
-- update_alias: bool flag forwarding to ingest job payload
-- evaluate: bool flag to trigger optional evaluation run
-- upload_concurrency: max simultaneous uploads allowed
-- files: list of dicts `{name, size, status, progress, upload_id, error}`
-- last_job_id: most recent embedding job identifier returned
+Helpers in `app/state/feedback_filters.py` manage an alternative namespace (`feedback_filters_*`) for future refactors; both sets of keys follow the same defaults.
 
-Lifecycle
-
-- init_session() ensures default keys at startup.
-- add_history(role, content) appends chat rows (used by views/chat).
-
-Patterns for New Keys
-
-- Initialize defaults in DEFAULT_KEYS to avoid KeyError.
-- Use st.session_state.setdefault(key, default) when read lazily.
-- Avoid storing large objects or binary data; keep fast-to-serialize content.
-
-Quick Links
-
-- Index: ./INDEX.md
-- Architecture: ./ARCHITECTURE.md
+## Patterns
+- Always call `init_session()` before reading/writing new keys; it seeds defaults from `state/session.DEFAULT_KEYS`.
+- Prefix feature-specific keys (e.g., `fb_`, `upload_`) to avoid collisions when Streamlit reruns scripts.
+- When storing complex objects (lists/dicts) mutate copies or reassign the key to trigger Streamlit reruns.

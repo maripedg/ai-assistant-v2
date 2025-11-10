@@ -1,80 +1,54 @@
 # Architecture
+Last updated: 2025-11-07
 
-Overview
+## Overview
+The Streamlit app renders chat, admin dashboards, and feedback tooling against the FastAPI backend. Modules live under `frontend/streamlit/app/` and are namespaced as `app.views.*`, `app.services.*`, and `app.state.*`.
 
-- Streamlit app that renders a chat UI and a status dashboard, backed by a simple HTTP API client. Local storage is used for users and feedback. Session state orchestrates UI flows.
+## Modules & Folders
+- `app/main.py` – Entry point. Boots Streamlit, loads config, restores cookies, renders sidebar auth + global feedback form, and routes between tabs.
+- `app/views/chat/` – Chat UI with rag/hybrid/fallback visualisation. Integrates feedback widgets via `app.services.api_client.send_feedback`.
+- `app/views/status/` – Backend health snapshot.
+- `app/views/admin/embeddings.py` – Documents & Embeddings admin page (uploads ➜ job creation).
+- `app/views/admin/feedback.py` – **Feedback History** with filters, KPIs, and a Q/A table (see below).
+- `app/views/users.py` – Admin-only user management.
+- `app/components/feedback_table.py` – Shared renderer for the Feedback History table. Shows a combined Q/A column, client/mode badges, and a raw JSON tab when enabled.
+- `app/services/*` – HTTP client (`api_client.py`), auth/session helpers, storage shims, feedback helpers. `frontend/streamlit/services/__init__.py` is a compatibility shim—always import from `app.services`.
+- `app/state/*` – Feature-specific state managers; e.g., `state/feedback_filters.py` keeps `feedback_filters_*` keys in sync.
+- `state/session.py` – Global defaults for `st.session_state` (auth flags, chat history, upload trackers).
 
-Modules & Folders
+## Feedback History View
+- Location: `app/views/admin/feedback.py`.
+- State keys prefixed with `fb_` (`fb_date_from`, `fb_rating`, `fb_admin_raw`, `fb_table`) isolate the feature from other tabs.
+- The table combines question and answer preview in a single Q/A column for scanability. Selecting a row opens tabs for “Overview”, “Metadata”, and (when `fb_admin_raw=true`) “Raw JSON”.
+- Derived metadata ensures every row exposes `mode`, `client`, `session_id`, `question`, `answer_preview`, and sanitized comments.
 
-- app/: main entry and views
-  - app/main.py: boots app, sidebar auth, navigation, feedback
-  - app/views/chat/: chat UI and feedback-on-answer
-  - app/views/status/: backend health panel
-- state/: session.py initializes keys and helpers
-- services/:
-  - api_client.py: requests client for backend endpoints
-  - auth_session.py: signed cookies (or in-memory fallback)
-  - storage.py: users and feedback persistence (JSON/CSV)
-- app_config/env.py: loads .env and exposes get_config()
-- data/: credentials and feedback folders
-- assets/: static files
-- artifacts-frontend/: artifacts and inventories
-- scripts/: optional helper scripts
-- tests/: pytest tests
+## Request/Data Flow
+```mermaid
+sequenceDiagram
+    participant UI as Streamlit UI
+    participant Svc as app.services.api_client
+    participant BE as Backend API
+    UI->>Svc: chat(question)
+    Svc->>BE: POST /chat {question}
+    BE-->>Svc: {answer, mode, decision_explain, X-Answer-Mode}
+    Svc-->>UI: normalized dict
+    UI-->>BE: POST /api/v1/feedback/ (optional)
+```
 
-Startup Flow
-
+## Startup Flow
 ```mermaid
 flowchart TD
-    A[User opens Streamlit app] --> B[app/main.py]
-    B --> C[get_config() from app_config/env.py]
-    C --> D[init_session() state/session.py]
+    A[User opens app] --> B[app/main.py]
+    B --> C[get_config()]
+    C --> D[init_session()]
     D --> E[auth_session.get_cookie_manager()]
     E --> F{Authenticated?}
     F -- no --> G[Sidebar login form]
     F -- yes --> H[Sidebar account + feedback]
-    H --> I[Navigate]
-    I -- Assistant --> J[app/views/chat]
-    I -- Status --> K[app/views/status]
+    H --> I[Navigate to tab]
 ```
 
-Request/Data Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant UI as Streamlit UI
-    participant Svc as services/api_client.py
-    participant BE as Backend API
-
-    User->>UI: type question
-    UI->>Svc: chat(question)
-    Svc->>BE: POST /chat {question}
-    BE-->>Svc: JSON {answer, metadata, ...}
-    Svc-->>UI: normalized dict
-    UI-->>User: render answer, sources, feedback controls
-```
-
-Dependency Notes
-
-- Session state (state/session.py) keeps auth flags, chat history, metadata, and ephemeral flags.
-- services/api_client.py centralizes HTTP access; responses are normalized for rendering.
-- services/auth_session.py provides HMAC-signed tokens saved as cookies (via extra-streamlit-components) or in-memory fallback.
-- services/storage.py persists users in data/credentials/usuarios.json and feedback in data/feedback/.
-
-Documents & Embeddings Flow
-
-```mermaid
-flowchart LR
-    A[Streamlit Admin View] -->|POST /api/v1/uploads| B[Backend Uploads Controller]
-    B --> C[Staging Storage]
-    A -->|POST /api/v1/ingest/jobs| D[Ingest Job Orchestrator]
-    D --> E[Embedding Pipeline]
-    E --> F[Vector Store]
-    F --> G[Assistant Chat Retrieval]
-```
-
-Quick Links
-
-- Index: ./INDEX.md
-- Setup: ./SETUP_AND_RUN.md
+## Notes
+- All backend requests go through `app.services.api_client`. `_auth_headers()` injects `Authorization: Bearer ...` when the user logged in via `/api/v1/auth/login`.
+- Admin tabs rely on role `admin`. Non-admins see access-restricted banners.
+- Local storage lives under `data/` (users + feedback) and is used only when `AUTH_MODE`/`FEEDBACK_MODE` are `local`.

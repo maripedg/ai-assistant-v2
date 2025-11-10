@@ -1,21 +1,15 @@
 # Scripts
+Last updated: 2025-11-07
 
-Overview
+The `frontend/streamlit/scripts/` folder is optional and currently empty. Use it for one-off maintenance utilities (e.g., migrating local credential files, exporting feedback CSVs, seeding demo data).
 
-- Helper scripts can live under scripts/. The folder may be empty in some deployments; add scripts here to automate maintenance tasks.
+Guidelines:
+- Keep scripts self-contained (no implicit imports from Streamlit’s runtime).
+- Accept parameters via `argparse` and print actionable output; don’t rely on Streamlit UI state.
+- Document prerequisites at the top of each script so operators know which env variables or files are required.
 
-Examples (suggested)
+Example ideas:
+- `scripts/users_init.py` – bootstrap `usuarios.json` with a default admin account when running in `AUTH_MODE=local`.
+- `scripts/feedback_export.py` – convert `data/feedback/fback.json` into a sanitized CSV for audits.
 
-- users_init.py: initialize admin or batch-create users.
-- feedback_export.py: transform feedback JSON to CSV or dashboards.
-
-Conventions
-
-- Place scripts in frontend/streamlit/scripts/ and prefer argparse for CLI UX.
-- Document inputs/outputs in the script header.
-
-Quick Links
-
-- Index: ./INDEX.md
-- Runbook: ./RUNBOOK.md
-
+Remember to commit scripts under version control; avoid storing credentials or secrets in this folder.

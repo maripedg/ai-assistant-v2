@@ -1,114 +1,38 @@
-﻿# Embedding & Retrieval
+# Embedding & Retrieval
+Last updated: 2025-11-07
 
-This document covers how embeddings are generated and how the runtime retrieval pipeline consumes them.
+This document explains how documents are embedded, how the runtime chooses between rag/hybrid/fallback, and how the `X-Answer-Mode` header/`decision_explain` payload are produced.
 
 ## Embedding Lifecycle
-- **Profiles**: Defined in [backend/config/app.yaml](../../backend/config/app.yaml) under `embeddings.profiles`. Each profile supplies a physical `index_name`, chunker settings, distance metric, and preferred metadata keys.
-- **Alias indirection**: `embeddings.alias.name` (e.g., `MY_DEMO`) exposes a stable Oracle view that the API queries. Individual jobs write to versioned tables (e.g., `MY_DEMO_v1`) and optionally repoint the alias.
-- **Batching**: `embeddings.batching` specifies `batch_size`, `workers` (currently informational), and `rate_limit_per_min`; CLI flags override these values per run.
-- **Dedupe**: When `embeddings.dedupe.by_hash=true`, `_hash_normalize()` lowercases and trims chunk text before hashing with SHA-256. Upserts skip rows whose `HASH_NORM` already exists.
-- **Document metadata**: `_ensure_chunk_metadata()` persists `source`, `doc_id`, `chunk_id`, `lang`, `tags`, and `priority`. Profiles may request extra metadata in future via the strategy interface.
-- **Schema management**: `ensure_index_table()` creates or validates the target table with `VECTOR(dim)` columns, ensuring the embedding dimension matches the OCI model output. Alias creation uses `CREATE OR REPLACE VIEW <alias> AS SELECT ... FROM <index>`.
+1. **Manifest expansion** – JSONL manifests (see [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md)) list file paths, optional tags, language hints, and target profiles.
+2. **Cleaning & sanitization** – Loaders normalise text (strip invisible chars, harmonise line endings). `backend.common.sanitizer.sanitize_if_enabled()` then redacts or audits PII according to `SANITIZE_*` flags before chunking.
+3. **Chunking** – Profile-driven chunkers (char/tokens) apply `size` + `overlap`, attach metadata such as `source`, `doc_id`, `chunk_id`, `tags`, `lang`, and optional dedupe hashes.
+4. **Embeddings** – `make_embeddings()` (OCI adapter) batches requests using `embeddings.batching.{batch_size,rate_limit_per_min}`. Loader hints (`input_types.documents/queries`) ensure Oracle Vector Search uses compatible distance metrics.
+5. **Upsert & alias** – Chunks land in the physical table named by `embeddings.profiles.<profile>.index_name`. If `update_alias=true`, `backend/providers/oracle_vs/index_admin.py` recreates the alias view (e.g., `MY_DEMO`) pointing to the new table. Evaluation runs (optional) exercise golden queries before alias rotation.
 
-## RetrievalService Overview
+## Retrieval Modes
 Implementation: [backend/core/services/retrieval_service.py](../../backend/core/services/retrieval_service.py).
 
-1. **Similarity search** – `vector_store.similarity_search_with_score(question, k)` queries Oracle via [backend/providers/oci/vectorstore.py](../../backend/providers/oci/vectorstore.py). Results include raw Oracle scores and metadata enriched with `raw_score`, `similarity`, and `text_preview`.
-2. **Normalization** – `_normalize()` transforms raw scores into `[0,1]` based on the configured `distance` (`dot_product`, `cosine`, or fallback). For raw scoring, thresholds use the metric-specific ranges.
-3. **Threshold selection** – `_pick_thresholds()` chooses `(low, high)` from `retrieval.thresholds` or `retrieval.short_query` when `_is_short_query()` finds ≤ `max_tokens` alphabetic tokens in the question.
-4. **Mode decision** – `_decide_mode()` returns:
-   - `rag` when score ≥ high;
-   - `hybrid` when low ≤ score < high;
-   - `fallback` otherwise.
-   The same thresholds are recapped in `decision_explain`.
-5. **Context assembly** – `_select_context()` sorts by `similarity`, removes duplicates using `dedupe_by` (default `doc_id`), filters out tiny chunks (less than `hybrid.min_tokens_per_chunk` chars), and concatenates text up to `hybrid.max_context_chars` or `hybrid.max_chunks`.
-6. **Prompt selection** – Uses the `rag` system prompt by default and falls back to `hybrid` prompt when the mode is `hybrid`. Prompts come from `prompts.*.system` in `app.yaml`.
-7. **LLM interaction** – Calls `primary_llm.generate()` with `[Context]` and `[Question]` sections. If the result is empty, `_build_response()` reinvokes the fallback LLM with the fallback prompt.
-8. **Response payload** – Returns question echo, `answer`, placeholders for `answer2`/`answer3`, raw metadata list, the actual chunks used in the prompt, `sources_used` hint (`all`, `partial`, `none`), and `decision_explain`.
+| Mode | Trigger | Header / Payload |
+| --- | --- | --- |
+| `rag` | `max_similarity >= threshold_high`. | `X-Answer-Mode: rag`; `decision_explain.mode = "rag"`. |
+| `hybrid` | `threshold_low <= max_similarity < threshold_high` and hybrid gates satisfied (min chunks/context). | `X-Answer-Mode: hybrid`; `sources_used` may be `partial` when not every retrieved chunk survives gating. |
+| `fallback` | No chunks cleared thresholds, hybrid gates failed, or primary LLM returned blank. | `X-Answer-Mode: fallback`; `used_llm` flips to `"fallback"`. |
 
-### Score Modes & Distances
-- `score_mode=normalized` (default) expects scores in `[0,1]`. Dot-product raw scores are transformed via `(raw + 1)/2`.
-- `score_mode=raw` instructs the service to work directly with Oracle values. Separate thresholds exist for dot-product (`raw_dot_low`, `raw_dot_high`) and cosine distances (`raw_cosine_low`, `raw_cosine_high`). Unsupported metrics fall back to normalized heuristics.
-- Short-query thresholds override both modes when triggered.
+Short questions (token count ≤ `retrieval.short_query.max_tokens`) temporarily tighten thresholds to avoid hallucinated rag decisions. The `decision_explain.short_query_active` flag captures this and mirrors in telemetry (`CHAT_INTERACTIONS.RESP_MODE`).
 
-### Short Query Handling
-`_is_short_query()` removes punctuation, lowercases, and counts alphabetic tokens. When `len(tokens) <= short_max_tokens`, the service applies tighter thresholds (`short_low`, `short_high`) and reports `short_query_active=true`.
+## Thresholds & Distances
+- **Normalized**: default mode where similarity lives in `[0,1]` regardless of Oracle distance. Dot-product values are mapped via `(raw + 1) / 2`.
+- **Raw**: when `score_mode=raw`, provide `raw_dot_low/high` or `raw_cosine_low/high`. Unsupported distances raise on startup.
+- **Hybrid gates** (`retrieval.hybrid.*`): enforce `min_similarity_for_hybrid`, `min_chunks_for_hybrid`, and `min_total_context_chars`. Failing any gate downgrades the answer to fallback even if similarity cleared `threshold_low`.
 
-### Fallback Behavior
-- If no results are returned, if context assembly yields zero chunks, or if the primary LLM returns blank output, `_build_response()` forces `mode="fallback"` and uses the fallback prompt/model.
-- The fallback LLM defaults to the same primary model when `make_chat_model_fallback()` is not configured, but the shipped configs expect a dedicated OCI OCID.
+## Diagnostics
+- `retrieved_chunks_metadata`: raw oracle rows sorted by similarity with `text` previews.
+- `used_chunks`: subset that made it into the prompt.
+- `sources_used`: `all`, `partial`, or `none` (signals if the UI should downplay citations).
+- `decision_explain`: contains thresholds, `effective_query`, `short_query_active`, `used_llm`, `mode`, and `score_mode/distance`. This payload is mirrored into usage logging for later analytics.
 
-## Evaluation Loop
-`_evaluate_golden_queries()` in the embed job executes retrieval end-to-end using the same alias the API will query. Integrate this into ingestion pipelines to catch regressions before promoting a new index table.
-
-## TODO
-- Implement extractive and multi-answer paths (`answer2`, `answer3`) or prune them from the schema to avoid confusion.
-- Consider exposing retrieval diagnostics (e.g., raw ranks, trace IDs) via an authenticated endpoint for deeper observability.
-# Embedding & Retrieval
-
-## Purpose
-Explain how document embeddings are produced and how retrieval ranking/thresholding works.
-
-## Components / Architecture
-- Embeddings: OCI Generative AI via adapter (`backend/providers/oci/embeddings_adapter.py`).
-- Vector store: OracleVS wrapper (`backend/providers/oci/vectorstore.py`).
-- Retrieval logic: `backend/core/services/retrieval_service.py`.
-- Config: `backend/config/app.yaml` (retrieval, profiles) and `backend/config/providers.yaml` (endpoints, DSN, models).
-
-## Parameters & Env
-- Profiles under `app.yaml` → `embeddings.profiles` (e.g., `legacy_profile`, `standard_profile`).
-  - Each profile includes `index_name`, `chunker` settings, and `distance_metric` (`dot_product` or `cosine`).
-- Retrieval controls under `app.yaml` → `retrieval`:
-  - `distance`: distance label used by service (`dot_product` or `cosine`).
-  - `score_mode`: `normalized` or `raw`.
-  - `score_kind`: `similarity` or `distance` (cosine handling).
-  - `docs_normalized`: whether vectors are unit‑norm (Cohere profiles → true).
-  - `thresholds`: `{ low, high, raw_dot_low/high, raw_cosine_low/high }`.
-
-## Examples
-Switch active embedding profile:
-
-```yaml
-# backend/config/app.yaml
-embeddings:
-  active_profile: legacy_profile
-  profiles:
-    legacy_profile:
-      index_name: MY_DEMO_v1
-      distance_metric: dot_product
-      chunker:
-        type: char
-        size: 2000
-        overlap: 100
-    standard_profile:
-      index_name: MY_DEMO_v2
-      distance_metric: cosine
-      chunker:
-        type: tokens
-        size: 900
-        overlap: 0.15
-```
-
-Retrieval flow (simplified):
-
-```
-Query → Embedding (search_query) → Oracle VECTOR_DISTANCE
-     → Top‑K (ASC by distance) → Normalize/threshold
-     → Context selection → Prompt → LLM answer
-```
-
-Quality & thresholds:
-- Use `score_mode=normalized` for UI‑friendly [0,1] scores.
-- For DOT with unit‑norm vectors, Oracle returns a distance; normalization maps `(-raw + 1)/2`.
-- Tune `thresholds.low/high` to gate RAG vs fallback; hybrid gates live under `retrieval.hybrid`.
-
-## Ops Notes
-- Ensure alias view projects `(ID, TEXT, METADATA CLOB, EMBEDDING)`.
-- Keep `providers.yaml` `oraclevs.distance` aligned with `app.yaml` `retrieval.distance`.
-
-Note
-- Chunker selection is profile‑driven; ingestion loaders do not affect the distance metric. Loaders only influence extracted text quality and attached metadata.
-
-## See also
-- [Config](./CONFIG_REFERENCE.md)
-- [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md)
+## Tips
+- Keep profile distance metrics in sync with `retrieval.distance`.
+- When enabling raw mode, update both normalized and raw thresholds so short-query overrides remain meaningful.
+- Remember to bump `embeddings.alias.active_index` (or run with `update_alias=true`) whenever promoting a new table; `/chat` always looks at the alias view, so mismatches show up as empty answers/fallback spikes.

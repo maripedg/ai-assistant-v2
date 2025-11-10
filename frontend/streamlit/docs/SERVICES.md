@@ -1,43 +1,31 @@
 # Services
+Last updated: 2025-11-07
 
-Overview
+The canonical modules live under `app/services/`. The legacy `frontend/streamlit/services/__init__.py` simply re-exports these modules for backwards compatibility—new imports should always use `from app.services import ...`.
 
-- The services/ layer encapsulates backend HTTP calls, auth cookie management, and local storage for users/feedback.
+## `app.services.api_client`
+- Central HTTP helper that wraps `requests`. Resolves the base URL from `BACKEND_API_BASE` (or `FRONTEND_BASE_URL` for admin uploads) and injects `_auth_headers()` on every request.
+- `_auth_headers()` calls `app.services.auth_session.get_auth_headers()`. When the user logged in via `/api/v1/auth/login`, a JWT is stored in session/cookies and every `/api/v1/*` request includes `Authorization: Bearer ...`. This is critical when `AUTH_ENABLED=true`.
+- Key helpers: `health_check()`, `chat()`, `users_*()`, `upload_file()`, `create_ingest_job()`, `feedback_create()`/`feedback_list()`, and `send_feedback()` (used by the chat thumbs).
+- `chat()` normalises responses into `{answer, answer2, answer3, retrieved_chunks_metadata, mode, used_chunks, decision_explain}` so the UI always has consistent structures, regardless of backend shape.
 
-Modules
+## `app.services.auth_session`
+- Handles local login, JWT-based login, cookie issuance (via `extra_streamlit_components`), and session restoration.
+- Stores `st.session_state["user_id"]` when the backend login response contains `user.id`. Feedback payloads read this value; if it’s missing they fall back to `FEEDBACK_DEFAULT_USER_ID`.
+- Exposes `get_auth_headers()` which returns `{ "Authorization": "Bearer <token>" }` or `{}`.
 
-- api_client.py
-  - health_check() -> (ok: bool, payload: dict)
-  - chat(question: str) -> normalized dict with fields answer, retrieved_chunks_metadata, mode, used_chunks, decision_explain, sources_used, and raw.
-    - The chat view shows a mode chip (icon + tooltip) derived from the mode field.
-    - A decision summary line reports the mode, evidence count (len(used_chunks) or decision_explain.kept_n), and confidence computed from decision_explain.sim_max against supplied thresholds.
-    - Evidence cards are populated from used_chunks when the backend thresholds allow. Fallback mode, failed gates, or low similarity hide sources by design.
-    - A Why this mode? panel renders the reasoning from decision_explain, including thresholds and gate state, with an optional confidence bar.
-  - Uses requests with REQUEST_TIMEOUT from config.
+## `app.services.storage`
+- Local persistence for users and feedback when running in `AUTH_MODE=local` / `FEEDBACK_MODE=local`.
+- Provides dual-write helpers so you can mirror to both local JSON and backend APIs when `DUAL_WRITE_FEEDBACK=true`.
 
-- auth_session.py
-  - issue_token(username, ttl_min, secret) -> signed token
-  - verify_token(token, secret) -> username|None
-  - Cookie helpers set_cookie/get_cookie/delete_cookie using extra-streamlit-components when available, else session fallback.
+## `app.services.feedback_api`
+- Wraps `api_client.feedback_list()` to coerce totals and rating filters.
+- `build_feedback_payload()` constructs the backend payload with `question`, `answer_preview`, `mode`, `message_id`, and optional `note` fields inside `metadata`. Chat thumbs reuse this helper before calling `api_client.send_feedback()`.
 
-- storage.py
-  - Users: hash_password(), load_users(), save_users(), ensure_admin()
-  - Feedback: append_feedback(), append_icon_feedback(); files under FEEDBACK_STORAGE_DIR
+## Deprecated Shim
+`frontend/streamlit/services/__init__.py` emits a warning and re-exports the new modules. Update imports gradually to avoid the shim entirely.
 
-Request/Response Shapes
-
-- POST /chat expects {question: str}
-- Response is normalized by api_client.chat() and rendered directly by views/chat.
-
-Answer Rendering & Debug
-
-- The chat view displays the first non-empty answer value (answer -> answer2 -> answer3) as Markdown above the decision/evidence panel.
-- When all answer fields are empty, the UI shows the placeholder text "No answer content returned."
-- If the normalized payload includes `question`, the frontend shows it as a right-aligned user bubble above the answer—no additional fields are required from the backend.
-- Set `DEBUG_CHAT_UI=true` in `.env` to emit verbose console logs (`API:chat_response`, `UI:render_start`, etc.) and show debug expanders with the raw payload inside the chat view.
-- Disable the flag for normal operation to keep the console quiet and hide the debug UI.
-
-Quick Links
-
-- Index: ./INDEX.md
-- Architecture: ./ARCHITECTURE.md
+## Tips
+- Keep future services under `app/services/*.py` to stay consistent.
+- When debugging HTTP failures, temporarily set `DEBUG_HTTP=1` (logged inside `api_client`).
+- Don’t bypass `_auth_headers()`; manual `requests` calls in views risk missing the Authorization header and will fail once `AUTH_ENABLED` is true.

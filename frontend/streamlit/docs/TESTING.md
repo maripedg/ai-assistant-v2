@@ -1,40 +1,40 @@
 # Testing
+Last updated: 2025-11-07
 
-Overview
+## Automated Tests
+- Runner: `pytest -q` from `frontend/streamlit`.
+- Focus: logic in `app/services/*`, `app/state/*`, and lightweight view helpers.
+- Mock backend calls with `responses` or `monkeypatch` to avoid real HTTP requests.
 
-- Use pytest for unit tests. Focus on service functions and view helpers; for UI-heavy flows, isolate logic into functions where possible.
+## Manual Checklist
 
-Running Tests
+### Chat & Feedback
+1. Log in (DB mode) and send a question. Confirm the UI renders mode chips and the browser shows `X-Answer-Mode` in network headers.
+2. Leave thumbs feedback **with** a comment, then another **without** a comment. Verify:
+   - Payload includes `user_id` (inspect backend logs or use a proxy).
+   - Comments remain blank when not provided—no auto-fill from the answer text.
+3. Set `DEBUG_CHAT_UI=true` to ensure the raw payload expander and console logs still work.
 
-```bash
-cd frontend/streamlit
-pytest -q
-```
+### Feedback History View
+1. Open **Feedback (Admin)** with an admin user.
+2. Apply filters: date range, `rating=like`, `mode=hybrid`, text search. Ensure KPIs and counts update accordingly.
+3. Hover the Q/A column to view the combined tooltip and confirm truncated text respects the style guide.
+4. Toggle “Admin raw JSON view” (`fb_admin_raw`). The third tab (“Raw JSON”) should appear within the row expander, showing the backend payload verbatim.
+5. Page through results (Prev/Next) and verify `fb_page` updates while filters persist.
 
-```powershell
-cd frontend/streamlit
-pytest -q
-```
+### Documents & Embeddings
+1. Upload representative files (PDF, TXT, DOCX). Each should reach “Uploaded” and expose `upload_id`.
+2. Attempt unsupported MIME (`.exe`) to confirm the 415 toast. Repeat with an oversized file to trigger the 413 message.
+3. Create a dry-run job (no alias update). Capture `job_id` and confirm the toast copy.
 
-Fixtures & Coverage
+### Users (Admin)
+1. Create a new user and edit role/status.
+2. Attempt to re-create the same email to confirm 409 handling.
 
-- Mock requests in services/api_client.py using responses or monkeypatch.
-- Validate state/session.py behaviors (init_session, add_history).
-- Ensure storage helpers read/write temporary directories.
+### State Isolation
+1. Open multiple tabs (Chat + Feedback History). Ensure filters set in Feedback History do not alter chat state and vice versa. Inspect `st.session_state` for only `fb_*` mutations.
 
-UI Guidance
-
-- For Streamlit rendering, test pure logic paths and avoid asserting on HTML. Prefer unit testing the data contract between services and views.
-
-Quick Links
-
-- Index: ./INDEX.md
-- Styleguide: ./STYLEGUIDE.md
-
-Manual Checklist - Documents & Embeddings (Admin)
-
-- Upload three files (PDF, TXT, DOCX). Each should reach Uploaded status with a visible `upload_id`.
-- Create an embedding job using the staged `upload_ids`; confirm toast shows the returned `job_id`.
-- Attempt to upload an unsupported file (e.g., `.exe`) and verify the 415 message.
-- Attempt to upload a file larger than backend limit and confirm the 413 guidance.
-- Log in as a non-admin and confirm the Admin page shows the access-restricted notice.
+## Troubleshooting Tips
+- Use `pytest -k <pattern>` to focus on service modules when iterating quickly.
+- Set `DEBUG_FEEDBACK_UI=1` to print tracked `fb_*` keys if filters behave unexpectedly.
+- When verifying JWT propagation, run Streamlit with `streamlit run app/main.py --server.headless true` and inspect logs emitted by `app.services.api_client`.

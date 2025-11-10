@@ -1,100 +1,57 @@
-﻿# Setup & Run
+# Setup & Run
+Last updated: 2025-11-07
 
 ## Prerequisites
-- Python 3.11+ with build tooling to compile `oracledb`.
-- Oracle Database 23ai (or compatible) reachable from the machine running the API.
-- OCI account with access to Generative AI embeddings and chat models and a configured profile in `oci/config`.
-- Optional but recommended: virtual environment manager (`venv`, `conda`, or `uv`) for dependency isolation.
+- Python 3.11+ with build tools for `oracledb`.
+- Oracle Database 23ai reachable from the host (vector-enabled schema, write access to `AUTH_LOGINS`, `CHAT_SESSIONS`, `CHAT_INTERACTIONS` if `USAGE_LOG_ENABLED` will be turned on).
+- OCI account with access to Generative AI embeddings/chat models plus a configured CLI profile in `oci/config`.
+- Optional: `uv`/`venv` for virtual environments.
 
-## Environment Configuration
-1. Copy `backend/.env.example` to `backend/.env` and fill in connection details (no secrets should be committed).
-2. Ensure the OCI CLI profile referenced by `OCI_CONFIG_PROFILE` exists in `oci/config`. `backend/app/deps.py` will force `OCI_CONFIG_FILE` to `${repo}/oci/config` on import.
-3. If sanitization is required, set `SANITIZE_ENABLED=on|shadow` and related knobs documented in [SANITIZATION.md](./SANITIZATION.md).
+## Environment
+1. Copy `.env` template:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+2. Fill in `DB_*`, `OCI_*`, `JWT_SECRET`, `SESSION_SECRET`, `MAX_UPLOAD_MB`, and any sanitization or usage logging flags (`USAGE_LOG_ENABLED`).
+3. Verify `oci/config` (or custom `OCI_CONFIG_PATH`) contains the profile referenced by `OCI_CONFIG_PROFILE`.
 
 ## Install Dependencies
 ```bash
-python -m venv .venv
-. .venv/Scripts/Activate  # PowerShell: .\.venv\Scripts\Activate.ps1
+python -m venv backend/.venv
+source backend/.venv/bin/activate  # Windows: backend\.venv\Scripts\Activate.ps1
 pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
-The requirements file includes optional ingestion extras (`PyPDF2`, `tqdm`). Skip them only if you do not plan to run embed jobs.
 
-## Launch the API Server
+## Run the API
 ```bash
-uvicorn backend.app.main:app --reload --port 8080
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-`backend/app/main.py` runs `validate_startup(True)` on import, so the terminal will display status probes for embeddings and both chat models along with retrieval configuration summaries. Address any reported failures before serving traffic.
+On startup the process prints OCI/Oracle probe results (`validate_startup(True)`). Address failures (credentials, network, alias missing) before continuing.
 
-## Running Tests
-```bash
-pytest backend/tests -q
-```
-Tests rely on fakes for most services but may skip OCI-specific adapters unless `OCI_TESTS_DISABLED` is cleared.
-
-## Common Issues
-- **`ModuleNotFoundError: oracledb`**: Install Oracle Instant Client prerequisites and rerun `pip install oracledb`. Windows users need the appropriate Instant Client ZIP on `PATH`.
-- **`Alias view 'MY_DEMO' not found`**: Either run an embed job with `--update-alias` or manually create the view using [backend/providers/oracle_vs/index_admin.py](../../backend/providers/oracle_vs/index_admin.py).
-- **`OCI configuration mismatch` warnings**: `backend/app/deps._warn_if_region_mismatch()` compares endpoint and config file regions; update either the endpoint URL or the profile region.
-- **Empty responses**: When the primary chat model returns no text, the service falls back automatically. Check OCI quotas and model availability if fallback usage spikes.
-
-## Next Steps
-- Populate the vector index using the ingestion workflow in [INGESTION_AND_MANIFESTS.md](./INGESTION_AND_MANIFESTS.md).
-- Validate retrieval quality with golden queries before exposing the assistant to users.
-# Setup and Run
-
-## Purpose
-Guide to run the backend locally and in Docker, with smoke tests and troubleshooting.
-
-## Components / Architecture
-- FastAPI app at `backend/app/main.py`
-- Dependencies and clients wired in `backend/app/deps.py`
-- Requirements in `backend/requirements.txt`
-
-## Parameters & Env
-- Copy `backend/.env.example` to `backend/.env` and fill values.
-- See [Config](./CONFIG_REFERENCE.md) for variable meanings.
-
-## Local Setup
-
-```bash
-# 1) Create and activate venv (Python 3.11+ recommended)
-python -m venv backend/.venv
-.\backend\.venv\Scripts\activate  # PowerShell on Windows
-
-# 2) Install dependencies
-pip install -r backend/requirements.txt
-
-# 3) Set env (optional if backend/.env exists)
-set -a; source backend/.env 2>/dev/null || true; set +a
-
-# 4) Run the API
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Smoke test:
-
+## Smoke Test
 ```bash
 curl -s http://localhost:8000/healthz | jq .
-curl -s -X POST http://localhost:8000/chat -H 'Content-Type: application/json' -d '{"question":"hello"}' | jq .
+curl -s -X POST http://localhost:8000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"List hybrid gates."}' | jq .
 ```
+If `features.users_api`/`feedback_api` are enabled, test `/api/v1/auth/login` and `/api/v1/feedback/` to confirm JWTs and sanitization work end-to-end.
 
-## Docker (if applicable)
-The repository includes `backend/Dockerfile` (TODO: current file is empty; add build steps if using Docker).
+## Database Prep
+- Create the alias view referenced by `embeddings.alias.name` or run an embed job with `--update-alias` to generate it.
+- Grant the service account permission to create tables (embedding) and insert into usage logging tables if enabled.
 
-Example run:
-
-```bash
-docker build -t ai-assistant-backend -f backend/Dockerfile .
-docker run --rm -p 8000:8000 --env-file backend/.env ai-assistant-backend
-```
+## Usage Logging Toggle
+When `USAGE_LOG_ENABLED=true`, ensure the tables `AUTH_LOGINS`, `CHAT_SESSIONS`, `CHAT_INTERACTIONS` exist. The service inserts `RESP_MODE` and similarity metrics for each `/chat` call, so capacity planning should include these writes.
 
 ## Troubleshooting
-- Health shows embeddings down: verify OCI config file/profile and IAM permissions. Ensure `OCI_CONFIG_PATH` points to a file and key file exists.
-- Oracle vector errors: confirm alias view exists and `oraclevs` DSN/user/password are correct.
-- 400 from embed service: remove empty/whitespace texts before embedding.
+- **`ModuleNotFoundError: oracledb`** – Install Oracle Instant Client libraries and re-run `pip install oracledb`.
+- **`Alias view ... not found`** – Ensure at least one embed job created `<alias>_vN` and run `ensure_alias()` to point the alias to that table.
+- **`Upload exceeds maximum size ...`** – Raise `MAX_UPLOAD_MB` or split documents; the frontend mirrors this limit.
+- **`SharePoint sync failed` (502)** – Check the SharePoint microservice logs and the `SP_*` env values in `app.yaml`.
 
-## See also
-- [Config](./CONFIG_REFERENCE.md)
-- [API Reference](./API_REFERENCE.md)
-- [Runbook](./RUNBOOK.md)
+## Next Steps
+- Populate the index: follow [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md).
+- Review `backend/docs` for endpoint-specific payloads before integrating additional clients.
+- Wire monitors: expose `/healthz` to your platform probes and alert on fallback spikes using the `RESP_MODE` column in `CHAT_INTERACTIONS`.

@@ -1,120 +1,53 @@
 # Configuration
+Last updated: 2025-11-07
 
-Overview
+`app_config/env.py` loads `.env` from `frontend/streamlit/.env` (dotenv) and exposes `get_config()`. Update the `.env` file and restart Streamlit whenever you change a value—config is cached at startup.
 
-- Configuration is sourced from frontend/streamlit/.env via app_config/env.py (dotenv). The loader exposes get_config(), used by app/main.py.
+## Core Variables
+| Key | Default | Notes |
+| --- | --- | --- |
+| `BACKEND_API_BASE` | `http://localhost:5000` | Base URL for `/chat` and most `/api/v1/*` calls. |
+| `FRONTEND_BASE_URL` | — | Optional override for admin uploads; when set, `app.services.api_client` prefers this value so browser dev proxies can hit different origins. |
+| `FRONTEND_PORT` | `8501` | Streamlit server port. |
+| `ASSISTANT_TITLE` | `RODOD / DBE Assistant` | Displayed in the sidebar. |
+| `LOG_LEVEL` | `INFO` | Passed to `logging`. |
+| `REQUEST_TIMEOUT` | `60` | Seconds for backend HTTP calls (uploads, chat, feedback). |
 
-Sources
+## Auth & Feedback Modes
+| Key | Description |
+| --- | --- |
+| `AUTH_MODE` | `local` (file-based) or `db` (calls `/api/v1/auth/login`). DB mode stores the backend-provided `user.id` (JWT `sub`) in `st.session_state["user_id"]`. |
+| `FEEDBACK_MODE` | `local` or `db`. DB mode posts to `/api/v1/feedback/`. |
+| `DUAL_WRITE_FEEDBACK` | When true, writes go to both local storage and backend; warnings surface if either side fails. |
+| `AUTH_ENABLED` | Toggle for strict header enforcement. When true, the UI refuses to call admin APIs unless a JWT is present. All `/api/v1/*` requests (uploads, jobs, users, feedback) include `Authorization: Bearer ...`. |
+| `FEEDBACK_DEFAULT_USER_ID` | Optional fallback user_id when JWT-based login is unavailable (e.g., local auth). Used by `app/views/chat` before sending thumbs feedback. |
 
-- .env (dotenv) at frontend/streamlit/.env
-- Code defaults in app_config/env.py
-- Data/asset directories under frontend/streamlit/
+Cookie/session settings:
+| Key | Description |
+| --- | --- |
+| `SESSION_SECRET` | Enables “Remember me” cookies. Also used as JWT fallback secret server-side. |
+| `SESSION_TTL_MIN` | Cookie TTL in minutes. |
+| `SESSION_COOKIE_NAME` | Cookie name (`assistant_session` default). |
 
-Environment Variables
+## Directories
+| Key | Description |
+| --- | --- |
+| `AUTH_STORAGE_DIR` | Location of `usuarios.json` for local auth. |
+| `FEEDBACK_STORAGE_DIR` | Directory containing `fback.json`, `fback_icon.json`, `fback.csv`. |
 
-- BACKEND_API_BASE: Base URL of backend API (default http://localhost:5000)
-- FRONTEND_BASE_URL: Override for backend base URL when different from BACKEND_API_BASE (used by Admin uploads)
-- FRONTEND_PORT: Port for Streamlit server (default 8501)
-- AUTH_STORAGE_DIR: Directory for users (default ./data/credenciales)
-- FEEDBACK_STORAGE_DIR: Directory for feedback (default ./data/feedback)
-- ASSISTANT_TITLE: App title (default from env.py)
-- SESSION_TTL_MIN: Cookie token TTL in minutes (default 120)
-- SESSION_COOKIE_NAME: Cookie name (default assistant_session)
-- SESSION_SECRET: HMAC secret for cookies (required to enable remember me)
-- REQUEST_TIMEOUT: HTTP timeout for backend calls in seconds (default 60)
-- LOG_LEVEL: Log level (default INFO)
-- DEFAULT_PROFILE: Embedding profile id used in Admin view (e.g., legacy_profile)
-- UPLOAD_CONCURRENCY: Max simultaneous uploads in Admin view (recommend 3-5)
-- ALLOWED_MIME_HINT: Optional CSV of MIME types to display in Admin copy (enforcement remains backend)
-- AUTH_ENABLED: Toggle auth headers/JWT handling for admin calls (true|false)
-- AUTH_TOKEN_SCOPE_UPLOAD: Scope/claim required for `POST /api/v1/uploads`
-- AUTH_TOKEN_SCOPE_INGEST: Scope/claim required for `POST /api/v1/ingest/jobs`
+## Admin Uploads & Jobs
+| Key | Description |
+| --- | --- |
+| `DEFAULT_PROFILE` | Pre-selected embedding profile on the Documents & Embeddings page (must match backend config). |
+| `UPLOAD_CONCURRENCY` | Max simultaneous uploads (UI queue). Recommended range: 3–5. |
+| `ALLOWED_MIME_HINT` | Optional CSV shown to operators; backend enforcement relies on `ALLOW_MIME`. |
+| `AUTH_TOKEN_SCOPE_UPLOAD`, `AUTH_TOKEN_SCOPE_INGEST` | Copy text shown when scope errors occur. Actual enforcement happens at the gateway/backend. |
 
-Paths & Expectations
+## Debug Flags
+- `DEBUG_CHAT_UI`, `DEBUG_CHAT_UI_STRICT`: Enable verbose logging, raw payload expanders, and telemetry in the chat view.
+- `DEBUG_HTTP`, `DEBUG_FEEDBACK_UI`: Additional toggles for HTTP/request tracing and the Feedback History tab (shows `fb_` state keys when set).
 
-- Users file lives at {AUTH_STORAGE_DIR}/usuarios.json
-- Feedback JSON/CSV at {FEEDBACK_STORAGE_DIR}/fback.json, fback_icon.json, fback.csv
-- Artifacts can be written under artifacts-frontend/
-
-Override Strategy
-
-- All settings are read once at startup; update .env and rerun the app.
-- MIME type and size checks are ultimately enforced by the backend; the frontend only surfaces hints/warnings based on ALLOWED_MIME_HINT and MAX_UPLOAD_MB.
-
-Quick Links
-
-- Index: ./INDEX.md
-- Setup: ./SETUP_AND_RUN.md
-
-## Auth/Feedback Modes
-
-Environment variables
-
-```
-AUTH_MODE=local        # local | db (default: local)
-FEEDBACK_MODE=local    # local | db (default: local)
-DUAL_WRITE_FEEDBACK=false
-```
-
-Behavior
-
-- AUTH_MODE=local: login validates hashed password against local users JSON. Password changes are handled locally.
-- AUTH_MODE=db: login uses `/api/v1/auth/login` (email + password required). Password changes are delegated to backend/provider (if endpoint exists).
-- FEEDBACK_MODE=local: thumbs feedback is appended to local JSON/CSV using the icon shape (like|dislike).
-- FEEDBACK_MODE=db: thumbs feedback is posted to `/api/v1/feedback/` using the homologated payload (category, rating, comment, metadata).
-- DUAL_WRITE_FEEDBACK=true: best‑effort dual‑write (local + db). If one leg fails, the UI shows a non‑blocking warning.
-
-Payloads
-
-- Local:
-  ```json
-  {
-    "username": "user@example.com",
-    "question": "…",
-    "answer": "…",
-    "icon": "like | dislike",
-    "feedback": "",
-    "ts": "2025-10-06T22:35:24Z"
-  }
-  ```
-- DB:
-  ```json
-  {
-    "category": "like | dislike",
-    "rating": 5 | 1,
-    "comment": "",
-    "metadata": {
-      "username": "user@example.com",
-      "question": "…",
-      "answer": "…",
-      "ts": "2025-10-06T22:35:24Z"
-    }
-  }
-  ```
-
-Examples
-
-Local‑only:
-```
-AUTH_MODE=local
-FEEDBACK_MODE=local
-DUAL_WRITE_FEEDBACK=false
-```
-
-DB‑only:
-```
-AUTH_MODE=db
-FEEDBACK_MODE=db
-DUAL_WRITE_FEEDBACK=false
-```
-
-Transition (dual‑write):
-```
-AUTH_MODE=db
-FEEDBACK_MODE=db
-DUAL_WRITE_FEEDBACK=true
-```
-
-### DB auth
-
-When `AUTH_MODE=db`, the frontend requires valid credentials via the backend endpoint `/api/v1/auth/login`. The backend responds with a token and user info (email, role, status). Suspended users are rejected. The previous email‑only development mode is no longer used.
+## Behaviour Notes
+- `app.services.api_client` always calls `_auth_headers()` before hitting the backend. The helper asks `app.services.auth_session` for a stored JWT and injects `Authorization: Bearer ...` when available. Set `AUTH_ENABLED=true` to ensure admin views refuse to run when the header is missing.
+- Feedback History takes `fb_*` keys in `st.session_state`; clearing the page resets filters but preserves the `fb_admin_raw` toggle so admins can keep the raw JSON tab open.
+- When `AUTH_MODE=db`, logging in via `/api/v1/auth/login` stores the backend `user.id`. Thumbs feedback derives `user_id` from this value; if it cannot be parsed, the payload omits `user_id` and the backend records it as `null`.

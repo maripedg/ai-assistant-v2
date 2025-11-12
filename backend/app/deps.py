@@ -1,8 +1,10 @@
 import logging
 import os
 import re
+import time
 from importlib import resources
 from pathlib import Path
+from threading import Lock
 from typing import Any, Dict, Optional
 
 import yaml
@@ -15,8 +17,25 @@ from dotenv import load_dotenv
 import oci
 from backend.providers.oci.embeddings_adapter import OCIEmbeddingsAdapter
 
+try:  # Optional at import time; enforced via requirements.
+    from tenacity import before_sleep_log, retry, stop_after_delay, wait_exponential
+
+    _TENACITY_AVAILABLE = True
+except Exception:  # pragma: no cover - graceful degradation if missing
+    _TENACITY_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
+log = logging.getLogger("backend.app.deps")
+
+_VECTOR_LOCK = Lock()
+_VECTOR_CACHE: Dict[str, Any] = {"instance": None, "failures": 0, "opened_at": None}
+_BREAKER_FAILURE_THRESHOLD = 3
+_BREAKER_COOLDOWN_SECONDS = 30
+
+
+class VectorInitError(RuntimeError):
+    """Raised when the vector store cannot be initialized."""
 
 # ---------------- paths ----------------
 BASE_DIR = Path(__file__).resolve().parents[1]  # backend/
@@ -581,6 +600,108 @@ def make_vector_store(embeddings=None):
         embeddings=embeddings,
         distance=ovs.get("distance", "dot_product"),
     )
+
+
+def _create_vector_store(embeddings):
+    """Helper to build the Oracle vector store (keeps compatibility with existing factory)."""
+    return make_vector_store(embeddings)
+
+
+def _init_vector_once(embeddings):
+    """Single attempt to create the vector store; raises VectorInitError on failure."""
+    try:
+        store = _create_vector_store(embeddings)
+        log.info("Oracle Vector Store initialized and cached.")
+        return store
+    except Exception as exc:  # noqa: BLE001 - need full stack
+        log.exception("Oracle Vector Store init failed")
+        raise VectorInitError(str(exc)) from exc
+
+
+def _init_vector_with_retry(embeddings):
+    if not _TENACITY_AVAILABLE:
+        return _init_vector_once(embeddings)
+
+    @retry(
+        stop=stop_after_delay(20),
+        wait=wait_exponential(multiplier=0.5, min=1, max=5),
+        before_sleep=before_sleep_log(log, logging.WARNING),
+        reraise=True,
+    )
+    def _inner():
+        return _init_vector_once(embeddings)
+
+    return _inner()
+
+
+def _breaker_open(now: float) -> bool:
+    with _VECTOR_LOCK:
+        opened_at = _VECTOR_CACHE.get("opened_at")
+        if opened_at is None:
+            return False
+        elapsed = now - opened_at
+        if elapsed < _BREAKER_COOLDOWN_SECONDS:
+            log.warning(
+                "Oracle Vector Store circuit breaker open; %.0fs cooldown remaining",
+                _BREAKER_COOLDOWN_SECONDS - elapsed,
+            )
+            return True
+
+        # Cooldown elapsed: reset counters and allow a new attempt (half-open)
+        _VECTOR_CACHE["opened_at"] = None
+        _VECTOR_CACHE["failures"] = 0
+        return False
+
+
+def _on_vector_failure(now: float):
+    with _VECTOR_LOCK:
+        _VECTOR_CACHE["instance"] = None
+        _VECTOR_CACHE["failures"] += 1
+        failures = _VECTOR_CACHE["failures"]
+        if failures >= _BREAKER_FAILURE_THRESHOLD and _VECTOR_CACHE.get("opened_at") is None:
+            _VECTOR_CACHE["opened_at"] = now
+            log.error(
+                "Oracle Vector Store circuit breaker opened after %s consecutive failures",
+                failures,
+            )
+
+
+def _on_vector_success(store):
+    with _VECTOR_LOCK:
+        previous_failures = _VECTOR_CACHE["failures"]
+        _VECTOR_CACHE["instance"] = store
+        _VECTOR_CACHE["failures"] = 0
+        _VECTOR_CACHE["opened_at"] = None
+
+    if previous_failures:
+        log.info("Oracle Vector Store recovered after %s consecutive failures", previous_failures)
+
+
+def get_vector_store_safe(embeddings: Optional[Any] = None):
+    """
+    Lazy singleton with retry + circuit breaker.
+    Returns None when the store is currently unavailable.
+    """
+    if embeddings is None:
+        embeddings = make_embeddings()
+
+    with _VECTOR_LOCK:
+        cached = _VECTOR_CACHE.get("instance")
+        if cached is not None:
+            return cached
+
+    now = time.monotonic()
+    if _breaker_open(now):
+        return None
+
+    try:
+        store = _init_vector_with_retry(embeddings)
+    except Exception:  # noqa: BLE001
+        _on_vector_failure(now)
+        return None
+
+    _on_vector_success(store)
+    return store
 
 
 def make_chat_model_primary():

@@ -19,13 +19,26 @@ from backend.app.routers import feedback as feedback_router
 from backend.app.routers import debug as debug_router
 from backend.app.routers import ingest as ingest_router
 from backend.app.routers import sharepoint as sharepoint_router
-from backend.app.deps import settings, validate_startup
+from backend.app.deps import (
+    get_vector_store_safe,
+    make_embeddings,
+    settings,
+    validate_startup,
+)
 from backend.app.services.scheduler import start_scheduler, shutdown_scheduler
 import os
 
 app = FastAPI(title="AI Assistant Backend")
 
 validate_startup(True)
+_health_embeddings = make_embeddings()
+
+
+@app.get("/healthz/db")
+def healthz_db():
+    vector = get_vector_store_safe(_health_embeddings)
+    ok = vector is not None
+    return {"ok": ok, "vector": "up" if ok else "down"}
 
 # Ensure DB tables exist (auto-create if migrations not applied)
 try:

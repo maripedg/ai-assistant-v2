@@ -1,0 +1,19 @@
+{"doc_id": "oracle_brm_ticket_sample.pdf", "profile": "default", "mode": "shadow", "redactions": {"email": 1}}
+{"doc_id": "security-guide.pdf", "profile": "default", "mode": "shadow", "redactions": {"email": 4, "password": 1}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "imei": 2, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "accounting-guide.pdf", "profile": "default", "mode": "on", "redactions": {"email": 15, "password": 1}}
+{"doc_id": "esbc-configuration-guide v2.pdf", "profile": "default", "mode": "on", "redactions": {"email": 150, "phone": 3, "password": 10}}
+{"doc_id": "esbc_scz840_configuration.pdf", "profile": "default", "mode": "on", "redactions": {"email": 122, "phone": 2, "password": 6}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "accounting-guide.pdf", "profile": "default", "mode": "on", "redactions": {"email": 15, "password": 1}}
+{"doc_id": "esbc-configuration-guide v2.pdf", "profile": "default", "mode": "on", "redactions": {"email": 150, "phone": 3, "password": 10}}
+{"doc_id": "esbc_scz840_configuration.pdf", "profile": "default", "mode": "on", "redactions": {"email": 122, "phone": 2, "password": 6}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "accounting-guide.pdf", "profile": "default", "mode": "on", "redactions": {"email": 15, "password": 1}}
+{"doc_id": "esbc-configuration-guide v2.pdf", "profile": "default", "mode": "on", "redactions": {"email": 150, "phone": 3, "password": 10}}
+{"doc_id": "esbc_scz840_configuration.pdf", "profile": "default", "mode": "on", "redactions": {"email": 122, "phone": 2, "password": 6}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}
+{"doc_id": "oracle_brm_procedure_ticket.pdf", "profile": "default", "mode": "on", "redactions": {"email": 1, "msisdn": 1, "phone": 1, "imsi": 1, "imei": 1, "iccid": 1, "api_key": 1, "password": 1}}

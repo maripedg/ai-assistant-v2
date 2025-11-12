@@ -1,0 +1,2480 @@
+<html lang="en-US" xmlns:op="http://www.portal.com/schemas/BusinessOpcodes" xmlns:h="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+	  a:hover {
+	  color:#BB1122;
+	  }
+	  div.copyright {
+	  color:#AAAAAA; font-family:times; font-size:xx-small;
+	  }
+	  div.content {
+	  font-family:arial, helvetica;
+	  }
+	  .shortcuts {
+	  font-size:x-small; background-color: #FFFFCC;
+	  }
+	  .index { 
+	  font-family:arial; font-size:x-small; 
+	  }
+          .fieldgroupindex {
+          font-family:arial;font-size:x-small;font-weight:bold;
+          }
+	  .properties {
+	  font-family:arial; font-size:x-small; 
+	  }
+	  .sectiontitle {
+	  background-color: #99CCFF; font-size: large; 
+	  font-weight: bold; 
+	  }
+	  .fieldtitle {
+	  background-color: #F0F7FF; font-size: medium; font-weight: bold; 
+	  }
+	  .level {
+	  color: #000000; font-weight: bold; width: 18;
+	  }
+	  .indexlinks {
+	  font-weight: normal; font-size: x-small;
+	  }
+	  .propindent {
+	  width:50;
+	  }
+	  .propgap {
+	  width:20;
+	  }
+	  .code {
+	  font-family:monospace; font-size: x-small;
+	  }
+
+	</style>
+      <title></title>
+   
+    <link rel="schema.dcterms" href="http://purl.org/dc/terms/">
+    <meta name="dcterms.created" content="2025-08-27T18:30:05+00:00">
+    <meta name="dcterms.title" content="Opcode Flist Reference">
+    <meta name="dcterms.category" content="industries">
+    <meta name="dcterms.product" content="en/industries/communications/billing-revenue/15.1">
+    <meta name="dcterms.identifier" content="F93229-02">
+    <meta name="dcterms.release" content="15.1">
+    <meta name="dcterms.isVersionOf" content="BRMFR">
+  <script id="ssot-metadata" type="application/json">{"primary":{"category":{"short_name":"industries","element_name":"Industries","display_in_url":true},"suite":{"short_name":"communications","element_name":"Communications","display_in_url":true},"product_group":{"short_name":"monetization-orchestration","element_name":"Monetization and Orchestration","display_in_url":false},"product":{"short_name":"billing-revenue","element_name":"Billing and Revenue Management","display_in_url":true},"release":{"short_name":"15.1","element_name":"15.1","display_in_url":true}}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"","datePublished":"2025-08-28 CST","dateModified":"2025-08-28 CST"}</script>
+    <script>window.ohcglobal || document.write('<script src="/en/dcommon/js/global.js">\x3C/script>')</script></head>
+   <body>
+      <div class="copyright">
+         <center>
+            <html><a href="https://docs.oracle.com/pls/topic/lookup?ctx=en/legal&amp;id=cpyr"><b>Copyright Â© </b>
+               </a>
+            </html>2025 Oracle and/or its affiliates.
+        <br>
+         </center>
+      </div>
+      <div class="content">
+         <hr>
+         <table summary="Shortcuts table" width="100%" cellspacing="0">
+            <tbody class="shortcuts">
+               <tr align="center">
+                  <th><a href="#II">Input index</a>
+                  </th>
+                  <th><a href="#ID">Input details</a>
+                  </th>
+                  <th><a href="#OI">Output index</a>
+                  </th>
+                  <th><a href="#OD">Output details</a>
+                  </th>
+               </tr>
+            </tbody>
+         </table>
+         <hr noshade="true">
+         <h2><a name="op">PCM_OP_SUBSCRIPTION_SET_BUNDLE</a>
+         </h2>
+         <table summary="OpProperties table" border="0" cellpadding="1" cellspacing="1">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Component-ID2"></th>
+                  <th id="prh2-Component-ID2"></th>
+                  <th id="prh3-Component-ID2"></th>
+                  <th id="prh4-Component-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Component-ID2" class="propindent"></td>
+                  <td headers="prh2-Component-ID2"><i>Component</i>
+                  </td>
+                  <td headers="prh3-Component-ID2" class="propgap"></td>
+                  <td headers="prh4-Component-ID2">fm_subscription</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Viibility-ID2"></th>
+                  <th id="prh2-Viibility-ID2"></th>
+                  <th id="prh3-Viibility-ID2"></th>
+                  <th id="prh4-Viibility-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Viibility-ID2" class="propindent"></td>
+                  <td headers="prh2-Viibility-ID2"><i>Visibility</i>
+                  </td>
+                  <td headers="prh3-Viibility-ID2" class="propgap"></td>
+                  <td headers="prh4-Viibility-ID2">public</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Tranaction-ID2"></th>
+                  <th id="prh2-Tranaction-ID2"></th>
+                  <th id="prh3-Tranaction-ID2"></th>
+                  <th id="prh4-Tranaction-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Tranaction-ID2" class="propindent"></td>
+                  <td headers="prh2-Tranaction-ID2"><i>Transaction</i>
+                  </td>
+                  <td headers="prh3-Tranaction-ID2" class="propgap"></td>
+                  <td headers="prh4-Tranaction-ID2">required</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <p></p>
+         <hr>
+         <table summary="Description Table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="d1"></th>
+            </tr>
+            <tr>
+               <td headers="d1">Description</td>
+            </tr>
+         </table>
+         <p></p>This opcode creates or modifies /purchased_bundle and its attributes. 
+	Upgrade(adding offerings to the existing /purchased_bundle) and 
+	downgrade(removing offerings from an existing /purchased_bundle) 
+	is also handled by this opcode.<p></p>
+         <hr><a name="II"></a>
+         <table summary="Input Field Index Table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="f1"></th>
+            </tr>
+            <tr>
+               <td headers="f1">Input field index</td>
+            </tr>
+         </table>
+         <p></p>
+         <table summary="Navigation index table" width="100%" border="0" hspace="1" cellpadding="1" cellspacing="0">
+            <tbody class="index">
+               <tr>
+                  <th id="fih1-POID-ID18"></th>
+                  <th id="fih2-POID-ID18"></th>
+                  <th id="fih3-POID-ID18"></th>
+                  <th id="fih4-POID-ID18"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID18" width="3%" align="right">0</td>
+                  <td headers="fih2-POID-ID18" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID18" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID18"><a href="#in.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-FLAGS-ID31"></th>
+                  <th id="fih2-FLAGS-ID31"></th>
+                  <th id="fih3-FLAGS-ID31"></th>
+                  <th id="fih4-FLAGS-ID31"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-FLAGS-ID31" width="3%" align="right">0</td>
+                  <td headers="fih2-FLAGS-ID31" width="3%" align="right"></td>
+                  <td headers="fih3-FLAGS-ID31" width="20%" align="left">int</td>
+                  <td headers="fih4-FLAGS-ID31"><a href="#in.FLAGS">FLAGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PROGRAM_NAME-ID40"></th>
+                  <th id="fih2-PROGRAM_NAME-ID40"></th>
+                  <th id="fih3-PROGRAM_NAME-ID40"></th>
+                  <th id="fih4-PROGRAM_NAME-ID40"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PROGRAM_NAME-ID40" width="3%" align="right">0</td>
+                  <td headers="fih2-PROGRAM_NAME-ID40" width="3%" align="right"></td>
+                  <td headers="fih3-PROGRAM_NAME-ID40" width="20%" align="left"><b>string</b>
+                  </td>
+                  <td headers="fih4-PROGRAM_NAME-ID40"><a href="#in.PROGRAM_NAME"><b>PROGRAM_NAME</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-BUNDLE_INFO-ID50"></th>
+                  <th id="fih2-BUNDLE_INFO-ID50"></th>
+                  <th id="fih3-BUNDLE_INFO-ID50"></th>
+                  <th id="fih4-BUNDLE_INFO-ID50"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-BUNDLE_INFO-ID50" width="3%" align="right">0</td>
+                  <td headers="fih2-BUNDLE_INFO-ID50" width="3%" align="right"></td>
+                  <td headers="fih3-BUNDLE_INFO-ID50" width="20%" align="left">array</td>
+                  <td headers="fih4-BUNDLE_INFO-ID50"><a href="#in.BUNDLE_INFO">BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-POID-ID86"></th>
+                  <th id="fih2-POID-ID86"></th>
+                  <th id="fih3-POID-ID86"></th>
+                  <th id="fih4-POID-ID86"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID86" width="3%" align="right">1</td>
+                  <td headers="fih2-POID-ID86" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID86" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID86"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-ACCOUNT_OBJ-ID99"></th>
+                  <th id="fih2-ACCOUNT_OBJ-ID99"></th>
+                  <th id="fih3-ACCOUNT_OBJ-ID99"></th>
+                  <th id="fih4-ACCOUNT_OBJ-ID99"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-ACCOUNT_OBJ-ID99" width="3%" align="right">1</td>
+                  <td headers="fih2-ACCOUNT_OBJ-ID99" width="3%" align="right"></td>
+                  <td headers="fih3-ACCOUNT_OBJ-ID99" width="20%" align="left">poid</td>
+                  <td headers="fih4-ACCOUNT_OBJ-ID99"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.ACCOUNT_OBJ">ACCOUNT_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-NAME-ID166"></th>
+                  <th id="fih2-NAME-ID166"></th>
+                  <th id="fih3-NAME-ID166"></th>
+                  <th id="fih4-NAME-ID166"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-NAME-ID166" width="3%" align="right">1</td>
+                  <td headers="fih2-NAME-ID166" width="3%" align="right"></td>
+                  <td headers="fih3-NAME-ID166" width="20%" align="left">string</td>
+                  <td headers="fih4-NAME-ID166"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.NAME">NAME</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-STATUS-ID112"></th>
+                  <th id="fih2-STATUS-ID112"></th>
+                  <th id="fih3-STATUS-ID112"></th>
+                  <th id="fih4-STATUS-ID112"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-STATUS-ID112" width="3%" align="right">1</td>
+                  <td headers="fih2-STATUS-ID112" width="3%" align="right"></td>
+                  <td headers="fih3-STATUS-ID112" width="20%" align="left">enum</td>
+                  <td headers="fih4-STATUS-ID112"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.STATUS">STATUS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DESCR-ID176"></th>
+                  <th id="fih2-DESCR-ID176"></th>
+                  <th id="fih3-DESCR-ID176"></th>
+                  <th id="fih4-DESCR-ID176"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DESCR-ID176" width="3%" align="right">1</td>
+                  <td headers="fih2-DESCR-ID176" width="3%" align="right"></td>
+                  <td headers="fih3-DESCR-ID176" width="20%" align="left">string</td>
+                  <td headers="fih4-DESCR-ID176"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.DESCR">DESCR</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-VALID_FROM-ID148"></th>
+                  <th id="fih2-VALID_FROM-ID148"></th>
+                  <th id="fih3-VALID_FROM-ID148"></th>
+                  <th id="fih4-VALID_FROM-ID148"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-VALID_FROM-ID148" width="3%" align="right">1</td>
+                  <td headers="fih2-VALID_FROM-ID148" width="3%" align="right"></td>
+                  <td headers="fih3-VALID_FROM-ID148" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-VALID_FROM-ID148"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.VALID_FROM">VALID_FROM</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-VALID_TO-ID157"></th>
+                  <th id="fih2-VALID_TO-ID157"></th>
+                  <th id="fih3-VALID_TO-ID157"></th>
+                  <th id="fih4-VALID_TO-ID157"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-VALID_TO-ID157" width="3%" align="right">1</td>
+                  <td headers="fih2-VALID_TO-ID157" width="3%" align="right"></td>
+                  <td headers="fih3-VALID_TO-ID157" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-VALID_TO-ID157"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.BUNDLE_INFO.VALID_TO">VALID_TO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-OFFERINGS-ID188"></th>
+                  <th id="fih2-OFFERINGS-ID188"></th>
+                  <th id="fih3-OFFERINGS-ID188"></th>
+                  <th id="fih4-OFFERINGS-ID188"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-OFFERINGS-ID188" width="3%" align="right">0</td>
+                  <td headers="fih2-OFFERINGS-ID188" width="3%" align="right"></td>
+                  <td headers="fih3-OFFERINGS-ID188" width="20%" align="left">array</td>
+                  <td headers="fih4-OFFERINGS-ID188"><a href="#in.OFFERINGS">OFFERINGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-BUNDLE_INFO-ID229"></th>
+                  <th id="fih2-BUNDLE_INFO-ID229"></th>
+                  <th id="fih3-BUNDLE_INFO-ID229"></th>
+                  <th id="fih4-BUNDLE_INFO-ID229"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-BUNDLE_INFO-ID229" width="3%" align="right">1</td>
+                  <td headers="fih2-BUNDLE_INFO-ID229" width="3%" align="right"></td>
+                  <td headers="fih3-BUNDLE_INFO-ID229" width="20%" align="left">array</td>
+                  <td headers="fih4-BUNDLE_INFO-ID229"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.OFFERINGS.BUNDLE_INFO">BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-POID-ID200"></th>
+                  <th id="fih2-POID-ID200"></th>
+                  <th id="fih3-POID-ID200"></th>
+                  <th id="fih4-POID-ID200"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID200" width="3%" align="right">1</td>
+                  <td headers="fih2-POID-ID200" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID200" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID200"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.OFFERINGS.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-BUNDLE_OBJ-ID216"></th>
+                  <th id="fih2-BUNDLE_OBJ-ID216"></th>
+                  <th id="fih3-BUNDLE_OBJ-ID216"></th>
+                  <th id="fih4-BUNDLE_OBJ-ID216"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-BUNDLE_OBJ-ID216" width="3%" align="right">1</td>
+                  <td headers="fih2-BUNDLE_OBJ-ID216" width="3%" align="right"></td>
+                  <td headers="fih3-BUNDLE_OBJ-ID216" width="20%" align="left">poid</td>
+                  <td headers="fih4-BUNDLE_OBJ-ID216"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.OFFERINGS.BUNDLE_OBJ">BUNDLE_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CONTEXT_INFO-ID243"></th>
+                  <th id="fih2-CONTEXT_INFO-ID243"></th>
+                  <th id="fih3-CONTEXT_INFO-ID243"></th>
+                  <th id="fih4-CONTEXT_INFO-ID243"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CONTEXT_INFO-ID243" width="3%" align="right">0</td>
+                  <td headers="fih2-CONTEXT_INFO-ID243" width="3%" align="right"></td>
+                  <td headers="fih3-CONTEXT_INFO-ID243" width="20%" align="left">substruct</td>
+                  <td headers="fih4-CONTEXT_INFO-ID243"><a href="#in.CONTEXT_INFO">CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CORRELATION_ID-ID253"></th>
+                  <th id="fih2-CORRELATION_ID-ID253"></th>
+                  <th id="fih3-CORRELATION_ID-ID253"></th>
+                  <th id="fih4-CORRELATION_ID-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CORRELATION_ID-ID253" width="3%" align="right">1</td>
+                  <td headers="fih2-CORRELATION_ID-ID253" width="3%" align="right"></td>
+                  <td headers="fih3-CORRELATION_ID-ID253" width="20%" align="left">string</td>
+                  <td headers="fih4-CORRELATION_ID-ID253"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.CONTEXT_INFO.CORRELATION_ID">CORRELATION_ID</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-EXTERNAL_USER-ID263"></th>
+                  <th id="fih2-EXTERNAL_USER-ID263"></th>
+                  <th id="fih3-EXTERNAL_USER-ID263"></th>
+                  <th id="fih4-EXTERNAL_USER-ID263"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-EXTERNAL_USER-ID263" width="3%" align="right">1</td>
+                  <td headers="fih2-EXTERNAL_USER-ID263" width="3%" align="right"></td>
+                  <td headers="fih3-EXTERNAL_USER-ID263" width="20%" align="left">string</td>
+                  <td headers="fih4-EXTERNAL_USER-ID263"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.CONTEXT_INFO.EXTERNAL_USER">EXTERNAL_USER</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr><a name="OI"></a>
+         <table summary="Output field index table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="o1"></th>
+            </tr>
+            <tr>
+               <td headers="o1">Output field index</td>
+            </tr>
+         </table>
+         <p></p>
+         <table summary="Navigation index table" width="100%" border="0" hspace="1" cellpadding="1" cellspacing="0">
+            <tbody class="index">
+               <tr>
+                  <th id="fih1-POID-ID281"></th>
+                  <th id="fih2-POID-ID281"></th>
+                  <th id="fih3-POID-ID281"></th>
+                  <th id="fih4-POID-ID281"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID281" width="3%" align="right">0</td>
+                  <td headers="fih2-POID-ID281" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID281" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID281"><a href="#out.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-BUNDLE_INFO-ID294"></th>
+                  <th id="fih2-BUNDLE_INFO-ID294"></th>
+                  <th id="fih3-BUNDLE_INFO-ID294"></th>
+                  <th id="fih4-BUNDLE_INFO-ID294"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-BUNDLE_INFO-ID294" width="3%" align="right">0</td>
+                  <td headers="fih2-BUNDLE_INFO-ID294" width="3%" align="right"></td>
+                  <td headers="fih3-BUNDLE_INFO-ID294" width="20%" align="left">array</td>
+                  <td headers="fih4-BUNDLE_INFO-ID294"><a href="#out.BUNDLE_INFO">BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-POID-ID308"></th>
+                  <th id="fih2-POID-ID308"></th>
+                  <th id="fih3-POID-ID308"></th>
+                  <th id="fih4-POID-ID308"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID308" width="3%" align="right">1</td>
+                  <td headers="fih2-POID-ID308" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID308" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID308"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-ACCOUNT_OBJ-ID321"></th>
+                  <th id="fih2-ACCOUNT_OBJ-ID321"></th>
+                  <th id="fih3-ACCOUNT_OBJ-ID321"></th>
+                  <th id="fih4-ACCOUNT_OBJ-ID321"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-ACCOUNT_OBJ-ID321" width="3%" align="right">1</td>
+                  <td headers="fih2-ACCOUNT_OBJ-ID321" width="3%" align="right"></td>
+                  <td headers="fih3-ACCOUNT_OBJ-ID321" width="20%" align="left">poid</td>
+                  <td headers="fih4-ACCOUNT_OBJ-ID321"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.ACCOUNT_OBJ">ACCOUNT_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-NAME-ID388"></th>
+                  <th id="fih2-NAME-ID388"></th>
+                  <th id="fih3-NAME-ID388"></th>
+                  <th id="fih4-NAME-ID388"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-NAME-ID388" width="3%" align="right">1</td>
+                  <td headers="fih2-NAME-ID388" width="3%" align="right"></td>
+                  <td headers="fih3-NAME-ID388" width="20%" align="left">string</td>
+                  <td headers="fih4-NAME-ID388"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.NAME">NAME</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-STATUS-ID334"></th>
+                  <th id="fih2-STATUS-ID334"></th>
+                  <th id="fih3-STATUS-ID334"></th>
+                  <th id="fih4-STATUS-ID334"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-STATUS-ID334" width="3%" align="right">1</td>
+                  <td headers="fih2-STATUS-ID334" width="3%" align="right"></td>
+                  <td headers="fih3-STATUS-ID334" width="20%" align="left">enum</td>
+                  <td headers="fih4-STATUS-ID334"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.STATUS">STATUS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DESCR-ID395"></th>
+                  <th id="fih2-DESCR-ID395"></th>
+                  <th id="fih3-DESCR-ID395"></th>
+                  <th id="fih4-DESCR-ID395"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DESCR-ID395" width="3%" align="right">1</td>
+                  <td headers="fih2-DESCR-ID395" width="3%" align="right"></td>
+                  <td headers="fih3-DESCR-ID395" width="20%" align="left">string</td>
+                  <td headers="fih4-DESCR-ID395"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.DESCR">DESCR</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-VALID_FROM-ID370"></th>
+                  <th id="fih2-VALID_FROM-ID370"></th>
+                  <th id="fih3-VALID_FROM-ID370"></th>
+                  <th id="fih4-VALID_FROM-ID370"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-VALID_FROM-ID370" width="3%" align="right">1</td>
+                  <td headers="fih2-VALID_FROM-ID370" width="3%" align="right"></td>
+                  <td headers="fih3-VALID_FROM-ID370" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-VALID_FROM-ID370"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.VALID_FROM">VALID_FROM</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-VALID_TO-ID379"></th>
+                  <th id="fih2-VALID_TO-ID379"></th>
+                  <th id="fih3-VALID_TO-ID379"></th>
+                  <th id="fih4-VALID_TO-ID379"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-VALID_TO-ID379" width="3%" align="right">1</td>
+                  <td headers="fih2-VALID_TO-ID379" width="3%" align="right"></td>
+                  <td headers="fih3-VALID_TO-ID379" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-VALID_TO-ID379"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.BUNDLE_INFO.VALID_TO">VALID_TO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CONTEXT_INFO-ID407"></th>
+                  <th id="fih2-CONTEXT_INFO-ID407"></th>
+                  <th id="fih3-CONTEXT_INFO-ID407"></th>
+                  <th id="fih4-CONTEXT_INFO-ID407"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CONTEXT_INFO-ID407" width="3%" align="right">0</td>
+                  <td headers="fih2-CONTEXT_INFO-ID407" width="3%" align="right"></td>
+                  <td headers="fih3-CONTEXT_INFO-ID407" width="20%" align="left">substruct</td>
+                  <td headers="fih4-CONTEXT_INFO-ID407"><a href="#out.CONTEXT_INFO">CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CORRELATION_ID-ID417"></th>
+                  <th id="fih2-CORRELATION_ID-ID417"></th>
+                  <th id="fih3-CORRELATION_ID-ID417"></th>
+                  <th id="fih4-CORRELATION_ID-ID417"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CORRELATION_ID-ID417" width="3%" align="right">1</td>
+                  <td headers="fih2-CORRELATION_ID-ID417" width="3%" align="right"></td>
+                  <td headers="fih3-CORRELATION_ID-ID417" width="20%" align="left">string</td>
+                  <td headers="fih4-CORRELATION_ID-ID417"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.CONTEXT_INFO.CORRELATION_ID">CORRELATION_ID</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-EXTERNAL_USER-ID427"></th>
+                  <th id="fih2-EXTERNAL_USER-ID427"></th>
+                  <th id="fih3-EXTERNAL_USER-ID427"></th>
+                  <th id="fih4-EXTERNAL_USER-ID427"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-EXTERNAL_USER-ID427" width="3%" align="right">1</td>
+                  <td headers="fih2-EXTERNAL_USER-ID427" width="3%" align="right"></td>
+                  <td headers="fih3-EXTERNAL_USER-ID427" width="20%" align="left">string</td>
+                  <td headers="fih4-EXTERNAL_USER-ID427"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.CONTEXT_INFO.EXTERNAL_USER">EXTERNAL_USER</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr><a name="ID"></a>
+         <table summary="Input details table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="id"></th>
+            </tr>
+            <tr>
+               <td headers="id">Input details</td>
+            </tr>
+         </table>
+         <p></p>
+         <p></p><a name="in.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID18"></th>
+               <th id="fth2-POID-ID18"></th>
+               <th id="fth3-POID-ID18"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID18" class="level">0</td>
+               <td headers="fth2-POID-ID18"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID18" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID18"></th>
+                  <th id="prh2-Ue-ID18"></th>
+                  <th id="prh3-Ue-ID18"></th>
+                  <th id="prh4-Ue-ID18"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID18" class="propindent"></td>
+                  <td headers="prh2-Ue-ID18"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID18" class="propgap"></td>
+                  <td headers="prh4-Ue-ID18">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID27"></th>
+                  <th id="prh2-Cla-ID27"></th>
+                  <th id="prh3-Cla-ID27"></th>
+                  <th id="prh4-Cla-ID27"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID27" class="propindent"></td>
+                  <td headers="prh2-Cla-ID27"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID27" class="propgap"></td>
+                  <td headers="prh4-Cla-ID27"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Poid of the account owning the Bundle.<hr width="0">
+         <p></p><a name="in.FLAGS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-FLAGS-ID31"></th>
+               <th id="fth2-FLAGS-ID31"></th>
+               <th id="fth3-FLAGS-ID31"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-FLAGS-ID31" class="level">0</td>
+               <td headers="fth2-FLAGS-ID31"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>FLAGS</b>
+               </td>
+               <td headers="fth3-FLAGS-ID31" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID31"></th>
+                  <th id="prh2-Ue-ID31"></th>
+                  <th id="prh3-Ue-ID31"></th>
+                  <th id="prh4-Ue-ID31"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID31" class="propindent"></td>
+                  <td headers="prh2-Ue-ID31"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID31" class="propgap"></td>
+                  <td headers="prh4-Ue-ID31">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>This flag is used at the time of bundle cancellation. If the value is set to 
+			PIN_SUBS_DELINK_BUNDLE_OFFERINGS(0x1), all offerings associated with the bundle to 
+			be cancelled will have their PIN_FLD_PLAN_OBJ set to NULL. If this flag is set, 
+			offerings associated with the bundle are not required in the opcode input.<hr width="0">
+         <p></p><a name="in.PROGRAM_NAME"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PROGRAM_NAME-ID40"></th>
+               <th id="fth2-PROGRAM_NAME-ID40"></th>
+               <th id="fth3-PROGRAM_NAME-ID40"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PROGRAM_NAME-ID40" class="level">0</td>
+               <td headers="fth2-PROGRAM_NAME-ID40"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>PROGRAM_NAME</b>
+               </td>
+               <td headers="fth3-PROGRAM_NAME-ID40" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID40"></th>
+                  <th id="prh2-Ue-ID40"></th>
+                  <th id="prh3-Ue-ID40"></th>
+                  <th id="prh4-Ue-ID40"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID40" class="propindent"></td>
+                  <td headers="prh2-Ue-ID40"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID40" class="propgap"></td>
+                  <td headers="prh4-Ue-ID40">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID40"></th>
+                  <th id="prh2-Maxlength-ID40"></th>
+                  <th id="prh3-Maxlength-ID40"></th>
+                  <th id="prh4-Maxlength-ID40"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID40" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID40"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID40" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID40">60</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Program name - identifies calling program.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-BUNDLE_INFO-ID50"></th>
+               <th id="fth2-BUNDLE_INFO-ID50"></th>
+               <th id="fth3-BUNDLE_INFO-ID50"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-BUNDLE_INFO-ID50" class="level">0</td>
+               <td headers="fth2-BUNDLE_INFO-ID50"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>BUNDLE_INFO</b>
+               </td>
+               <td headers="fth3-BUNDLE_INFO-ID50" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID50"></th>
+                  <th id="prh2-Ue-ID50"></th>
+                  <th id="prh3-Ue-ID50"></th>
+                  <th id="prh4-Ue-ID50"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID50" class="propindent"></td>
+                  <td headers="prh2-Ue-ID50"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID50" class="propgap"></td>
+                  <td headers="prh4-Ue-ID50">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID50"></th>
+                  <th id="prh2-ElemIDmode-ID50"></th>
+                  <th id="prh3-ElemIDmode-ID50"></th>
+                  <th id="prh4-ElemIDmode-ID50"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID50" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID50"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID50" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID50">index</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Iteration-ID50"></th>
+                  <th id="prh2-Iteration-ID50"></th>
+                  <th id="prh3-Iteration-ID50"></th>
+                  <th id="prh4-Iteration-ID50"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Iteration-ID50" class="propindent"></td>
+                  <td headers="prh2-Iteration-ID50"><i>Iteration</i>
+                  </td>
+                  <td headers="prh3-Iteration-ID50" class="propgap"></td>
+                  <td headers="prh4-Iteration-ID50">undefined</td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID50"></th>
+                  <th id="prh2-MinnumberofElement-ID50"></th>
+                  <th id="prh3-MinnumberofElement-ID50"></th>
+                  <th id="prh4-MinnumberofElement-ID50"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID50" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID50"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID50" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID50">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The promotion being purchased for the given account. 
+			List of purchased bundles that need to be created or modified. 
+			The element-id will be used to identify which offerings array 
+			to use from the input to associate this promotion bundle.
+			In case of bundle creation:
+			
+                  When validities are provided, PIN_FLD_VALID_FROM should be less than 
+				PIN_FLD_VALID_TO and PIN_FLD_VALID_FROM cannot be less than the owner 
+				account's minimum effective_t.
+                  If PIN_FLD_VALID_TO is a backdated date, PIN_FLD_VALID_FROM must be sent 
+				along with it and must be less than PIN_FLD_VALID_TO.
+                  If PIN_FLD_VALID_TO and PIN_FLD_VALID_FROM are send as NULL or nothing 
+				then default values set are VALID_FROM = immediately (current timestamp) 
+				and VALID_TO = never ends (0).
+                  If status field is not sent, it will be set to "ACTIVE".
+                  If PIN_FLD_ACCOUNT_OBJ is not passed, PIN_FLD_POID in the input will 
+				be set as the account obj.
+                  PIN_FLD_NAME is a mandatory field.
+               
+			<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID86"></th>
+               <th id="fth2-POID-ID86"></th>
+               <th id="fth3-POID-ID86"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID86" class="level">1</td>
+               <td headers="fth2-POID-ID86"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID86" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID86"></th>
+                  <th id="prh2-Ue-ID86"></th>
+                  <th id="prh3-Ue-ID86"></th>
+                  <th id="prh4-Ue-ID86"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID86" class="propindent"></td>
+                  <td headers="prh2-Ue-ID86"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID86" class="propgap"></td>
+                  <td headers="prh4-Ue-ID86">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID86"></th>
+                  <th id="prh2-Parent-ID86"></th>
+                  <th id="prh3-Parent-ID86"></th>
+                  <th id="prh4-Parent-ID86"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID86" class="propindent"></td>
+                  <td headers="prh2-Parent-ID86"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID86" class="propgap"></td>
+                  <td headers="prh4-Parent-ID86"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Mode-ID86"></th>
+                  <th id="prh2-Mode-ID86"></th>
+                  <th id="prh3-Mode-ID86"></th>
+                  <th id="prh4-Mode-ID86"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Mode-ID86" class="propindent"></td>
+                  <td headers="prh2-Mode-ID86"><i>Mode</i>
+                  </td>
+                  <td headers="prh3-Mode-ID86" class="propgap"></td>
+                  <td headers="prh4-Mode-ID86">typeonly</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID95"></th>
+                  <th id="prh2-Cla-ID95"></th>
+                  <th id="prh3-Cla-ID95"></th>
+                  <th id="prh4-Cla-ID95"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID95" class="propindent"></td>
+                  <td headers="prh2-Cla-ID95"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID95" class="propgap"></td>
+                  <td headers="prh4-Cla-ID95"><a href="../object.specs/purchased_bundle.html">/purchased_bundle</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Partial poid of the bundle to be created. 
+					This will be complete in case of modification.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.ACCOUNT_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-ACCOUNT_OBJ-ID99"></th>
+               <th id="fth2-ACCOUNT_OBJ-ID99"></th>
+               <th id="fth3-ACCOUNT_OBJ-ID99"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-ACCOUNT_OBJ-ID99" class="level">1</td>
+               <td headers="fth2-ACCOUNT_OBJ-ID99"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>ACCOUNT_OBJ</b>
+               </td>
+               <td headers="fth3-ACCOUNT_OBJ-ID99" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID99"></th>
+                  <th id="prh2-Ue-ID99"></th>
+                  <th id="prh3-Ue-ID99"></th>
+                  <th id="prh4-Ue-ID99"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID99" class="propindent"></td>
+                  <td headers="prh2-Ue-ID99"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID99" class="propgap"></td>
+                  <td headers="prh4-Ue-ID99">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID99"></th>
+                  <th id="prh2-Parent-ID99"></th>
+                  <th id="prh3-Parent-ID99"></th>
+                  <th id="prh4-Parent-ID99"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID99" class="propindent"></td>
+                  <td headers="prh2-Parent-ID99"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID99" class="propgap"></td>
+                  <td headers="prh4-Parent-ID99"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID108"></th>
+                  <th id="prh2-Cla-ID108"></th>
+                  <th id="prh3-Cla-ID108"></th>
+                  <th id="prh4-Cla-ID108"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID108" class="propindent"></td>
+                  <td headers="prh2-Cla-ID108"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID108" class="propgap"></td>
+                  <td headers="prh4-Cla-ID108"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Account object for the bundle. If account obj 
+					is passed other than the current account_obj, the 
+					/purchased_bundle owner will be changed to passed
+					 account object.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.NAME"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-NAME-ID166"></th>
+               <th id="fth2-NAME-ID166"></th>
+               <th id="fth3-NAME-ID166"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-NAME-ID166" class="level">1</td>
+               <td headers="fth2-NAME-ID166"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>NAME</b>
+               </td>
+               <td headers="fth3-NAME-ID166" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID166"></th>
+                  <th id="prh2-Ue-ID166"></th>
+                  <th id="prh3-Ue-ID166"></th>
+                  <th id="prh4-Ue-ID166"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID166" class="propindent"></td>
+                  <td headers="prh2-Ue-ID166"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID166" class="propgap"></td>
+                  <td headers="prh4-Ue-ID166">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID166"></th>
+                  <th id="prh2-Parent-ID166"></th>
+                  <th id="prh3-Parent-ID166"></th>
+                  <th id="prh4-Parent-ID166"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID166" class="propindent"></td>
+                  <td headers="prh2-Parent-ID166"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID166" class="propgap"></td>
+                  <td headers="prh4-Parent-ID166"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID166"></th>
+                  <th id="prh2-Maxlength-ID166"></th>
+                  <th id="prh3-Maxlength-ID166"></th>
+                  <th id="prh4-Maxlength-ID166"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID166" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID166"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID166" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID166">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Name of the bundle. Mandatory at the time of creation.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.STATUS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-STATUS-ID112"></th>
+               <th id="fth2-STATUS-ID112"></th>
+               <th id="fth3-STATUS-ID112"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-STATUS-ID112" class="level">1</td>
+               <td headers="fth2-STATUS-ID112"><b>enum</b>
+	      &nbsp;&nbsp;
+	    <b>STATUS</b>
+               </td>
+               <td headers="fth3-STATUS-ID112" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID112"></th>
+                  <th id="prh2-Ue-ID112"></th>
+                  <th id="prh3-Ue-ID112"></th>
+                  <th id="prh4-Ue-ID112"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID112" class="propindent"></td>
+                  <td headers="prh2-Ue-ID112"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID112" class="propgap"></td>
+                  <td headers="prh4-Ue-ID112">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID112"></th>
+                  <th id="prh2-Parent-ID112"></th>
+                  <th id="prh3-Parent-ID112"></th>
+                  <th id="prh4-Parent-ID112"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID112" class="propindent"></td>
+                  <td headers="prh2-Parent-ID112"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID112" class="propgap"></td>
+                  <td headers="prh4-Parent-ID112"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <table summary="values table" cellspacing="10">
+            <tr>
+               <th id="vh1-0-ID120"></th>
+               <th id="vh2-0-ID120"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID120" align="center">1</td>
+               <td headers="vh2-0-ID120" align="left">PIN_BUNDLE_STATUS_ACTIVE</td>
+            </tr>
+            <tr>
+               <th id="vh1-0-ID129"></th>
+               <th id="vh2-0-ID129"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID129" align="center">2</td>
+               <td headers="vh2-0-ID129" align="left">PIN_BUNDLE_STATUS_INACTIVE</td>
+            </tr>
+            <tr>
+               <th id="vh1-0-ID138"></th>
+               <th id="vh2-0-ID138"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID138" align="center">3</td>
+               <td headers="vh2-0-ID138" align="left">PIN_BUNDLE_STATUS_CANCELLED</td>
+            </tr>
+         </table>Status for the bundle.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.DESCR"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DESCR-ID176"></th>
+               <th id="fth2-DESCR-ID176"></th>
+               <th id="fth3-DESCR-ID176"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DESCR-ID176" class="level">1</td>
+               <td headers="fth2-DESCR-ID176"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>DESCR</b>
+               </td>
+               <td headers="fth3-DESCR-ID176" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID176"></th>
+                  <th id="prh2-Ue-ID176"></th>
+                  <th id="prh3-Ue-ID176"></th>
+                  <th id="prh4-Ue-ID176"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID176" class="propindent"></td>
+                  <td headers="prh2-Ue-ID176"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID176" class="propgap"></td>
+                  <td headers="prh4-Ue-ID176">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID176"></th>
+                  <th id="prh2-Parent-ID176"></th>
+                  <th id="prh3-Parent-ID176"></th>
+                  <th id="prh4-Parent-ID176"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID176" class="propindent"></td>
+                  <td headers="prh2-Parent-ID176"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID176" class="propgap"></td>
+                  <td headers="prh4-Parent-ID176"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID176"></th>
+                  <th id="prh2-Maxlength-ID176"></th>
+                  <th id="prh3-Maxlength-ID176"></th>
+                  <th id="prh4-Maxlength-ID176"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID176" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID176"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID176" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID176">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Description of the purchased bundle.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.VALID_FROM"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-VALID_FROM-ID148"></th>
+               <th id="fth2-VALID_FROM-ID148"></th>
+               <th id="fth3-VALID_FROM-ID148"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-VALID_FROM-ID148" class="level">1</td>
+               <td headers="fth2-VALID_FROM-ID148"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>VALID_FROM</b>
+               </td>
+               <td headers="fth3-VALID_FROM-ID148" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID148"></th>
+                  <th id="prh2-Ue-ID148"></th>
+                  <th id="prh3-Ue-ID148"></th>
+                  <th id="prh4-Ue-ID148"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID148" class="propindent"></td>
+                  <td headers="prh2-Ue-ID148"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID148" class="propgap"></td>
+                  <td headers="prh4-Ue-ID148">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID148"></th>
+                  <th id="prh2-Parent-ID148"></th>
+                  <th id="prh3-Parent-ID148"></th>
+                  <th id="prh4-Parent-ID148"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID148" class="propindent"></td>
+                  <td headers="prh2-Parent-ID148"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID148" class="propgap"></td>
+                  <td headers="prh4-Parent-ID148"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The start date of this validity based purchased bundle.<hr width="0">
+         <p></p><a name="in.BUNDLE_INFO.VALID_TO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-VALID_TO-ID157"></th>
+               <th id="fth2-VALID_TO-ID157"></th>
+               <th id="fth3-VALID_TO-ID157"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-VALID_TO-ID157" class="level">1</td>
+               <td headers="fth2-VALID_TO-ID157"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>VALID_TO</b>
+               </td>
+               <td headers="fth3-VALID_TO-ID157" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID157"></th>
+                  <th id="prh2-Ue-ID157"></th>
+                  <th id="prh3-Ue-ID157"></th>
+                  <th id="prh4-Ue-ID157"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID157" class="propindent"></td>
+                  <td headers="prh2-Ue-ID157"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID157" class="propgap"></td>
+                  <td headers="prh4-Ue-ID157">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID157"></th>
+                  <th id="prh2-Parent-ID157"></th>
+                  <th id="prh3-Parent-ID157"></th>
+                  <th id="prh4-Parent-ID157"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID157" class="propindent"></td>
+                  <td headers="prh2-Parent-ID157"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID157" class="propgap"></td>
+                  <td headers="prh4-Parent-ID157"><a href="#in.BUNDLE_INFO"> in.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The end date of this validity based purchased bundle. <hr width="0">
+         <p></p><a name="in.OFFERINGS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-OFFERINGS-ID188"></th>
+               <th id="fth2-OFFERINGS-ID188"></th>
+               <th id="fth3-OFFERINGS-ID188"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-OFFERINGS-ID188" class="level">0</td>
+               <td headers="fth2-OFFERINGS-ID188"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>OFFERINGS</b>
+               </td>
+               <td headers="fth3-OFFERINGS-ID188" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID188"></th>
+                  <th id="prh2-Ue-ID188"></th>
+                  <th id="prh3-Ue-ID188"></th>
+                  <th id="prh4-Ue-ID188"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID188" class="propindent"></td>
+                  <td headers="prh2-Ue-ID188"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID188" class="propgap"></td>
+                  <td headers="prh4-Ue-ID188">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID188"></th>
+                  <th id="prh2-ElemIDmode-ID188"></th>
+                  <th id="prh3-ElemIDmode-ID188"></th>
+                  <th id="prh4-ElemIDmode-ID188"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID188" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID188"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID188" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID188">ignored</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Iteration-ID188"></th>
+                  <th id="prh2-Iteration-ID188"></th>
+                  <th id="prh3-Iteration-ID188"></th>
+                  <th id="prh4-Iteration-ID188"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Iteration-ID188" class="propindent"></td>
+                  <td headers="prh2-Iteration-ID188"><i>Iteration</i>
+                  </td>
+                  <td headers="prh3-Iteration-ID188" class="propgap"></td>
+                  <td headers="prh4-Iteration-ID188">undefined</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Array of products/discounts that are part of the purchased_bunlde <hr width="0">
+         <p></p><a name="in.OFFERINGS.BUNDLE_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-BUNDLE_INFO-ID229"></th>
+               <th id="fth2-BUNDLE_INFO-ID229"></th>
+               <th id="fth3-BUNDLE_INFO-ID229"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-BUNDLE_INFO-ID229" class="level">1</td>
+               <td headers="fth2-BUNDLE_INFO-ID229"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>BUNDLE_INFO</b>
+               </td>
+               <td headers="fth3-BUNDLE_INFO-ID229" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID229"></th>
+                  <th id="prh2-Ue-ID229"></th>
+                  <th id="prh3-Ue-ID229"></th>
+                  <th id="prh4-Ue-ID229"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID229" class="propindent"></td>
+                  <td headers="prh2-Ue-ID229"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID229" class="propgap"></td>
+                  <td headers="prh4-Ue-ID229">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID229"></th>
+                  <th id="prh2-Parent-ID229"></th>
+                  <th id="prh3-Parent-ID229"></th>
+                  <th id="prh4-Parent-ID229"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID229" class="propindent"></td>
+                  <td headers="prh2-Parent-ID229"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID229" class="propgap"></td>
+                  <td headers="prh4-Parent-ID229"><a href="#in.OFFERINGS"> in.OFFERINGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID229"></th>
+                  <th id="prh2-ElemIDmode-ID229"></th>
+                  <th id="prh3-ElemIDmode-ID229"></th>
+                  <th id="prh4-ElemIDmode-ID229"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID229" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID229"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID229" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID229">key</td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID229"></th>
+                  <th id="prh2-MinnumberofElement-ID229"></th>
+                  <th id="prh3-MinnumberofElement-ID229"></th>
+                  <th id="prh4-MinnumberofElement-ID229"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID229" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID229"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID229" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID229">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Promotion Bundle array associated with products. The 
+					element-id is significant not the contents of the array. 
+					The element-id will be used to identify which bundle array 
+					to use from the input to associate with this offering. <hr width="0">
+         <p></p><a name="in.OFFERINGS.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID200"></th>
+               <th id="fth2-POID-ID200"></th>
+               <th id="fth3-POID-ID200"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID200" class="level">1</td>
+               <td headers="fth2-POID-ID200"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID200" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID200"></th>
+                  <th id="prh2-Ue-ID200"></th>
+                  <th id="prh3-Ue-ID200"></th>
+                  <th id="prh4-Ue-ID200"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID200" class="propindent"></td>
+                  <td headers="prh2-Ue-ID200"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID200" class="propgap"></td>
+                  <td headers="prh4-Ue-ID200">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID200"></th>
+                  <th id="prh2-Parent-ID200"></th>
+                  <th id="prh3-Parent-ID200"></th>
+                  <th id="prh4-Parent-ID200"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID200" class="propindent"></td>
+                  <td headers="prh2-Parent-ID200"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID200" class="propgap"></td>
+                  <td headers="prh4-Parent-ID200"><a href="#in.OFFERINGS"> in.OFFERINGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID209"></th>
+                  <th id="prh2-Cla-ID209"></th>
+                  <th id="prh3-Cla-ID209"></th>
+                  <th id="prh4-Cla-ID209"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID209" class="propindent"></td>
+                  <td headers="prh2-Cla-ID209"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID209" class="propgap"></td>
+                  <td headers="prh4-Cla-ID209"><a href="../object.specs/purchased_product.html">/purchased_product</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID212"></th>
+                  <th id="prh2-Cla-ID212"></th>
+                  <th id="prh3-Cla-ID212"></th>
+                  <th id="prh4-Cla-ID212"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID212" class="propindent"></td>
+                  <td headers="prh2-Cla-ID212"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID212" class="propgap"></td>
+                  <td headers="prh4-Cla-ID212"><a href="../object.specs/purchased_discount.html">/purchased_discount</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Poid for the /purchased_product or /purchased_discount<hr width="0">
+         <p></p><a name="in.OFFERINGS.BUNDLE_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-BUNDLE_OBJ-ID216"></th>
+               <th id="fth2-BUNDLE_OBJ-ID216"></th>
+               <th id="fth3-BUNDLE_OBJ-ID216"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-BUNDLE_OBJ-ID216" class="level">1</td>
+               <td headers="fth2-BUNDLE_OBJ-ID216"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>BUNDLE_OBJ</b>
+               </td>
+               <td headers="fth3-BUNDLE_OBJ-ID216" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID216"></th>
+                  <th id="prh2-Ue-ID216"></th>
+                  <th id="prh3-Ue-ID216"></th>
+                  <th id="prh4-Ue-ID216"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID216" class="propindent"></td>
+                  <td headers="prh2-Ue-ID216"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID216" class="propgap"></td>
+                  <td headers="prh4-Ue-ID216">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID216"></th>
+                  <th id="prh2-Parent-ID216"></th>
+                  <th id="prh3-Parent-ID216"></th>
+                  <th id="prh4-Parent-ID216"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID216" class="propindent"></td>
+                  <td headers="prh2-Parent-ID216"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID216" class="propgap"></td>
+                  <td headers="prh4-Parent-ID216"><a href="#in.OFFERINGS"> in.OFFERINGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID225"></th>
+                  <th id="prh2-Cla-ID225"></th>
+                  <th id="prh3-Cla-ID225"></th>
+                  <th id="prh4-Cla-ID225"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID225" class="propindent"></td>
+                  <td headers="prh2-Cla-ID225"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID225" class="propgap"></td>
+                  <td headers="prh4-Cla-ID225"><a href="../object.specs/purchased_bundle.html">/purchased_bundle</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Poid for the /purchased_bundle. This is mutually exclusive 
+					with PIN_FLD_BUNDLE_INFO. If present, PIN_FLD_PLAN_OBJ field for 
+					the offering will be updated with this poid. For cancellation
+					and disassociation cases, null poid should be passed for 
+					the field.<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CONTEXT_INFO-ID243"></th>
+               <th id="fth2-CONTEXT_INFO-ID243"></th>
+               <th id="fth3-CONTEXT_INFO-ID243"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CONTEXT_INFO-ID243" class="level">0</td>
+               <td headers="fth2-CONTEXT_INFO-ID243"><b>substruct</b>
+	      &nbsp;&nbsp;
+	    <b>CONTEXT_INFO</b>
+               </td>
+               <td headers="fth3-CONTEXT_INFO-ID243" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID243"></th>
+                  <th id="prh2-Ue-ID243"></th>
+                  <th id="prh3-Ue-ID243"></th>
+                  <th id="prh4-Ue-ID243"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID243" class="propindent"></td>
+                  <td headers="prh2-Ue-ID243"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID243" class="propgap"></td>
+                  <td headers="prh4-Ue-ID243">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Substruct to pass information from external clients.<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO.CORRELATION_ID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CORRELATION_ID-ID253"></th>
+               <th id="fth2-CORRELATION_ID-ID253"></th>
+               <th id="fth3-CORRELATION_ID-ID253"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CORRELATION_ID-ID253" class="level">1</td>
+               <td headers="fth2-CORRELATION_ID-ID253"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>CORRELATION_ID</b>
+               </td>
+               <td headers="fth3-CORRELATION_ID-ID253" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID253"></th>
+                  <th id="prh2-Ue-ID253"></th>
+                  <th id="prh3-Ue-ID253"></th>
+                  <th id="prh4-Ue-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID253" class="propindent"></td>
+                  <td headers="prh2-Ue-ID253"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID253" class="propgap"></td>
+                  <td headers="prh4-Ue-ID253">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID253"></th>
+                  <th id="prh2-Parent-ID253"></th>
+                  <th id="prh3-Parent-ID253"></th>
+                  <th id="prh4-Parent-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID253" class="propindent"></td>
+                  <td headers="prh2-Parent-ID253"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID253" class="propgap"></td>
+                  <td headers="prh4-Parent-ID253"><a href="#in.CONTEXT_INFO"> in.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID253"></th>
+                  <th id="prh2-Maxlength-ID253"></th>
+                  <th id="prh3-Maxlength-ID253"></th>
+                  <th id="prh4-Maxlength-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID253" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID253"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID253" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID253">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Correlation id passed by an external system to BRM.<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO.EXTERNAL_USER"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-EXTERNAL_USER-ID263"></th>
+               <th id="fth2-EXTERNAL_USER-ID263"></th>
+               <th id="fth3-EXTERNAL_USER-ID263"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-EXTERNAL_USER-ID263" class="level">1</td>
+               <td headers="fth2-EXTERNAL_USER-ID263"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>EXTERNAL_USER</b>
+               </td>
+               <td headers="fth3-EXTERNAL_USER-ID263" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID263"></th>
+                  <th id="prh2-Ue-ID263"></th>
+                  <th id="prh3-Ue-ID263"></th>
+                  <th id="prh4-Ue-ID263"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID263" class="propindent"></td>
+                  <td headers="prh2-Ue-ID263"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID263" class="propgap"></td>
+                  <td headers="prh4-Ue-ID263">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID263"></th>
+                  <th id="prh2-Parent-ID263"></th>
+                  <th id="prh3-Parent-ID263"></th>
+                  <th id="prh4-Parent-ID263"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID263" class="propindent"></td>
+                  <td headers="prh2-Parent-ID263"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID263" class="propgap"></td>
+                  <td headers="prh4-Parent-ID263"><a href="#in.CONTEXT_INFO"> in.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID263"></th>
+                  <th id="prh2-Maxlength-ID263"></th>
+                  <th id="prh3-Maxlength-ID263"></th>
+                  <th id="prh4-Maxlength-ID263"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID263" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID263"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID263" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID263">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>User of an external system connecting to BRM.<hr width="0">
+         <p></p>
+         <p></p>
+         <hr><a name="OD"></a>
+         <table summary="Output details table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="od"></th>
+            </tr>
+            <tr>
+               <td headers="od">Output details</td>
+            </tr>
+         </table>
+         <p></p>
+         <p></p><a name="out.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID281"></th>
+               <th id="fth2-POID-ID281"></th>
+               <th id="fth3-POID-ID281"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID281" class="level">0</td>
+               <td headers="fth2-POID-ID281"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID281" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID281"></th>
+                  <th id="prh2-Ue-ID281"></th>
+                  <th id="prh3-Ue-ID281"></th>
+                  <th id="prh4-Ue-ID281"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID281" class="propindent"></td>
+                  <td headers="prh2-Ue-ID281"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID281" class="propgap"></td>
+                  <td headers="prh4-Ue-ID281">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID290"></th>
+                  <th id="prh2-Cla-ID290"></th>
+                  <th id="prh3-Cla-ID290"></th>
+                  <th id="prh4-Cla-ID290"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID290" class="propindent"></td>
+                  <td headers="prh2-Cla-ID290"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID290" class="propgap"></td>
+                  <td headers="prh4-Cla-ID290"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Poid of the account owning the Bundle<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-BUNDLE_INFO-ID294"></th>
+               <th id="fth2-BUNDLE_INFO-ID294"></th>
+               <th id="fth3-BUNDLE_INFO-ID294"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-BUNDLE_INFO-ID294" class="level">0</td>
+               <td headers="fth2-BUNDLE_INFO-ID294"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>BUNDLE_INFO</b>
+               </td>
+               <td headers="fth3-BUNDLE_INFO-ID294" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID294"></th>
+                  <th id="prh2-Ue-ID294"></th>
+                  <th id="prh3-Ue-ID294"></th>
+                  <th id="prh4-Ue-ID294"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID294" class="propindent"></td>
+                  <td headers="prh2-Ue-ID294"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID294" class="propgap"></td>
+                  <td headers="prh4-Ue-ID294">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID294"></th>
+                  <th id="prh2-ElemIDmode-ID294"></th>
+                  <th id="prh3-ElemIDmode-ID294"></th>
+                  <th id="prh4-ElemIDmode-ID294"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID294" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID294"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID294" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID294">index</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Iteration-ID294"></th>
+                  <th id="prh2-Iteration-ID294"></th>
+                  <th id="prh3-Iteration-ID294"></th>
+                  <th id="prh4-Iteration-ID294"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Iteration-ID294" class="propindent"></td>
+                  <td headers="prh2-Iteration-ID294"><i>Iteration</i>
+                  </td>
+                  <td headers="prh3-Iteration-ID294" class="propgap"></td>
+                  <td headers="prh4-Iteration-ID294">undefined</td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID294"></th>
+                  <th id="prh2-MinnumberofElement-ID294"></th>
+                  <th id="prh3-MinnumberofElement-ID294"></th>
+                  <th id="prh4-MinnumberofElement-ID294"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID294" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID294"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID294" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID294">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The promotion being purchased for the given account. List of 
+			purchased bundles that need to be created or modified. <hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID308"></th>
+               <th id="fth2-POID-ID308"></th>
+               <th id="fth3-POID-ID308"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID308" class="level">1</td>
+               <td headers="fth2-POID-ID308"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID308" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID308"></th>
+                  <th id="prh2-Ue-ID308"></th>
+                  <th id="prh3-Ue-ID308"></th>
+                  <th id="prh4-Ue-ID308"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID308" class="propindent"></td>
+                  <td headers="prh2-Ue-ID308"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID308" class="propgap"></td>
+                  <td headers="prh4-Ue-ID308">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID308"></th>
+                  <th id="prh2-Parent-ID308"></th>
+                  <th id="prh3-Parent-ID308"></th>
+                  <th id="prh4-Parent-ID308"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID308" class="propindent"></td>
+                  <td headers="prh2-Parent-ID308"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID308" class="propgap"></td>
+                  <td headers="prh4-Parent-ID308"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID317"></th>
+                  <th id="prh2-Cla-ID317"></th>
+                  <th id="prh3-Cla-ID317"></th>
+                  <th id="prh4-Cla-ID317"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID317" class="propindent"></td>
+                  <td headers="prh2-Cla-ID317"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID317" class="propgap"></td>
+                  <td headers="prh4-Cla-ID317"><a href="../object.specs/purchased_bundle.html">/purchased_bundle</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Complete poid of the bundle<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.ACCOUNT_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-ACCOUNT_OBJ-ID321"></th>
+               <th id="fth2-ACCOUNT_OBJ-ID321"></th>
+               <th id="fth3-ACCOUNT_OBJ-ID321"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-ACCOUNT_OBJ-ID321" class="level">1</td>
+               <td headers="fth2-ACCOUNT_OBJ-ID321"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>ACCOUNT_OBJ</b>
+               </td>
+               <td headers="fth3-ACCOUNT_OBJ-ID321" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID321"></th>
+                  <th id="prh2-Ue-ID321"></th>
+                  <th id="prh3-Ue-ID321"></th>
+                  <th id="prh4-Ue-ID321"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID321" class="propindent"></td>
+                  <td headers="prh2-Ue-ID321"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID321" class="propgap"></td>
+                  <td headers="prh4-Ue-ID321">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID321"></th>
+                  <th id="prh2-Parent-ID321"></th>
+                  <th id="prh3-Parent-ID321"></th>
+                  <th id="prh4-Parent-ID321"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID321" class="propindent"></td>
+                  <td headers="prh2-Parent-ID321"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID321" class="propgap"></td>
+                  <td headers="prh4-Parent-ID321"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID330"></th>
+                  <th id="prh2-Cla-ID330"></th>
+                  <th id="prh3-Cla-ID330"></th>
+                  <th id="prh4-Cla-ID330"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID330" class="propindent"></td>
+                  <td headers="prh2-Cla-ID330"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID330" class="propgap"></td>
+                  <td headers="prh4-Cla-ID330"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p> Account object for the bundle.<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.NAME"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-NAME-ID388"></th>
+               <th id="fth2-NAME-ID388"></th>
+               <th id="fth3-NAME-ID388"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-NAME-ID388" class="level">1</td>
+               <td headers="fth2-NAME-ID388"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>NAME</b>
+               </td>
+               <td headers="fth3-NAME-ID388" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID388"></th>
+                  <th id="prh2-Ue-ID388"></th>
+                  <th id="prh3-Ue-ID388"></th>
+                  <th id="prh4-Ue-ID388"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID388" class="propindent"></td>
+                  <td headers="prh2-Ue-ID388"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID388" class="propgap"></td>
+                  <td headers="prh4-Ue-ID388">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID388"></th>
+                  <th id="prh2-Parent-ID388"></th>
+                  <th id="prh3-Parent-ID388"></th>
+                  <th id="prh4-Parent-ID388"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID388" class="propindent"></td>
+                  <td headers="prh2-Parent-ID388"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID388" class="propgap"></td>
+                  <td headers="prh4-Parent-ID388"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID388"></th>
+                  <th id="prh2-Maxlength-ID388"></th>
+                  <th id="prh3-Maxlength-ID388"></th>
+                  <th id="prh4-Maxlength-ID388"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID388" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID388"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID388" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID388">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.STATUS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-STATUS-ID334"></th>
+               <th id="fth2-STATUS-ID334"></th>
+               <th id="fth3-STATUS-ID334"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-STATUS-ID334" class="level">1</td>
+               <td headers="fth2-STATUS-ID334"><b>enum</b>
+	      &nbsp;&nbsp;
+	    <b>STATUS</b>
+               </td>
+               <td headers="fth3-STATUS-ID334" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID334"></th>
+                  <th id="prh2-Ue-ID334"></th>
+                  <th id="prh3-Ue-ID334"></th>
+                  <th id="prh4-Ue-ID334"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID334" class="propindent"></td>
+                  <td headers="prh2-Ue-ID334"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID334" class="propgap"></td>
+                  <td headers="prh4-Ue-ID334">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID334"></th>
+                  <th id="prh2-Parent-ID334"></th>
+                  <th id="prh3-Parent-ID334"></th>
+                  <th id="prh4-Parent-ID334"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID334" class="propindent"></td>
+                  <td headers="prh2-Parent-ID334"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID334" class="propgap"></td>
+                  <td headers="prh4-Parent-ID334"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <table summary="values table" cellspacing="10">
+            <tr>
+               <th id="vh1-0-ID342"></th>
+               <th id="vh2-0-ID342"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID342" align="center">1</td>
+               <td headers="vh2-0-ID342" align="left">PIN_BUNDLE_STATUS_ACTIVE</td>
+            </tr>
+            <tr>
+               <th id="vh1-0-ID351"></th>
+               <th id="vh2-0-ID351"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID351" align="center">2</td>
+               <td headers="vh2-0-ID351" align="left">PIN_BUNDLE_STATUS_INACTIVE</td>
+            </tr>
+            <tr>
+               <th id="vh1-0-ID360"></th>
+               <th id="vh2-0-ID360"></th>
+            </tr>
+            <tr>
+               <td headers="vh1-0-ID360" align="center">3</td>
+               <td headers="vh2-0-ID360" align="left">PIN_BUNDLE_STATUS_CANCELLED</td>
+            </tr>
+         </table>Status for the bundle<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.DESCR"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DESCR-ID395"></th>
+               <th id="fth2-DESCR-ID395"></th>
+               <th id="fth3-DESCR-ID395"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DESCR-ID395" class="level">1</td>
+               <td headers="fth2-DESCR-ID395"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>DESCR</b>
+               </td>
+               <td headers="fth3-DESCR-ID395" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID395"></th>
+                  <th id="prh2-Ue-ID395"></th>
+                  <th id="prh3-Ue-ID395"></th>
+                  <th id="prh4-Ue-ID395"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID395" class="propindent"></td>
+                  <td headers="prh2-Ue-ID395"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID395" class="propgap"></td>
+                  <td headers="prh4-Ue-ID395">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID395"></th>
+                  <th id="prh2-Parent-ID395"></th>
+                  <th id="prh3-Parent-ID395"></th>
+                  <th id="prh4-Parent-ID395"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID395" class="propindent"></td>
+                  <td headers="prh2-Parent-ID395"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID395" class="propgap"></td>
+                  <td headers="prh4-Parent-ID395"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID395"></th>
+                  <th id="prh2-Maxlength-ID395"></th>
+                  <th id="prh3-Maxlength-ID395"></th>
+                  <th id="prh4-Maxlength-ID395"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID395" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID395"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID395" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID395">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Description of the purchased bundle.<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.VALID_FROM"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-VALID_FROM-ID370"></th>
+               <th id="fth2-VALID_FROM-ID370"></th>
+               <th id="fth3-VALID_FROM-ID370"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-VALID_FROM-ID370" class="level">1</td>
+               <td headers="fth2-VALID_FROM-ID370"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>VALID_FROM</b>
+               </td>
+               <td headers="fth3-VALID_FROM-ID370" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID370"></th>
+                  <th id="prh2-Ue-ID370"></th>
+                  <th id="prh3-Ue-ID370"></th>
+                  <th id="prh4-Ue-ID370"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID370" class="propindent"></td>
+                  <td headers="prh2-Ue-ID370"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID370" class="propgap"></td>
+                  <td headers="prh4-Ue-ID370">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID370"></th>
+                  <th id="prh2-Parent-ID370"></th>
+                  <th id="prh3-Parent-ID370"></th>
+                  <th id="prh4-Parent-ID370"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID370" class="propindent"></td>
+                  <td headers="prh2-Parent-ID370"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID370" class="propgap"></td>
+                  <td headers="prh4-Parent-ID370"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The start date of this validity based purchased bundle.<hr width="0">
+         <p></p><a name="out.BUNDLE_INFO.VALID_TO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-VALID_TO-ID379"></th>
+               <th id="fth2-VALID_TO-ID379"></th>
+               <th id="fth3-VALID_TO-ID379"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-VALID_TO-ID379" class="level">1</td>
+               <td headers="fth2-VALID_TO-ID379"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>VALID_TO</b>
+               </td>
+               <td headers="fth3-VALID_TO-ID379" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID379"></th>
+                  <th id="prh2-Ue-ID379"></th>
+                  <th id="prh3-Ue-ID379"></th>
+                  <th id="prh4-Ue-ID379"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID379" class="propindent"></td>
+                  <td headers="prh2-Ue-ID379"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID379" class="propgap"></td>
+                  <td headers="prh4-Ue-ID379">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID379"></th>
+                  <th id="prh2-Parent-ID379"></th>
+                  <th id="prh3-Parent-ID379"></th>
+                  <th id="prh4-Parent-ID379"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID379" class="propindent"></td>
+                  <td headers="prh2-Parent-ID379"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID379" class="propgap"></td>
+                  <td headers="prh4-Parent-ID379"><a href="#out.BUNDLE_INFO"> out.BUNDLE_INFO</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>The end date of this validity based purchased bundle.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CONTEXT_INFO-ID407"></th>
+               <th id="fth2-CONTEXT_INFO-ID407"></th>
+               <th id="fth3-CONTEXT_INFO-ID407"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CONTEXT_INFO-ID407" class="level">0</td>
+               <td headers="fth2-CONTEXT_INFO-ID407"><b>substruct</b>
+	      &nbsp;&nbsp;
+	    <b>CONTEXT_INFO</b>
+               </td>
+               <td headers="fth3-CONTEXT_INFO-ID407" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID407"></th>
+                  <th id="prh2-Ue-ID407"></th>
+                  <th id="prh3-Ue-ID407"></th>
+                  <th id="prh4-Ue-ID407"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID407" class="propindent"></td>
+                  <td headers="prh2-Ue-ID407"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID407" class="propgap"></td>
+                  <td headers="prh4-Ue-ID407">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Substruct to pass information from external clients.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO.CORRELATION_ID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CORRELATION_ID-ID417"></th>
+               <th id="fth2-CORRELATION_ID-ID417"></th>
+               <th id="fth3-CORRELATION_ID-ID417"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CORRELATION_ID-ID417" class="level">1</td>
+               <td headers="fth2-CORRELATION_ID-ID417"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>CORRELATION_ID</b>
+               </td>
+               <td headers="fth3-CORRELATION_ID-ID417" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID417"></th>
+                  <th id="prh2-Ue-ID417"></th>
+                  <th id="prh3-Ue-ID417"></th>
+                  <th id="prh4-Ue-ID417"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID417" class="propindent"></td>
+                  <td headers="prh2-Ue-ID417"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID417" class="propgap"></td>
+                  <td headers="prh4-Ue-ID417">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID417"></th>
+                  <th id="prh2-Parent-ID417"></th>
+                  <th id="prh3-Parent-ID417"></th>
+                  <th id="prh4-Parent-ID417"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID417" class="propindent"></td>
+                  <td headers="prh2-Parent-ID417"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID417" class="propgap"></td>
+                  <td headers="prh4-Parent-ID417"><a href="#out.CONTEXT_INFO"> out.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID417"></th>
+                  <th id="prh2-Maxlength-ID417"></th>
+                  <th id="prh3-Maxlength-ID417"></th>
+                  <th id="prh4-Maxlength-ID417"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID417" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID417"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID417" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID417">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Correlation id passed by an external system to BRM.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO.EXTERNAL_USER"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-EXTERNAL_USER-ID427"></th>
+               <th id="fth2-EXTERNAL_USER-ID427"></th>
+               <th id="fth3-EXTERNAL_USER-ID427"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-EXTERNAL_USER-ID427" class="level">1</td>
+               <td headers="fth2-EXTERNAL_USER-ID427"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>EXTERNAL_USER</b>
+               </td>
+               <td headers="fth3-EXTERNAL_USER-ID427" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID427"></th>
+                  <th id="prh2-Ue-ID427"></th>
+                  <th id="prh3-Ue-ID427"></th>
+                  <th id="prh4-Ue-ID427"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID427" class="propindent"></td>
+                  <td headers="prh2-Ue-ID427"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID427" class="propgap"></td>
+                  <td headers="prh4-Ue-ID427">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID427"></th>
+                  <th id="prh2-Parent-ID427"></th>
+                  <th id="prh3-Parent-ID427"></th>
+                  <th id="prh4-Parent-ID427"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID427" class="propindent"></td>
+                  <td headers="prh2-Parent-ID427"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID427" class="propgap"></td>
+                  <td headers="prh4-Parent-ID427"><a href="#out.CONTEXT_INFO"> out.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID427"></th>
+                  <th id="prh2-Maxlength-ID427"></th>
+                  <th id="prh3-Maxlength-ID427"></th>
+                  <th id="prh4-Maxlength-ID427"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID427" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID427"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID427" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID427">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>User of an external system connecting to BRM.<hr width="0">
+         <p></p>
+         <hr noshade="true">
+         <table summary="Shortcuts table" width="100%" cellspacing="0">
+            <tbody class="shortcuts">
+               <tr align="center">
+                  <th><a href="#II">Input index</a>
+                  </th>
+                  <th><a href="#ID">Input details</a>
+                  </th>
+                  <th><a href="#OI">Output index</a>
+                  </th>
+                  <th><a href="#OD">Output details</a>
+                  </th>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+   </body>
+</html>

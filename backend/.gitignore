@@ -1,0 +1,81 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# --- Entornos virtuales ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Archivos de entorno ---
+.env
+.env_*
+.env.*
+!.env.example
+
+# --- IDE / editores ---
+.vscode/
+.idea/
+*.swp
+*.code-workspace
+
+# --- Compilados / bins ---
+dist/
+build/
+*.out
+*.exe
+
+# --- Temporales / SO ---
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.old
+desktop.ini
+
+# --- Cobertura y tests ---
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# --- Docker / Compose (local) ---
+docker-compose.override.yml
+compose.override.yml
+compose.local.yml
+*.pid
+*.sock
+**/docker-data/
+**/docker-cache/
+**/docker-logs/
+
+# --- Llaves y configs sensibles ---
+*.key
+*.pem
+*.crt
+*.csr
+
+# --- Datos locales / runtime ---
+data/
+logs/
+uploads/
+tmp/
+temp/
+cache/
+
+# Mantener placeholders
+!data/.gitkeep
+!logs/.gitkeep
+!uploads/.gitkeep
+!tmp/.gitkeep
+!cache/.gitkeep

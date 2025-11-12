@@ -1,0 +1,89 @@
+# --- Python / Streamlit ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# --- Entornos virtuales ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Archivos de entorno ---
+.env
+.env_*
+.env.*
+!.env.example
+
+# --- Streamlit config ---
+.streamlit/
+.streamlit/secrets.toml
+.history/
+
+# Si usas ejemplos de config, consérvalos:
+!.streamlit/config.toml.example
+
+# --- IDE / editores ---
+.vscode/
+.idea/
+*.swp
+*.code-workspace
+
+# --- Compilados / bins ---
+dist/
+build/
+*.out
+*.exe
+
+# --- Temporales / SO ---
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.old
+desktop.ini
+
+# --- Cobertura y tests ---
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# --- Docker / Compose (local) ---
+docker-compose.override.yml
+compose.override.yml
+compose.local.yml
+*.pid
+*.sock
+**/docker-data/
+**/docker-cache/
+**/docker-logs/
+
+# --- Llaves y configs sensibles ---
+*.key
+*.pem
+*.crt
+*.csr
+
+# --- Datos locales de la app ---
+data/
+logs/
+uploads/
+cache/
+artifacts-frontend/
+
+# Mantener placeholders
+!data/.gitkeep
+!state/.gitkeep
+!logs/.gitkeep
+!uploads/.gitkeep
+!cache/.gitkeep
+!artifacts-frontend/.gitkeep

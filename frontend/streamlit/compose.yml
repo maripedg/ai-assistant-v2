@@ -1,0 +1,21 @@
+services:
+  app:
+    image: local/ai-assistant-frontend:latest
+    build: .
+    container_name: ai-assistant-frontend
+
+    # Carga variables del .env
+    env_file: .env
+
+    # Expone el puerto de streamlit hacia el host
+    ports:
+      - "${FRONTEND_PORT:-8501}:8501"
+
+    # Si quieres que el frontend en contenedor pueda llamar al backend en el host:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # Persistencia opcional de datos locales (solo si AUTH/FEEDBACK usan filesystem)
+    # Mapea toda la carpeta /app/data a ./data del host
+    volumes:
+      - ./data:/app/data

@@ -1,0 +1,3223 @@
+<html lang="en-US" xmlns:op="http://www.portal.com/schemas/BusinessOpcodes" xmlns:h="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+	  a:hover {
+	  color:#BB1122;
+	  }
+	  div.copyright {
+	  color:#AAAAAA; font-family:times; font-size:xx-small;
+	  }
+	  div.content {
+	  font-family:arial, helvetica;
+	  }
+	  .shortcuts {
+	  font-size:x-small; background-color: #FFFFCC;
+	  }
+	  .index { 
+	  font-family:arial; font-size:x-small; 
+	  }
+          .fieldgroupindex {
+          font-family:arial;font-size:x-small;font-weight:bold;
+          }
+	  .properties {
+	  font-family:arial; font-size:x-small; 
+	  }
+	  .sectiontitle {
+	  background-color: #99CCFF; font-size: large; 
+	  font-weight: bold; 
+	  }
+	  .fieldtitle {
+	  background-color: #F0F7FF; font-size: medium; font-weight: bold; 
+	  }
+	  .level {
+	  color: #000000; font-weight: bold; width: 18;
+	  }
+	  .indexlinks {
+	  font-weight: normal; font-size: x-small;
+	  }
+	  .propindent {
+	  width:50;
+	  }
+	  .propgap {
+	  width:20;
+	  }
+	  .code {
+	  font-family:monospace; font-size: x-small;
+	  }
+
+	</style>
+      <title></title>
+   
+    <link rel="schema.dcterms" href="http://purl.org/dc/terms/">
+    <meta name="dcterms.created" content="2025-08-27T18:30:05+00:00">
+    <meta name="dcterms.title" content="Opcode Flist Reference">
+    <meta name="dcterms.category" content="industries">
+    <meta name="dcterms.product" content="en/industries/communications/billing-revenue/15.1">
+    <meta name="dcterms.identifier" content="F93229-02">
+    <meta name="dcterms.release" content="15.1">
+    <meta name="dcterms.isVersionOf" content="BRMFR">
+  <script id="ssot-metadata" type="application/json">{"primary":{"category":{"short_name":"industries","element_name":"Industries","display_in_url":true},"suite":{"short_name":"communications","element_name":"Communications","display_in_url":true},"product_group":{"short_name":"monetization-orchestration","element_name":"Monetization and Orchestration","display_in_url":false},"product":{"short_name":"billing-revenue","element_name":"Billing and Revenue Management","display_in_url":true},"release":{"short_name":"15.1","element_name":"15.1","display_in_url":true}}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"","datePublished":"2025-08-28 CST","dateModified":"2025-08-28 CST"}</script>
+    <script>window.ohcglobal || document.write('<script src="/en/dcommon/js/global.js">\x3C/script>')</script></head>
+   <body>
+      <div class="copyright">
+         <center>
+            <html><a href="https://docs.oracle.com/pls/topic/lookup?ctx=en/legal&amp;id=cpyr"><b>Copyright Â© </b>
+               </a>
+            </html>2025 Oracle and/or its affiliates.
+        <br>
+         </center>
+      </div>
+      <div class="content">
+         <hr>
+         <table summary="Shortcuts table" width="100%" cellspacing="0">
+            <tbody class="shortcuts">
+               <tr align="center">
+                  <th><a href="#II">Input index</a>
+                  </th>
+                  <th><a href="#ID">Input details</a>
+                  </th>
+                  <th><a href="#OI">Output index</a>
+                  </th>
+                  <th><a href="#OD">Output details</a>
+                  </th>
+               </tr>
+            </tbody>
+         </table>
+         <hr noshade="true">
+         <h2><a name="op">PCM_OP_SUBSCRIPTION_SET_DISCOUNTINFO</a>
+         </h2>
+         <table summary="OpProperties table" border="0" cellpadding="1" cellspacing="1">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Component-ID2"></th>
+                  <th id="prh2-Component-ID2"></th>
+                  <th id="prh3-Component-ID2"></th>
+                  <th id="prh4-Component-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Component-ID2" class="propindent"></td>
+                  <td headers="prh2-Component-ID2"><i>Component</i>
+                  </td>
+                  <td headers="prh3-Component-ID2" class="propgap"></td>
+                  <td headers="prh4-Component-ID2">fm_subscription</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Viibility-ID2"></th>
+                  <th id="prh2-Viibility-ID2"></th>
+                  <th id="prh3-Viibility-ID2"></th>
+                  <th id="prh4-Viibility-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Viibility-ID2" class="propindent"></td>
+                  <td headers="prh2-Viibility-ID2"><i>Visibility</i>
+                  </td>
+                  <td headers="prh3-Viibility-ID2" class="propgap"></td>
+                  <td headers="prh4-Viibility-ID2">public</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Tranaction-ID2"></th>
+                  <th id="prh2-Tranaction-ID2"></th>
+                  <th id="prh3-Tranaction-ID2"></th>
+                  <th id="prh4-Tranaction-ID2"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Tranaction-ID2" class="propindent"></td>
+                  <td headers="prh2-Tranaction-ID2"><i>Transaction</i>
+                  </td>
+                  <td headers="prh3-Tranaction-ID2" class="propgap"></td>
+                  <td headers="prh4-Tranaction-ID2">required</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <p></p>
+         <hr>
+         <table summary="Description Table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="d1"></th>
+            </tr>
+            <tr>
+               <td headers="d1">Description</td>
+            </tr>
+         </table>
+         <p></p>
+  PCM_OP_SUBSCRIPTION_SET_DISCOUNTINFO input and output flist specifications.
+  This opcode is called to modify or set a discount's purchase, cycle, or usage
+  date information. If the PCM_OPFLG_CALC_ONLY flag is set, this opcode returns 
+  the entire event flist for the events created as a result of the modification.
+  If not, it returns the event POIDs of all event objects created as a result
+  of the modification.
+  
+  
+  When automatic rerating is enabled, this opcode triggers automatic rerating of
+  backdated discount status changes when certain conditions are met.
+ <p></p>
+         <hr><a name="II"></a>
+         <table summary="Input Field Index Table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="f1"></th>
+            </tr>
+            <tr>
+               <td headers="f1">Input field index</td>
+            </tr>
+         </table>
+         <p></p>
+         <table summary="Navigation index table" width="100%" border="0" hspace="1" cellpadding="1" cellspacing="0">
+            <tbody class="index">
+               <tr>
+                  <th id="fih1-POID-ID26"></th>
+                  <th id="fih2-POID-ID26"></th>
+                  <th id="fih3-POID-ID26"></th>
+                  <th id="fih4-POID-ID26"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID26" width="3%" align="right">0</td>
+                  <td headers="fih2-POID-ID26" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID26" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID26"><a href="#in.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-SERVICE_OBJ-ID39"></th>
+                  <th id="fih2-SERVICE_OBJ-ID39"></th>
+                  <th id="fih3-SERVICE_OBJ-ID39"></th>
+                  <th id="fih4-SERVICE_OBJ-ID39"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-SERVICE_OBJ-ID39" width="3%" align="right">0</td>
+                  <td headers="fih2-SERVICE_OBJ-ID39" width="3%" align="right"></td>
+                  <td headers="fih3-SERVICE_OBJ-ID39" width="20%" align="left">poid</td>
+                  <td headers="fih4-SERVICE_OBJ-ID39"><a href="#in.SERVICE_OBJ">SERVICE_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-SESSION_OBJ-ID52"></th>
+                  <th id="fih2-SESSION_OBJ-ID52"></th>
+                  <th id="fih3-SESSION_OBJ-ID52"></th>
+                  <th id="fih4-SESSION_OBJ-ID52"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-SESSION_OBJ-ID52" width="3%" align="right">0</td>
+                  <td headers="fih2-SESSION_OBJ-ID52" width="3%" align="right"></td>
+                  <td headers="fih3-SESSION_OBJ-ID52" width="20%" align="left">poid</td>
+                  <td headers="fih4-SESSION_OBJ-ID52"><a href="#in.SESSION_OBJ">SESSION_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PROGRAM_NAME-ID83"></th>
+                  <th id="fih2-PROGRAM_NAME-ID83"></th>
+                  <th id="fih3-PROGRAM_NAME-ID83"></th>
+                  <th id="fih4-PROGRAM_NAME-ID83"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PROGRAM_NAME-ID83" width="3%" align="right">0</td>
+                  <td headers="fih2-PROGRAM_NAME-ID83" width="3%" align="right"></td>
+                  <td headers="fih3-PROGRAM_NAME-ID83" width="20%" align="left"><b>string</b>
+                  </td>
+                  <td headers="fih4-PROGRAM_NAME-ID83"><a href="#in.PROGRAM_NAME"><b>PROGRAM_NAME</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DESCR-ID93"></th>
+                  <th id="fih2-DESCR-ID93"></th>
+                  <th id="fih3-DESCR-ID93"></th>
+                  <th id="fih4-DESCR-ID93"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DESCR-ID93" width="3%" align="right">0</td>
+                  <td headers="fih2-DESCR-ID93" width="3%" align="right"></td>
+                  <td headers="fih3-DESCR-ID93" width="20%" align="left">string</td>
+                  <td headers="fih4-DESCR-ID93"><a href="#in.DESCR">DESCR</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-START_T-ID65"></th>
+                  <th id="fih2-START_T-ID65"></th>
+                  <th id="fih3-START_T-ID65"></th>
+                  <th id="fih4-START_T-ID65"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-START_T-ID65" width="3%" align="right">0</td>
+                  <td headers="fih2-START_T-ID65" width="3%" align="right"></td>
+                  <td headers="fih3-START_T-ID65" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-START_T-ID65"><a href="#in.START_T">START_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-END_T-ID74"></th>
+                  <th id="fih2-END_T-ID74"></th>
+                  <th id="fih3-END_T-ID74"></th>
+                  <th id="fih4-END_T-ID74"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-END_T-ID74" width="3%" align="right">0</td>
+                  <td headers="fih2-END_T-ID74" width="3%" align="right"></td>
+                  <td headers="fih3-END_T-ID74" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-END_T-ID74"><a href="#in.END_T">END_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DISCOUNTS-ID103"></th>
+                  <th id="fih2-DISCOUNTS-ID103"></th>
+                  <th id="fih3-DISCOUNTS-ID103"></th>
+                  <th id="fih4-DISCOUNTS-ID103"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DISCOUNTS-ID103" width="3%" align="right">0</td>
+                  <td headers="fih2-DISCOUNTS-ID103" width="3%" align="right"></td>
+                  <td headers="fih3-DISCOUNTS-ID103" width="20%" align="left"><b>array</b>
+                  </td>
+                  <td headers="fih4-DISCOUNTS-ID103"><a href="#in.DISCOUNTS"><b>DISCOUNTS</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DISCOUNT_OBJ-ID115"></th>
+                  <th id="fih2-DISCOUNT_OBJ-ID115"></th>
+                  <th id="fih3-DISCOUNT_OBJ-ID115"></th>
+                  <th id="fih4-DISCOUNT_OBJ-ID115"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DISCOUNT_OBJ-ID115" width="3%" align="right">1</td>
+                  <td headers="fih2-DISCOUNT_OBJ-ID115" width="3%" align="right"></td>
+                  <td headers="fih3-DISCOUNT_OBJ-ID115" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-DISCOUNT_OBJ-ID115"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.DISCOUNT_OBJ"><b>DISCOUNT_OBJ</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-OFFERING_OBJ-ID128"></th>
+                  <th id="fih2-OFFERING_OBJ-ID128"></th>
+                  <th id="fih3-OFFERING_OBJ-ID128"></th>
+                  <th id="fih4-OFFERING_OBJ-ID128"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-OFFERING_OBJ-ID128" width="3%" align="right">1</td>
+                  <td headers="fih2-OFFERING_OBJ-ID128" width="3%" align="right"></td>
+                  <td headers="fih3-OFFERING_OBJ-ID128" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-OFFERING_OBJ-ID128"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OFFERING_OBJ"><b>OFFERING_OBJ</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+                  <th id="fih2-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+                  <th id="fih3-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+                  <th id="fih4-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-OFFERING_OVERRIDE_VALUES_OBJ-ID141" width="3%" align="right">1</td>
+                  <td headers="fih2-OFFERING_OVERRIDE_VALUES_OBJ-ID141" width="3%" align="right"></td>
+                  <td headers="fih3-OFFERING_OVERRIDE_VALUES_OBJ-ID141" width="20%" align="left">poid</td>
+                  <td headers="fih4-OFFERING_OVERRIDE_VALUES_OBJ-ID141"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OFFERING_OVERRIDE_VALUES_OBJ">OFFERING_OVERRIDE_VALUES_OBJ</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PURCHASE_START_T-ID208"></th>
+                  <th id="fih2-PURCHASE_START_T-ID208"></th>
+                  <th id="fih3-PURCHASE_START_T-ID208"></th>
+                  <th id="fih4-PURCHASE_START_T-ID208"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PURCHASE_START_T-ID208" width="3%" align="right">1</td>
+                  <td headers="fih2-PURCHASE_START_T-ID208" width="3%" align="right"></td>
+                  <td headers="fih3-PURCHASE_START_T-ID208" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-PURCHASE_START_T-ID208"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.PURCHASE_START_T">PURCHASE_START_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PURCHASE_END_T-ID217"></th>
+                  <th id="fih2-PURCHASE_END_T-ID217"></th>
+                  <th id="fih3-PURCHASE_END_T-ID217"></th>
+                  <th id="fih4-PURCHASE_END_T-ID217"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PURCHASE_END_T-ID217" width="3%" align="right">1</td>
+                  <td headers="fih2-PURCHASE_END_T-ID217" width="3%" align="right"></td>
+                  <td headers="fih3-PURCHASE_END_T-ID217" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-PURCHASE_END_T-ID217"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.PURCHASE_END_T">PURCHASE_END_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PURCHASE_END_UNIT-ID154"></th>
+                  <th id="fih2-PURCHASE_END_UNIT-ID154"></th>
+                  <th id="fih3-PURCHASE_END_UNIT-ID154"></th>
+                  <th id="fih4-PURCHASE_END_UNIT-ID154"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PURCHASE_END_UNIT-ID154" width="3%" align="right">1</td>
+                  <td headers="fih2-PURCHASE_END_UNIT-ID154" width="3%" align="right"></td>
+                  <td headers="fih3-PURCHASE_END_UNIT-ID154" width="20%" align="left">int</td>
+                  <td headers="fih4-PURCHASE_END_UNIT-ID154"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.PURCHASE_END_UNIT">PURCHASE_END_UNIT</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PURCHASE_END_OFFSET-ID163"></th>
+                  <th id="fih2-PURCHASE_END_OFFSET-ID163"></th>
+                  <th id="fih3-PURCHASE_END_OFFSET-ID163"></th>
+                  <th id="fih4-PURCHASE_END_OFFSET-ID163"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PURCHASE_END_OFFSET-ID163" width="3%" align="right">1</td>
+                  <td headers="fih2-PURCHASE_END_OFFSET-ID163" width="3%" align="right"></td>
+                  <td headers="fih3-PURCHASE_END_OFFSET-ID163" width="20%" align="left">int</td>
+                  <td headers="fih4-PURCHASE_END_OFFSET-ID163"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.PURCHASE_END_OFFSET">PURCHASE_END_OFFSET</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CYCLE_START_T-ID226"></th>
+                  <th id="fih2-CYCLE_START_T-ID226"></th>
+                  <th id="fih3-CYCLE_START_T-ID226"></th>
+                  <th id="fih4-CYCLE_START_T-ID226"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CYCLE_START_T-ID226" width="3%" align="right">1</td>
+                  <td headers="fih2-CYCLE_START_T-ID226" width="3%" align="right"></td>
+                  <td headers="fih3-CYCLE_START_T-ID226" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-CYCLE_START_T-ID226"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.CYCLE_START_T">CYCLE_START_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CYCLE_END_T-ID235"></th>
+                  <th id="fih2-CYCLE_END_T-ID235"></th>
+                  <th id="fih3-CYCLE_END_T-ID235"></th>
+                  <th id="fih4-CYCLE_END_T-ID235"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CYCLE_END_T-ID235" width="3%" align="right">1</td>
+                  <td headers="fih2-CYCLE_END_T-ID235" width="3%" align="right"></td>
+                  <td headers="fih3-CYCLE_END_T-ID235" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-CYCLE_END_T-ID235"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.CYCLE_END_T">CYCLE_END_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CYCLE_END_UNIT-ID172"></th>
+                  <th id="fih2-CYCLE_END_UNIT-ID172"></th>
+                  <th id="fih3-CYCLE_END_UNIT-ID172"></th>
+                  <th id="fih4-CYCLE_END_UNIT-ID172"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CYCLE_END_UNIT-ID172" width="3%" align="right">1</td>
+                  <td headers="fih2-CYCLE_END_UNIT-ID172" width="3%" align="right"></td>
+                  <td headers="fih3-CYCLE_END_UNIT-ID172" width="20%" align="left">int</td>
+                  <td headers="fih4-CYCLE_END_UNIT-ID172"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.CYCLE_END_UNIT">CYCLE_END_UNIT</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CYCLE_END_OFFSET-ID181"></th>
+                  <th id="fih2-CYCLE_END_OFFSET-ID181"></th>
+                  <th id="fih3-CYCLE_END_OFFSET-ID181"></th>
+                  <th id="fih4-CYCLE_END_OFFSET-ID181"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CYCLE_END_OFFSET-ID181" width="3%" align="right">1</td>
+                  <td headers="fih2-CYCLE_END_OFFSET-ID181" width="3%" align="right"></td>
+                  <td headers="fih3-CYCLE_END_OFFSET-ID181" width="20%" align="left">int</td>
+                  <td headers="fih4-CYCLE_END_OFFSET-ID181"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.CYCLE_END_OFFSET">CYCLE_END_OFFSET</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-USAGE_START_T-ID244"></th>
+                  <th id="fih2-USAGE_START_T-ID244"></th>
+                  <th id="fih3-USAGE_START_T-ID244"></th>
+                  <th id="fih4-USAGE_START_T-ID244"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-USAGE_START_T-ID244" width="3%" align="right">1</td>
+                  <td headers="fih2-USAGE_START_T-ID244" width="3%" align="right"></td>
+                  <td headers="fih3-USAGE_START_T-ID244" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-USAGE_START_T-ID244"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.USAGE_START_T">USAGE_START_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-USAGE_END_T-ID253"></th>
+                  <th id="fih2-USAGE_END_T-ID253"></th>
+                  <th id="fih3-USAGE_END_T-ID253"></th>
+                  <th id="fih4-USAGE_END_T-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-USAGE_END_T-ID253" width="3%" align="right">1</td>
+                  <td headers="fih2-USAGE_END_T-ID253" width="3%" align="right"></td>
+                  <td headers="fih3-USAGE_END_T-ID253" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-USAGE_END_T-ID253"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.USAGE_END_T">USAGE_END_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-USAGE_END_UNIT-ID190"></th>
+                  <th id="fih2-USAGE_END_UNIT-ID190"></th>
+                  <th id="fih3-USAGE_END_UNIT-ID190"></th>
+                  <th id="fih4-USAGE_END_UNIT-ID190"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-USAGE_END_UNIT-ID190" width="3%" align="right">1</td>
+                  <td headers="fih2-USAGE_END_UNIT-ID190" width="3%" align="right"></td>
+                  <td headers="fih3-USAGE_END_UNIT-ID190" width="20%" align="left">int</td>
+                  <td headers="fih4-USAGE_END_UNIT-ID190"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.USAGE_END_UNIT">USAGE_END_UNIT</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-USAGE_END_OFFSET-ID199"></th>
+                  <th id="fih2-USAGE_END_OFFSET-ID199"></th>
+                  <th id="fih3-USAGE_END_OFFSET-ID199"></th>
+                  <th id="fih4-USAGE_END_OFFSET-ID199"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-USAGE_END_OFFSET-ID199" width="3%" align="right">1</td>
+                  <td headers="fih2-USAGE_END_OFFSET-ID199" width="3%" align="right"></td>
+                  <td headers="fih3-USAGE_END_OFFSET-ID199" width="20%" align="left">int</td>
+                  <td headers="fih4-USAGE_END_OFFSET-ID199"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.USAGE_END_OFFSET">USAGE_END_OFFSET</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DESCR-ID262"></th>
+                  <th id="fih2-DESCR-ID262"></th>
+                  <th id="fih3-DESCR-ID262"></th>
+                  <th id="fih4-DESCR-ID262"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DESCR-ID262" width="3%" align="right">1</td>
+                  <td headers="fih2-DESCR-ID262" width="3%" align="right"></td>
+                  <td headers="fih3-DESCR-ID262" width="20%" align="left">string</td>
+                  <td headers="fih4-DESCR-ID262"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.DESCR">DESCR</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-OVERRIDE_DISCOUNTS-ID272"></th>
+                  <th id="fih2-OVERRIDE_DISCOUNTS-ID272"></th>
+                  <th id="fih3-OVERRIDE_DISCOUNTS-ID272"></th>
+                  <th id="fih4-OVERRIDE_DISCOUNTS-ID272"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-OVERRIDE_DISCOUNTS-ID272" width="3%" align="right">1</td>
+                  <td headers="fih2-OVERRIDE_DISCOUNTS-ID272" width="3%" align="right"></td>
+                  <td headers="fih3-OVERRIDE_DISCOUNTS-ID272" width="20%" align="left">array</td>
+                  <td headers="fih4-OVERRIDE_DISCOUNTS-ID272"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS">OVERRIDE_DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-FLAGS-ID284"></th>
+                  <th id="fih2-FLAGS-ID284"></th>
+                  <th id="fih3-FLAGS-ID284"></th>
+                  <th id="fih4-FLAGS-ID284"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-FLAGS-ID284" width="3%" align="right">2</td>
+                  <td headers="fih2-FLAGS-ID284" width="3%" align="right"></td>
+                  <td headers="fih3-FLAGS-ID284" width="20%" align="left"><b>int</b>
+                  </td>
+                  <td headers="fih4-FLAGS-ID284"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.FLAGS"><b>FLAGS</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-USAGE_MAP-ID293"></th>
+                  <th id="fih2-USAGE_MAP-ID293"></th>
+                  <th id="fih3-USAGE_MAP-ID293"></th>
+                  <th id="fih4-USAGE_MAP-ID293"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-USAGE_MAP-ID293" width="3%" align="right">2</td>
+                  <td headers="fih2-USAGE_MAP-ID293" width="3%" align="right"></td>
+                  <td headers="fih3-USAGE_MAP-ID293" width="20%" align="left">array</td>
+                  <td headers="fih4-USAGE_MAP-ID293"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP">USAGE_MAP</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-EVENT_TYPE-ID305"></th>
+                  <th id="fih2-EVENT_TYPE-ID305"></th>
+                  <th id="fih3-EVENT_TYPE-ID305"></th>
+                  <th id="fih4-EVENT_TYPE-ID305"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-EVENT_TYPE-ID305" width="3%" align="right">3</td>
+                  <td headers="fih2-EVENT_TYPE-ID305" width="3%" align="right"></td>
+                  <td headers="fih3-EVENT_TYPE-ID305" width="20%" align="left">string</td>
+                  <td headers="fih4-EVENT_TYPE-ID305"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.EVENT_TYPE">EVENT_TYPE</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-DATE_RANGES-ID315"></th>
+                  <th id="fih2-DATE_RANGES-ID315"></th>
+                  <th id="fih3-DATE_RANGES-ID315"></th>
+                  <th id="fih4-DATE_RANGES-ID315"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-DATE_RANGES-ID315" width="3%" align="right">3</td>
+                  <td headers="fih2-DATE_RANGES-ID315" width="3%" align="right"></td>
+                  <td headers="fih3-DATE_RANGES-ID315" width="20%" align="left">array</td>
+                  <td headers="fih4-DATE_RANGES-ID315"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES">DATE_RANGES</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-START_T-ID324"></th>
+                  <th id="fih2-START_T-ID324"></th>
+                  <th id="fih3-START_T-ID324"></th>
+                  <th id="fih4-START_T-ID324"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-START_T-ID324" width="3%" align="right">4</td>
+                  <td headers="fih2-START_T-ID324" width="3%" align="right"></td>
+                  <td headers="fih3-START_T-ID324" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-START_T-ID324"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.START_T">START_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-END_T-ID333"></th>
+                  <th id="fih2-END_T-ID333"></th>
+                  <th id="fih3-END_T-ID333"></th>
+                  <th id="fih4-END_T-ID333"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-END_T-ID333" width="3%" align="right">4</td>
+                  <td headers="fih2-END_T-ID333" width="3%" align="right"></td>
+                  <td headers="fih3-END_T-ID333" width="20%" align="left">timestamp</td>
+                  <td headers="fih4-END_T-ID333"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.END_T">END_T</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PRICE_TAGS-ID342"></th>
+                  <th id="fih2-PRICE_TAGS-ID342"></th>
+                  <th id="fih3-PRICE_TAGS-ID342"></th>
+                  <th id="fih4-PRICE_TAGS-ID342"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PRICE_TAGS-ID342" width="3%" align="right">4</td>
+                  <td headers="fih2-PRICE_TAGS-ID342" width="3%" align="right"></td>
+                  <td headers="fih3-PRICE_TAGS-ID342" width="20%" align="left">array</td>
+                  <td headers="fih4-PRICE_TAGS-ID342"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS">PRICE_TAGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-NAME-ID372"></th>
+                  <th id="fih2-NAME-ID372"></th>
+                  <th id="fih3-NAME-ID372"></th>
+                  <th id="fih4-NAME-ID372"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-NAME-ID372" width="3%" align="right">5</td>
+                  <td headers="fih2-NAME-ID372" width="3%" align="right"></td>
+                  <td headers="fih3-NAME-ID372" width="20%" align="left">string</td>
+                  <td headers="fih4-NAME-ID372"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.NAME">NAME</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-AMOUNT-ID354"></th>
+                  <th id="fih2-AMOUNT-ID354"></th>
+                  <th id="fih3-AMOUNT-ID354"></th>
+                  <th id="fih4-AMOUNT-ID354"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-AMOUNT-ID354" width="3%" align="right">5</td>
+                  <td headers="fih2-AMOUNT-ID354" width="3%" align="right"></td>
+                  <td headers="fih3-AMOUNT-ID354" width="20%" align="left">decimal</td>
+                  <td headers="fih4-AMOUNT-ID354"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.AMOUNT">AMOUNT</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-PERCENT-ID363"></th>
+                  <th id="fih2-PERCENT-ID363"></th>
+                  <th id="fih3-PERCENT-ID363"></th>
+                  <th id="fih4-PERCENT-ID363"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-PERCENT-ID363" width="3%" align="right">5</td>
+                  <td headers="fih2-PERCENT-ID363" width="3%" align="right"></td>
+                  <td headers="fih3-PERCENT-ID363" width="20%" align="left">decimal</td>
+                  <td headers="fih4-PERCENT-ID363"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.PERCENT">PERCENT</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CONTEXT_INFO-ID392"></th>
+                  <th id="fih2-CONTEXT_INFO-ID392"></th>
+                  <th id="fih3-CONTEXT_INFO-ID392"></th>
+                  <th id="fih4-CONTEXT_INFO-ID392"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CONTEXT_INFO-ID392" width="3%" align="right">0</td>
+                  <td headers="fih2-CONTEXT_INFO-ID392" width="3%" align="right"></td>
+                  <td headers="fih3-CONTEXT_INFO-ID392" width="20%" align="left">substruct</td>
+                  <td headers="fih4-CONTEXT_INFO-ID392"><a href="#in.CONTEXT_INFO">CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CORRELATION_ID-ID402"></th>
+                  <th id="fih2-CORRELATION_ID-ID402"></th>
+                  <th id="fih3-CORRELATION_ID-ID402"></th>
+                  <th id="fih4-CORRELATION_ID-ID402"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CORRELATION_ID-ID402" width="3%" align="right">1</td>
+                  <td headers="fih2-CORRELATION_ID-ID402" width="3%" align="right"></td>
+                  <td headers="fih3-CORRELATION_ID-ID402" width="20%" align="left">string</td>
+                  <td headers="fih4-CORRELATION_ID-ID402"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.CONTEXT_INFO.CORRELATION_ID">CORRELATION_ID</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-EXTERNAL_USER-ID412"></th>
+                  <th id="fih2-EXTERNAL_USER-ID412"></th>
+                  <th id="fih3-EXTERNAL_USER-ID412"></th>
+                  <th id="fih4-EXTERNAL_USER-ID412"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-EXTERNAL_USER-ID412" width="3%" align="right">1</td>
+                  <td headers="fih2-EXTERNAL_USER-ID412" width="3%" align="right"></td>
+                  <td headers="fih3-EXTERNAL_USER-ID412" width="20%" align="left">string</td>
+                  <td headers="fih4-EXTERNAL_USER-ID412"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#in.CONTEXT_INFO.EXTERNAL_USER">EXTERNAL_USER</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr><a name="OI"></a>
+         <table summary="Output field index table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="o1"></th>
+            </tr>
+            <tr>
+               <td headers="o1">Output field index</td>
+            </tr>
+         </table>
+         <p></p>
+         <table summary="Navigation index table" width="100%" border="0" hspace="1" cellpadding="1" cellspacing="0">
+            <tbody class="index">
+               <tr>
+                  <th id="fih1-POID-ID432"></th>
+                  <th id="fih2-POID-ID432"></th>
+                  <th id="fih3-POID-ID432"></th>
+                  <th id="fih4-POID-ID432"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-POID-ID432" width="3%" align="right">0</td>
+                  <td headers="fih2-POID-ID432" width="3%" align="right"></td>
+                  <td headers="fih3-POID-ID432" width="20%" align="left"><b>poid</b>
+                  </td>
+                  <td headers="fih4-POID-ID432"><a href="#out.POID"><b>POID</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-RESULTS-ID445"></th>
+                  <th id="fih2-RESULTS-ID445"></th>
+                  <th id="fih3-RESULTS-ID445"></th>
+                  <th id="fih4-RESULTS-ID445"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-RESULTS-ID445" width="3%" align="right">0</td>
+                  <td headers="fih2-RESULTS-ID445" width="3%" align="right"></td>
+                  <td headers="fih3-RESULTS-ID445" width="20%" align="left"><b>array</b>
+                  </td>
+                  <td headers="fih4-RESULTS-ID445"><a href="#out.RESULTS"><b>RESULTS</b>
+                     </a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CONTEXT_INFO-ID456"></th>
+                  <th id="fih2-CONTEXT_INFO-ID456"></th>
+                  <th id="fih3-CONTEXT_INFO-ID456"></th>
+                  <th id="fih4-CONTEXT_INFO-ID456"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CONTEXT_INFO-ID456" width="3%" align="right">0</td>
+                  <td headers="fih2-CONTEXT_INFO-ID456" width="3%" align="right"></td>
+                  <td headers="fih3-CONTEXT_INFO-ID456" width="20%" align="left">substruct</td>
+                  <td headers="fih4-CONTEXT_INFO-ID456"><a href="#out.CONTEXT_INFO">CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-CORRELATION_ID-ID466"></th>
+                  <th id="fih2-CORRELATION_ID-ID466"></th>
+                  <th id="fih3-CORRELATION_ID-ID466"></th>
+                  <th id="fih4-CORRELATION_ID-ID466"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-CORRELATION_ID-ID466" width="3%" align="right">1</td>
+                  <td headers="fih2-CORRELATION_ID-ID466" width="3%" align="right"></td>
+                  <td headers="fih3-CORRELATION_ID-ID466" width="20%" align="left">string</td>
+                  <td headers="fih4-CORRELATION_ID-ID466"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.CONTEXT_INFO.CORRELATION_ID">CORRELATION_ID</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="fih1-EXTERNAL_USER-ID476"></th>
+                  <th id="fih2-EXTERNAL_USER-ID476"></th>
+                  <th id="fih3-EXTERNAL_USER-ID476"></th>
+                  <th id="fih4-EXTERNAL_USER-ID476"></th>
+               </tr>
+               <tr>
+                  <td headers="fih1-EXTERNAL_USER-ID476" width="3%" align="right">1</td>
+                  <td headers="fih2-EXTERNAL_USER-ID476" width="3%" align="right"></td>
+                  <td headers="fih3-EXTERNAL_USER-ID476" width="20%" align="left">string</td>
+                  <td headers="fih4-EXTERNAL_USER-ID476"><code>
+	  &nbsp;&nbsp;&nbsp;&nbsp;
+	</code><a href="#out.CONTEXT_INFO.EXTERNAL_USER">EXTERNAL_USER</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr><a name="ID"></a>
+         <table summary="Input details table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="id"></th>
+            </tr>
+            <tr>
+               <td headers="id">Input details</td>
+            </tr>
+         </table>
+         <p></p>
+         <p></p><a name="in.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID26"></th>
+               <th id="fth2-POID-ID26"></th>
+               <th id="fth3-POID-ID26"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID26" class="level">0</td>
+               <td headers="fth2-POID-ID26"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID26" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID26"></th>
+                  <th id="prh2-Ue-ID26"></th>
+                  <th id="prh3-Ue-ID26"></th>
+                  <th id="prh4-Ue-ID26"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID26" class="propindent"></td>
+                  <td headers="prh2-Ue-ID26"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID26" class="propgap"></td>
+                  <td headers="prh4-Ue-ID26">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID35"></th>
+                  <th id="prh2-Cla-ID35"></th>
+                  <th id="prh3-Cla-ID35"></th>
+                  <th id="prh4-Cla-ID35"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID35" class="propindent"></td>
+                  <td headers="prh2-Cla-ID35"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID35" class="propgap"></td>
+                  <td headers="prh4-Cla-ID35"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Account object action was applied to.<hr width="0">
+         <p></p><a name="in.SERVICE_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-SERVICE_OBJ-ID39"></th>
+               <th id="fth2-SERVICE_OBJ-ID39"></th>
+               <th id="fth3-SERVICE_OBJ-ID39"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-SERVICE_OBJ-ID39" class="level">0</td>
+               <td headers="fth2-SERVICE_OBJ-ID39"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>SERVICE_OBJ</b>
+               </td>
+               <td headers="fth3-SERVICE_OBJ-ID39" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID39"></th>
+                  <th id="prh2-Ue-ID39"></th>
+                  <th id="prh3-Ue-ID39"></th>
+                  <th id="prh4-Ue-ID39"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID39" class="propindent"></td>
+                  <td headers="prh2-Ue-ID39"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID39" class="propgap"></td>
+                  <td headers="prh4-Ue-ID39">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID48"></th>
+                  <th id="prh2-Cla-ID48"></th>
+                  <th id="prh3-Cla-ID48"></th>
+                  <th id="prh4-Cla-ID48"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID48" class="propindent"></td>
+                  <td headers="prh2-Cla-ID48"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID48" class="propgap"></td>
+                  <td headers="prh4-Cla-ID48"><a href="../object.specs/service.html">/service</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Service object action was applied to.<hr width="0">
+         <p></p><a name="in.SESSION_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-SESSION_OBJ-ID52"></th>
+               <th id="fth2-SESSION_OBJ-ID52"></th>
+               <th id="fth3-SESSION_OBJ-ID52"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-SESSION_OBJ-ID52" class="level">0</td>
+               <td headers="fth2-SESSION_OBJ-ID52"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>SESSION_OBJ</b>
+               </td>
+               <td headers="fth3-SESSION_OBJ-ID52" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID52"></th>
+                  <th id="prh2-Ue-ID52"></th>
+                  <th id="prh3-Ue-ID52"></th>
+                  <th id="prh4-Ue-ID52"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID52" class="propindent"></td>
+                  <td headers="prh2-Ue-ID52"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID52" class="propgap"></td>
+                  <td headers="prh4-Ue-ID52">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID61"></th>
+                  <th id="prh2-Cla-ID61"></th>
+                  <th id="prh3-Cla-ID61"></th>
+                  <th id="prh4-Cla-ID61"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID61" class="propindent"></td>
+                  <td headers="prh2-Cla-ID61"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID61" class="propgap"></td>
+                  <td headers="prh4-Cla-ID61"><a href="../object.specs/event.session.html">/event/session</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Session object - session in which event took place - null means none.<hr width="0">
+         <p></p><a name="in.PROGRAM_NAME"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PROGRAM_NAME-ID83"></th>
+               <th id="fth2-PROGRAM_NAME-ID83"></th>
+               <th id="fth3-PROGRAM_NAME-ID83"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PROGRAM_NAME-ID83" class="level">0</td>
+               <td headers="fth2-PROGRAM_NAME-ID83"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>PROGRAM_NAME</b>
+               </td>
+               <td headers="fth3-PROGRAM_NAME-ID83" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID83"></th>
+                  <th id="prh2-Ue-ID83"></th>
+                  <th id="prh3-Ue-ID83"></th>
+                  <th id="prh4-Ue-ID83"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID83" class="propindent"></td>
+                  <td headers="prh2-Ue-ID83"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID83" class="propgap"></td>
+                  <td headers="prh4-Ue-ID83">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID83"></th>
+                  <th id="prh2-Maxlength-ID83"></th>
+                  <th id="prh3-Maxlength-ID83"></th>
+                  <th id="prh4-Maxlength-ID83"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID83" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID83"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID83" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID83">60</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Program name - identifies calling program.<hr width="0">
+         <p></p><a name="in.DESCR"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DESCR-ID93"></th>
+               <th id="fth2-DESCR-ID93"></th>
+               <th id="fth3-DESCR-ID93"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DESCR-ID93" class="level">0</td>
+               <td headers="fth2-DESCR-ID93"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>DESCR</b>
+               </td>
+               <td headers="fth3-DESCR-ID93" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID93"></th>
+                  <th id="prh2-Ue-ID93"></th>
+                  <th id="prh3-Ue-ID93"></th>
+                  <th id="prh4-Ue-ID93"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID93" class="propindent"></td>
+                  <td headers="prh2-Ue-ID93"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID93" class="propgap"></td>
+                  <td headers="prh4-Ue-ID93">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID93"></th>
+                  <th id="prh2-Maxlength-ID93"></th>
+                  <th id="prh3-Maxlength-ID93"></th>
+                  <th id="prh4-Maxlength-ID93"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID93" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID93"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID93" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID93">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Event description - free text for application to describe event.<hr width="0">
+         <p></p><a name="in.START_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-START_T-ID65"></th>
+               <th id="fth2-START_T-ID65"></th>
+               <th id="fth3-START_T-ID65"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-START_T-ID65" class="level">0</td>
+               <td headers="fth2-START_T-ID65"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>START_T</b>
+               </td>
+               <td headers="fth3-START_T-ID65" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID65"></th>
+                  <th id="prh2-Ue-ID65"></th>
+                  <th id="prh3-Ue-ID65"></th>
+                  <th id="prh4-Ue-ID65"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID65" class="propindent"></td>
+                  <td headers="prh2-Ue-ID65"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID65" class="propgap"></td>
+                  <td headers="prh4-Ue-ID65">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Start time - Timestamp of when event started (Portal Time).<hr width="0">
+         <p></p><a name="in.END_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-END_T-ID74"></th>
+               <th id="fth2-END_T-ID74"></th>
+               <th id="fth3-END_T-ID74"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-END_T-ID74" class="level">0</td>
+               <td headers="fth2-END_T-ID74"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>END_T</b>
+               </td>
+               <td headers="fth3-END_T-ID74" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID74"></th>
+                  <th id="prh2-Ue-ID74"></th>
+                  <th id="prh3-Ue-ID74"></th>
+                  <th id="prh4-Ue-ID74"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID74" class="propindent"></td>
+                  <td headers="prh2-Ue-ID74"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID74" class="propgap"></td>
+                  <td headers="prh4-Ue-ID74">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>End time - Timestamp of when event ended (Portal Time). This field is
+         used to determine which billing cycle the event is part of.<hr width="0">
+         <p></p><a name="in.DISCOUNTS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DISCOUNTS-ID103"></th>
+               <th id="fth2-DISCOUNTS-ID103"></th>
+               <th id="fth3-DISCOUNTS-ID103"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DISCOUNTS-ID103" class="level">0</td>
+               <td headers="fth2-DISCOUNTS-ID103"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>DISCOUNTS</b>
+               </td>
+               <td headers="fth3-DISCOUNTS-ID103" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID103"></th>
+                  <th id="prh2-Ue-ID103"></th>
+                  <th id="prh3-Ue-ID103"></th>
+                  <th id="prh4-Ue-ID103"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID103" class="propindent"></td>
+                  <td headers="prh2-Ue-ID103"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID103" class="propgap"></td>
+                  <td headers="prh4-Ue-ID103">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID103"></th>
+                  <th id="prh2-ElemIDmode-ID103"></th>
+                  <th id="prh3-ElemIDmode-ID103"></th>
+                  <th id="prh4-ElemIDmode-ID103"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID103" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID103"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID103" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID103">ignored</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Iteration-ID103"></th>
+                  <th id="prh2-Iteration-ID103"></th>
+                  <th id="prh3-Iteration-ID103"></th>
+                  <th id="prh4-Iteration-ID103"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Iteration-ID103" class="propindent"></td>
+                  <td headers="prh2-Iteration-ID103"><i>Iteration</i>
+                  </td>
+                  <td headers="prh3-Iteration-ID103" class="propgap"></td>
+                  <td headers="prh4-Iteration-ID103">undefined</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Discounts array. Only one element can appear in this array. Element-id
+         is not relevant. It uniquely identifies the account discount by its
+         offering_obj .<hr width="0">
+         <p></p><a name="in.DISCOUNTS.DISCOUNT_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DISCOUNT_OBJ-ID115"></th>
+               <th id="fth2-DISCOUNT_OBJ-ID115"></th>
+               <th id="fth3-DISCOUNT_OBJ-ID115"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DISCOUNT_OBJ-ID115" class="level">1</td>
+               <td headers="fth2-DISCOUNT_OBJ-ID115"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>DISCOUNT_OBJ</b>
+               </td>
+               <td headers="fth3-DISCOUNT_OBJ-ID115" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID115"></th>
+                  <th id="prh2-Ue-ID115"></th>
+                  <th id="prh3-Ue-ID115"></th>
+                  <th id="prh4-Ue-ID115"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID115" class="propindent"></td>
+                  <td headers="prh2-Ue-ID115"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID115" class="propgap"></td>
+                  <td headers="prh4-Ue-ID115">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID115"></th>
+                  <th id="prh2-Parent-ID115"></th>
+                  <th id="prh3-Parent-ID115"></th>
+                  <th id="prh4-Parent-ID115"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID115" class="propindent"></td>
+                  <td headers="prh2-Parent-ID115"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID115" class="propgap"></td>
+                  <td headers="prh4-Parent-ID115"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID124"></th>
+                  <th id="prh2-Cla-ID124"></th>
+                  <th id="prh3-Cla-ID124"></th>
+                  <th id="prh4-Cla-ID124"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID124" class="propindent"></td>
+                  <td headers="prh2-Cla-ID124"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID124" class="propgap"></td>
+                  <td headers="prh4-Cla-ID124"><a href="../object.specs/discount.html">/discount</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Poid of discount to purchase.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OFFERING_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-OFFERING_OBJ-ID128"></th>
+               <th id="fth2-OFFERING_OBJ-ID128"></th>
+               <th id="fth3-OFFERING_OBJ-ID128"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-OFFERING_OBJ-ID128" class="level">1</td>
+               <td headers="fth2-OFFERING_OBJ-ID128"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>OFFERING_OBJ</b>
+               </td>
+               <td headers="fth3-OFFERING_OBJ-ID128" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID128"></th>
+                  <th id="prh2-Ue-ID128"></th>
+                  <th id="prh3-Ue-ID128"></th>
+                  <th id="prh4-Ue-ID128"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID128" class="propindent"></td>
+                  <td headers="prh2-Ue-ID128"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID128" class="propgap"></td>
+                  <td headers="prh4-Ue-ID128">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID128"></th>
+                  <th id="prh2-Parent-ID128"></th>
+                  <th id="prh3-Parent-ID128"></th>
+                  <th id="prh4-Parent-ID128"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID128" class="propindent"></td>
+                  <td headers="prh2-Parent-ID128"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID128" class="propgap"></td>
+                  <td headers="prh4-Parent-ID128"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID137"></th>
+                  <th id="prh2-Cla-ID137"></th>
+                  <th id="prh3-Cla-ID137"></th>
+                  <th id="prh4-Cla-ID137"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID137" class="propindent"></td>
+                  <td headers="prh2-Cla-ID137"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID137" class="propgap"></td>
+                  <td headers="prh4-Cla-ID137"><a href="../object.specs/purchased_discount.html">/purchased_discount</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Uniquely identifies a discount in an account.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OFFERING_OVERRIDE_VALUES_OBJ"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+               <th id="fth2-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+               <th id="fth3-OFFERING_OVERRIDE_VALUES_OBJ-ID141"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-OFFERING_OVERRIDE_VALUES_OBJ-ID141" class="level">1</td>
+               <td headers="fth2-OFFERING_OVERRIDE_VALUES_OBJ-ID141"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>OFFERING_OVERRIDE_VALUES_OBJ</b>
+               </td>
+               <td headers="fth3-OFFERING_OVERRIDE_VALUES_OBJ-ID141" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID141"></th>
+                  <th id="prh2-Ue-ID141"></th>
+                  <th id="prh3-Ue-ID141"></th>
+                  <th id="prh4-Ue-ID141"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID141" class="propindent"></td>
+                  <td headers="prh2-Ue-ID141"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID141" class="propgap"></td>
+                  <td headers="prh4-Ue-ID141">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID141"></th>
+                  <th id="prh2-Parent-ID141"></th>
+                  <th id="prh3-Parent-ID141"></th>
+                  <th id="prh4-Parent-ID141"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID141" class="propindent"></td>
+                  <td headers="prh2-Parent-ID141"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID141" class="propgap"></td>
+                  <td headers="prh4-Parent-ID141"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID150"></th>
+                  <th id="prh2-Cla-ID150"></th>
+                  <th id="prh3-Cla-ID150"></th>
+                  <th id="prh4-Cla-ID150"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID150" class="propindent"></td>
+                  <td headers="prh2-Cla-ID150"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID150" class="propgap"></td>
+                  <td headers="prh4-Cla-ID150"><a href="../object.specs/offering_override_values.html">/offering_override_values</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Poid of offering override values<hr width="0">
+         <p></p><a name="in.DISCOUNTS.PURCHASE_START_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PURCHASE_START_T-ID208"></th>
+               <th id="fth2-PURCHASE_START_T-ID208"></th>
+               <th id="fth3-PURCHASE_START_T-ID208"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PURCHASE_START_T-ID208" class="level">1</td>
+               <td headers="fth2-PURCHASE_START_T-ID208"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>PURCHASE_START_T</b>
+               </td>
+               <td headers="fth3-PURCHASE_START_T-ID208" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID208"></th>
+                  <th id="prh2-Ue-ID208"></th>
+                  <th id="prh3-Ue-ID208"></th>
+                  <th id="prh4-Ue-ID208"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID208" class="propindent"></td>
+                  <td headers="prh2-Ue-ID208"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID208" class="propgap"></td>
+                  <td headers="prh4-Ue-ID208">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID208"></th>
+                  <th id="prh2-Parent-ID208"></th>
+                  <th id="prh3-Parent-ID208"></th>
+                  <th id="prh4-Parent-ID208"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID208" class="propindent"></td>
+                  <td headers="prh2-Parent-ID208"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID208" class="propgap"></td>
+                  <td headers="prh4-Parent-ID208"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Purchase start time - Timestamp that discount activates (Portal Time).<hr width="0">
+         <p></p><a name="in.DISCOUNTS.PURCHASE_END_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PURCHASE_END_T-ID217"></th>
+               <th id="fth2-PURCHASE_END_T-ID217"></th>
+               <th id="fth3-PURCHASE_END_T-ID217"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PURCHASE_END_T-ID217" class="level">1</td>
+               <td headers="fth2-PURCHASE_END_T-ID217"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>PURCHASE_END_T</b>
+               </td>
+               <td headers="fth3-PURCHASE_END_T-ID217" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID217"></th>
+                  <th id="prh2-Ue-ID217"></th>
+                  <th id="prh3-Ue-ID217"></th>
+                  <th id="prh4-Ue-ID217"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID217" class="propindent"></td>
+                  <td headers="prh2-Ue-ID217"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID217" class="propgap"></td>
+                  <td headers="prh4-Ue-ID217">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID217"></th>
+                  <th id="prh2-Parent-ID217"></th>
+                  <th id="prh3-Parent-ID217"></th>
+                  <th id="prh4-Parent-ID217"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID217" class="propindent"></td>
+                  <td headers="prh2-Parent-ID217"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID217" class="propgap"></td>
+                  <td headers="prh4-Parent-ID217"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Purchase end time - Timestamp that discount expires (Portal Time), 0
+           means that discount does not expire.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.PURCHASE_END_UNIT"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PURCHASE_END_UNIT-ID154"></th>
+               <th id="fth2-PURCHASE_END_UNIT-ID154"></th>
+               <th id="fth3-PURCHASE_END_UNIT-ID154"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PURCHASE_END_UNIT-ID154" class="level">1</td>
+               <td headers="fth2-PURCHASE_END_UNIT-ID154"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>PURCHASE_END_UNIT</b>
+               </td>
+               <td headers="fth3-PURCHASE_END_UNIT-ID154" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID154"></th>
+                  <th id="prh2-Ue-ID154"></th>
+                  <th id="prh3-Ue-ID154"></th>
+                  <th id="prh4-Ue-ID154"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID154" class="propindent"></td>
+                  <td headers="prh2-Ue-ID154"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID154" class="propgap"></td>
+                  <td headers="prh4-Ue-ID154">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID154"></th>
+                  <th id="prh2-Parent-ID154"></th>
+                  <th id="prh3-Parent-ID154"></th>
+                  <th id="prh4-Parent-ID154"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID154" class="propindent"></td>
+                  <td headers="prh2-Parent-ID154"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID154" class="propgap"></td>
+                  <td headers="prh4-Parent-ID154"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative Unit for Purchase Can be Seconds=1,Minutes=2,Hours=3,Days=4,
+            Months=5, Cycles=8 and Event cycles=9. For First Usage unit should be
+          passed as -1. For unit=0, the purchase end_t would be checked.
+          If unit is 0 and purchase end_t is 0 then End Never.
+          If unit is 0 and purchase end_t is greater than 0 then purchase end date 
+          is an Absolute date. Based on this the purchase end details would be 
+          calculated.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.PURCHASE_END_OFFSET"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PURCHASE_END_OFFSET-ID163"></th>
+               <th id="fth2-PURCHASE_END_OFFSET-ID163"></th>
+               <th id="fth3-PURCHASE_END_OFFSET-ID163"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PURCHASE_END_OFFSET-ID163" class="level">1</td>
+               <td headers="fth2-PURCHASE_END_OFFSET-ID163"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>PURCHASE_END_OFFSET</b>
+               </td>
+               <td headers="fth3-PURCHASE_END_OFFSET-ID163" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID163"></th>
+                  <th id="prh2-Ue-ID163"></th>
+                  <th id="prh3-Ue-ID163"></th>
+                  <th id="prh4-Ue-ID163"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID163" class="propindent"></td>
+                  <td headers="prh2-Ue-ID163"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID163" class="propgap"></td>
+                  <td headers="prh4-Ue-ID163">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID163"></th>
+                  <th id="prh2-Parent-ID163"></th>
+                  <th id="prh3-Parent-ID163"></th>
+                  <th id="prh4-Parent-ID163"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID163" class="propindent"></td>
+                  <td headers="prh2-Parent-ID163"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID163" class="propgap"></td>
+                  <td headers="prh4-Parent-ID163"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative offset for Purchase startT to be used in conjunction with
+           unit to calculate Purchase endT on First Usage.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.CYCLE_START_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CYCLE_START_T-ID226"></th>
+               <th id="fth2-CYCLE_START_T-ID226"></th>
+               <th id="fth3-CYCLE_START_T-ID226"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CYCLE_START_T-ID226" class="level">1</td>
+               <td headers="fth2-CYCLE_START_T-ID226"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>CYCLE_START_T</b>
+               </td>
+               <td headers="fth3-CYCLE_START_T-ID226" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID226"></th>
+                  <th id="prh2-Ue-ID226"></th>
+                  <th id="prh3-Ue-ID226"></th>
+                  <th id="prh4-Ue-ID226"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID226" class="propindent"></td>
+                  <td headers="prh2-Ue-ID226"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID226" class="propgap"></td>
+                  <td headers="prh4-Ue-ID226">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID226"></th>
+                  <th id="prh2-Parent-ID226"></th>
+                  <th id="prh3-Parent-ID226"></th>
+                  <th id="prh4-Parent-ID226"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID226" class="propindent"></td>
+                  <td headers="prh2-Parent-ID226"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID226" class="propgap"></td>
+                  <td headers="prh4-Parent-ID226"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Cycle fee start time - timestamp that cycle fees begin for this
+           discount (Portal Time), 0 means immediately. This field should
+	   not be changed for an existing discount.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.CYCLE_END_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CYCLE_END_T-ID235"></th>
+               <th id="fth2-CYCLE_END_T-ID235"></th>
+               <th id="fth3-CYCLE_END_T-ID235"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CYCLE_END_T-ID235" class="level">1</td>
+               <td headers="fth2-CYCLE_END_T-ID235"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>CYCLE_END_T</b>
+               </td>
+               <td headers="fth3-CYCLE_END_T-ID235" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID235"></th>
+                  <th id="prh2-Ue-ID235"></th>
+                  <th id="prh3-Ue-ID235"></th>
+                  <th id="prh4-Ue-ID235"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID235" class="propindent"></td>
+                  <td headers="prh2-Ue-ID235"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID235" class="propgap"></td>
+                  <td headers="prh4-Ue-ID235">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID235"></th>
+                  <th id="prh2-Parent-ID235"></th>
+                  <th id="prh3-Parent-ID235"></th>
+                  <th id="prh4-Parent-ID235"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID235" class="propindent"></td>
+                  <td headers="prh2-Parent-ID235"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID235" class="propgap"></td>
+                  <td headers="prh4-Parent-ID235"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Cycle fee end time - Timestamp that cycle fees are no longer applied
+           for this discount (Portal Time), 0 means always applied.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.CYCLE_END_UNIT"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CYCLE_END_UNIT-ID172"></th>
+               <th id="fth2-CYCLE_END_UNIT-ID172"></th>
+               <th id="fth3-CYCLE_END_UNIT-ID172"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CYCLE_END_UNIT-ID172" class="level">1</td>
+               <td headers="fth2-CYCLE_END_UNIT-ID172"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>CYCLE_END_UNIT</b>
+               </td>
+               <td headers="fth3-CYCLE_END_UNIT-ID172" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID172"></th>
+                  <th id="prh2-Ue-ID172"></th>
+                  <th id="prh3-Ue-ID172"></th>
+                  <th id="prh4-Ue-ID172"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID172" class="propindent"></td>
+                  <td headers="prh2-Ue-ID172"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID172" class="propgap"></td>
+                  <td headers="prh4-Ue-ID172">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID172"></th>
+                  <th id="prh2-Parent-ID172"></th>
+                  <th id="prh3-Parent-ID172"></th>
+                  <th id="prh4-Parent-ID172"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID172" class="propindent"></td>
+                  <td headers="prh2-Parent-ID172"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID172" class="propgap"></td>
+                  <td headers="prh4-Parent-ID172"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative Unit for Cycle Can be Seconds=1, Minutes=2, Hours=3, Days=4,
+            Months=5, Cycles=8 and Event cycles=9. For First Usage unit should be
+          passed as -1. For unit=0, the cycle end_t would be checked.
+          If unit is 0 and cycle end_t is 0 then End Never.
+          If unit is 0 and cycle end_t is greater than 0 then cycle end date is
+          an Absolute date. Based on this the cycle end details would be 
+          calculated.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.CYCLE_END_OFFSET"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CYCLE_END_OFFSET-ID181"></th>
+               <th id="fth2-CYCLE_END_OFFSET-ID181"></th>
+               <th id="fth3-CYCLE_END_OFFSET-ID181"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CYCLE_END_OFFSET-ID181" class="level">1</td>
+               <td headers="fth2-CYCLE_END_OFFSET-ID181"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>CYCLE_END_OFFSET</b>
+               </td>
+               <td headers="fth3-CYCLE_END_OFFSET-ID181" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID181"></th>
+                  <th id="prh2-Ue-ID181"></th>
+                  <th id="prh3-Ue-ID181"></th>
+                  <th id="prh4-Ue-ID181"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID181" class="propindent"></td>
+                  <td headers="prh2-Ue-ID181"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID181" class="propgap"></td>
+                  <td headers="prh4-Ue-ID181">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID181"></th>
+                  <th id="prh2-Parent-ID181"></th>
+                  <th id="prh3-Parent-ID181"></th>
+                  <th id="prh4-Parent-ID181"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID181" class="propindent"></td>
+                  <td headers="prh2-Parent-ID181"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID181" class="propgap"></td>
+                  <td headers="prh4-Parent-ID181"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative offset for Cycle to be used in conjunction with unit to
+           calculate Cycle end_t.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.USAGE_START_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-USAGE_START_T-ID244"></th>
+               <th id="fth2-USAGE_START_T-ID244"></th>
+               <th id="fth3-USAGE_START_T-ID244"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-USAGE_START_T-ID244" class="level">1</td>
+               <td headers="fth2-USAGE_START_T-ID244"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>USAGE_START_T</b>
+               </td>
+               <td headers="fth3-USAGE_START_T-ID244" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID244"></th>
+                  <th id="prh2-Ue-ID244"></th>
+                  <th id="prh3-Ue-ID244"></th>
+                  <th id="prh4-Ue-ID244"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID244" class="propindent"></td>
+                  <td headers="prh2-Ue-ID244"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID244" class="propgap"></td>
+                  <td headers="prh4-Ue-ID244">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID244"></th>
+                  <th id="prh2-Parent-ID244"></th>
+                  <th id="prh3-Parent-ID244"></th>
+                  <th id="prh4-Parent-ID244"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID244" class="propindent"></td>
+                  <td headers="prh2-Parent-ID244"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID244" class="propgap"></td>
+                  <td headers="prh4-Parent-ID244"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Usage fee start time - timestamp that usage fees begin for this
+           discount (Portal Time) (0 means immediately)<hr width="0">
+         <p></p><a name="in.DISCOUNTS.USAGE_END_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-USAGE_END_T-ID253"></th>
+               <th id="fth2-USAGE_END_T-ID253"></th>
+               <th id="fth3-USAGE_END_T-ID253"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-USAGE_END_T-ID253" class="level">1</td>
+               <td headers="fth2-USAGE_END_T-ID253"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>USAGE_END_T</b>
+               </td>
+               <td headers="fth3-USAGE_END_T-ID253" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID253"></th>
+                  <th id="prh2-Ue-ID253"></th>
+                  <th id="prh3-Ue-ID253"></th>
+                  <th id="prh4-Ue-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID253" class="propindent"></td>
+                  <td headers="prh2-Ue-ID253"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID253" class="propgap"></td>
+                  <td headers="prh4-Ue-ID253">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID253"></th>
+                  <th id="prh2-Parent-ID253"></th>
+                  <th id="prh3-Parent-ID253"></th>
+                  <th id="prh4-Parent-ID253"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID253" class="propindent"></td>
+                  <td headers="prh2-Parent-ID253"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID253" class="propgap"></td>
+                  <td headers="prh4-Parent-ID253"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Usage fee end time - timestapm that usage fees are no longer applied
+           for this discount (Portal Time) (0 means always applied).<hr width="0">
+         <p></p><a name="in.DISCOUNTS.USAGE_END_UNIT"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-USAGE_END_UNIT-ID190"></th>
+               <th id="fth2-USAGE_END_UNIT-ID190"></th>
+               <th id="fth3-USAGE_END_UNIT-ID190"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-USAGE_END_UNIT-ID190" class="level">1</td>
+               <td headers="fth2-USAGE_END_UNIT-ID190"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>USAGE_END_UNIT</b>
+               </td>
+               <td headers="fth3-USAGE_END_UNIT-ID190" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID190"></th>
+                  <th id="prh2-Ue-ID190"></th>
+                  <th id="prh3-Ue-ID190"></th>
+                  <th id="prh4-Ue-ID190"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID190" class="propindent"></td>
+                  <td headers="prh2-Ue-ID190"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID190" class="propgap"></td>
+                  <td headers="prh4-Ue-ID190">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID190"></th>
+                  <th id="prh2-Parent-ID190"></th>
+                  <th id="prh3-Parent-ID190"></th>
+                  <th id="prh4-Parent-ID190"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID190" class="propindent"></td>
+                  <td headers="prh2-Parent-ID190"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID190" class="propgap"></td>
+                  <td headers="prh4-Parent-ID190"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative Unit for Usage Can be Seconds=1, Minutes=2, Hours=3, Days=4,
+            Months=5, Cycles=8 and Event cycles=9. For First Usage unit should be
+          passed as -1. For unit=0, the usage end_t would be checked.
+          If unit is 0 and usage end_t is 0 then End Never.
+          If unit is 0 and usage end_t is greater than 0 then usage end date is
+          an Absolute date. Based on this the usage end details would be 
+          calculated.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.USAGE_END_OFFSET"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-USAGE_END_OFFSET-ID199"></th>
+               <th id="fth2-USAGE_END_OFFSET-ID199"></th>
+               <th id="fth3-USAGE_END_OFFSET-ID199"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-USAGE_END_OFFSET-ID199" class="level">1</td>
+               <td headers="fth2-USAGE_END_OFFSET-ID199"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>USAGE_END_OFFSET</b>
+               </td>
+               <td headers="fth3-USAGE_END_OFFSET-ID199" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID199"></th>
+                  <th id="prh2-Ue-ID199"></th>
+                  <th id="prh3-Ue-ID199"></th>
+                  <th id="prh4-Ue-ID199"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID199" class="propindent"></td>
+                  <td headers="prh2-Ue-ID199"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID199" class="propgap"></td>
+                  <td headers="prh4-Ue-ID199">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID199"></th>
+                  <th id="prh2-Parent-ID199"></th>
+                  <th id="prh3-Parent-ID199"></th>
+                  <th id="prh4-Parent-ID199"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID199" class="propindent"></td>
+                  <td headers="prh2-Parent-ID199"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID199" class="propgap"></td>
+                  <td headers="prh4-Parent-ID199"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Relative offset for Usage to be used in conjunction with unit to
+           calculate Usage end_t on First Usage.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.DESCR"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DESCR-ID262"></th>
+               <th id="fth2-DESCR-ID262"></th>
+               <th id="fth3-DESCR-ID262"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DESCR-ID262" class="level">1</td>
+               <td headers="fth2-DESCR-ID262"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>DESCR</b>
+               </td>
+               <td headers="fth3-DESCR-ID262" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID262"></th>
+                  <th id="prh2-Ue-ID262"></th>
+                  <th id="prh3-Ue-ID262"></th>
+                  <th id="prh4-Ue-ID262"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID262" class="propindent"></td>
+                  <td headers="prh2-Ue-ID262"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID262" class="propgap"></td>
+                  <td headers="prh4-Ue-ID262">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID262"></th>
+                  <th id="prh2-Parent-ID262"></th>
+                  <th id="prh3-Parent-ID262"></th>
+                  <th id="prh4-Parent-ID262"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID262" class="propindent"></td>
+                  <td headers="prh2-Parent-ID262"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID262" class="propgap"></td>
+                  <td headers="prh4-Parent-ID262"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID262"></th>
+                  <th id="prh2-Maxlength-ID262"></th>
+                  <th id="prh3-Maxlength-ID262"></th>
+                  <th id="prh4-Maxlength-ID262"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID262" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID262"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID262" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID262">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Description on a per discount basis for CSR to add comments<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-OVERRIDE_DISCOUNTS-ID272"></th>
+               <th id="fth2-OVERRIDE_DISCOUNTS-ID272"></th>
+               <th id="fth3-OVERRIDE_DISCOUNTS-ID272"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-OVERRIDE_DISCOUNTS-ID272" class="level">1</td>
+               <td headers="fth2-OVERRIDE_DISCOUNTS-ID272"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>OVERRIDE_DISCOUNTS</b>
+               </td>
+               <td headers="fth3-OVERRIDE_DISCOUNTS-ID272" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID272"></th>
+                  <th id="prh2-Ue-ID272"></th>
+                  <th id="prh3-Ue-ID272"></th>
+                  <th id="prh4-Ue-ID272"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID272" class="propindent"></td>
+                  <td headers="prh2-Ue-ID272"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID272" class="propgap"></td>
+                  <td headers="prh4-Ue-ID272">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID272"></th>
+                  <th id="prh2-Parent-ID272"></th>
+                  <th id="prh3-Parent-ID272"></th>
+                  <th id="prh4-Parent-ID272"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID272" class="propindent"></td>
+                  <td headers="prh2-Parent-ID272"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID272" class="propgap"></td>
+                  <td headers="prh4-Parent-ID272"><a href="#in.DISCOUNTS"> in.DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID272"></th>
+                  <th id="prh2-MinnumberofElement-ID272"></th>
+                  <th id="prh3-MinnumberofElement-ID272"></th>
+                  <th id="prh4-MinnumberofElement-ID272"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID272" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID272"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID272" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID272">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Pricing override discount or the discount whose pricing should be overridden. <hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.FLAGS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-FLAGS-ID284"></th>
+               <th id="fth2-FLAGS-ID284"></th>
+               <th id="fth3-FLAGS-ID284"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-FLAGS-ID284" class="level">2</td>
+               <td headers="fth2-FLAGS-ID284"><b>int</b>
+	      &nbsp;&nbsp;
+	    <b>FLAGS</b>
+               </td>
+               <td headers="fth3-FLAGS-ID284" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID284"></th>
+                  <th id="prh2-Ue-ID284"></th>
+                  <th id="prh3-Ue-ID284"></th>
+                  <th id="prh4-Ue-ID284"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID284" class="propindent"></td>
+                  <td headers="prh2-Ue-ID284"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID284" class="propgap"></td>
+                  <td headers="prh4-Ue-ID284">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID284"></th>
+                  <th id="prh2-Parent-ID284"></th>
+                  <th id="prh3-Parent-ID284"></th>
+                  <th id="prh4-Parent-ID284"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID284" class="propindent"></td>
+                  <td headers="prh2-Parent-ID284"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID284" class="propgap"></td>
+                  <td headers="prh4-Parent-ID284"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS"> in.DISCOUNTS.OVERRIDE_DISCOUNTS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>This flags tells whether to create, read, update or delete the /offering_override_values. 
+                If the flag passed is 1(PIN_CREATE_DATE_RANGE), it will add new DATE_RANGE in the specified 
+                usage map and if that usage map doesn't exist, it will create new usage map. If no object is 
+                linked to purchased discount, it will create a new object for overrides. If the flag passed is 
+                2(PIN_UPDATE_TAGS), it will update or add the tag in the matching date ranges. If the flag passed is 
+                3(PIN_DELETE_OFFER), it will delete the offering override object linked to purchased discount. If the flag 
+                passed is 4(PIN_DELETE_DATE_RANGE), it will delete the matching date ranges. If the flag passed is 
+                5(PIN_DELETE_TAGS), it will delete the listed tags in input for that date range.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-USAGE_MAP-ID293"></th>
+               <th id="fth2-USAGE_MAP-ID293"></th>
+               <th id="fth3-USAGE_MAP-ID293"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-USAGE_MAP-ID293" class="level">2</td>
+               <td headers="fth2-USAGE_MAP-ID293"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>USAGE_MAP</b>
+               </td>
+               <td headers="fth3-USAGE_MAP-ID293" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID293"></th>
+                  <th id="prh2-Ue-ID293"></th>
+                  <th id="prh3-Ue-ID293"></th>
+                  <th id="prh4-Ue-ID293"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID293" class="propindent"></td>
+                  <td headers="prh2-Ue-ID293"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID293" class="propgap"></td>
+                  <td headers="prh4-Ue-ID293">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID293"></th>
+                  <th id="prh2-Parent-ID293"></th>
+                  <th id="prh3-Parent-ID293"></th>
+                  <th id="prh4-Parent-ID293"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID293" class="propindent"></td>
+                  <td headers="prh2-Parent-ID293"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID293" class="propgap"></td>
+                  <td headers="prh4-Parent-ID293"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS"> in.DISCOUNTS.OVERRIDE_DISCOUNTS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID293"></th>
+                  <th id="prh2-MinnumberofElement-ID293"></th>
+                  <th id="prh3-MinnumberofElement-ID293"></th>
+                  <th id="prh4-MinnumberofElement-ID293"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID293" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID293"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID293" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID293">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Usage map<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.EVENT_TYPE"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-EVENT_TYPE-ID305"></th>
+               <th id="fth2-EVENT_TYPE-ID305"></th>
+               <th id="fth3-EVENT_TYPE-ID305"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-EVENT_TYPE-ID305" class="level">3</td>
+               <td headers="fth2-EVENT_TYPE-ID305"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>EVENT_TYPE</b>
+               </td>
+               <td headers="fth3-EVENT_TYPE-ID305" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID305"></th>
+                  <th id="prh2-Ue-ID305"></th>
+                  <th id="prh3-Ue-ID305"></th>
+                  <th id="prh4-Ue-ID305"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID305" class="propindent"></td>
+                  <td headers="prh2-Ue-ID305"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID305" class="propgap"></td>
+                  <td headers="prh4-Ue-ID305">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID305"></th>
+                  <th id="prh2-Parent-ID305"></th>
+                  <th id="prh3-Parent-ID305"></th>
+                  <th id="prh4-Parent-ID305"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID305" class="propindent"></td>
+                  <td headers="prh2-Parent-ID305"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID305" class="propgap"></td>
+                  <td headers="prh4-Parent-ID305"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID305"></th>
+                  <th id="prh2-Maxlength-ID305"></th>
+                  <th id="prh3-Maxlength-ID305"></th>
+                  <th id="prh4-Maxlength-ID305"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID305" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID305"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID305" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID305">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Type of event that this entry specifies rating for. Unique within usage map.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-DATE_RANGES-ID315"></th>
+               <th id="fth2-DATE_RANGES-ID315"></th>
+               <th id="fth3-DATE_RANGES-ID315"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-DATE_RANGES-ID315" class="level">3</td>
+               <td headers="fth2-DATE_RANGES-ID315"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>DATE_RANGES</b>
+               </td>
+               <td headers="fth3-DATE_RANGES-ID315" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID315"></th>
+                  <th id="prh2-Ue-ID315"></th>
+                  <th id="prh3-Ue-ID315"></th>
+                  <th id="prh4-Ue-ID315"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID315" class="propindent"></td>
+                  <td headers="prh2-Ue-ID315"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID315" class="propgap"></td>
+                  <td headers="prh4-Ue-ID315">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID315"></th>
+                  <th id="prh2-Parent-ID315"></th>
+                  <th id="prh3-Parent-ID315"></th>
+                  <th id="prh4-Parent-ID315"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID315" class="propindent"></td>
+                  <td headers="prh2-Parent-ID315"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID315" class="propgap"></td>
+                  <td headers="prh4-Parent-ID315"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID315"></th>
+                  <th id="prh2-MinnumberofElement-ID315"></th>
+                  <th id="prh3-MinnumberofElement-ID315"></th>
+                  <th id="prh4-MinnumberofElement-ID315"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID315" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID315"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID315" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID315">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>
+         <hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.START_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-START_T-ID324"></th>
+               <th id="fth2-START_T-ID324"></th>
+               <th id="fth3-START_T-ID324"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-START_T-ID324" class="level">4</td>
+               <td headers="fth2-START_T-ID324"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>START_T</b>
+               </td>
+               <td headers="fth3-START_T-ID324" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID324"></th>
+                  <th id="prh2-Ue-ID324"></th>
+                  <th id="prh3-Ue-ID324"></th>
+                  <th id="prh4-Ue-ID324"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID324" class="propindent"></td>
+                  <td headers="prh2-Ue-ID324"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID324" class="propgap"></td>
+                  <td headers="prh4-Ue-ID324">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID324"></th>
+                  <th id="prh2-Parent-ID324"></th>
+                  <th id="prh3-Parent-ID324"></th>
+                  <th id="prh4-Parent-ID324"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID324" class="propindent"></td>
+                  <td headers="prh2-Parent-ID324"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID324" class="propgap"></td>
+                  <td headers="prh4-Parent-ID324"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Start time<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.END_T"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-END_T-ID333"></th>
+               <th id="fth2-END_T-ID333"></th>
+               <th id="fth3-END_T-ID333"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-END_T-ID333" class="level">4</td>
+               <td headers="fth2-END_T-ID333"><b>timestamp</b>
+	      &nbsp;&nbsp;
+	    <b>END_T</b>
+               </td>
+               <td headers="fth3-END_T-ID333" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID333"></th>
+                  <th id="prh2-Ue-ID333"></th>
+                  <th id="prh3-Ue-ID333"></th>
+                  <th id="prh4-Ue-ID333"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID333" class="propindent"></td>
+                  <td headers="prh2-Ue-ID333"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID333" class="propgap"></td>
+                  <td headers="prh4-Ue-ID333">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID333"></th>
+                  <th id="prh2-Parent-ID333"></th>
+                  <th id="prh3-Parent-ID333"></th>
+                  <th id="prh4-Parent-ID333"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID333" class="propindent"></td>
+                  <td headers="prh2-Parent-ID333"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID333" class="propgap"></td>
+                  <td headers="prh4-Parent-ID333"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>End time. Note that the last DATE_RANGES can have END_T as NULL i.e. the specified DATE_RANGES will be valid for entire discount cycle.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PRICE_TAGS-ID342"></th>
+               <th id="fth2-PRICE_TAGS-ID342"></th>
+               <th id="fth3-PRICE_TAGS-ID342"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PRICE_TAGS-ID342" class="level">4</td>
+               <td headers="fth2-PRICE_TAGS-ID342"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>PRICE_TAGS</b>
+               </td>
+               <td headers="fth3-PRICE_TAGS-ID342" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID342"></th>
+                  <th id="prh2-Ue-ID342"></th>
+                  <th id="prh3-Ue-ID342"></th>
+                  <th id="prh4-Ue-ID342"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID342" class="propindent"></td>
+                  <td headers="prh2-Ue-ID342"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID342" class="propgap"></td>
+                  <td headers="prh4-Ue-ID342">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID342"></th>
+                  <th id="prh2-Parent-ID342"></th>
+                  <th id="prh3-Parent-ID342"></th>
+                  <th id="prh4-Parent-ID342"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID342" class="propindent"></td>
+                  <td headers="prh2-Parent-ID342"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID342" class="propgap"></td>
+                  <td headers="prh4-Parent-ID342"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-MinnumberofElement-ID342"></th>
+                  <th id="prh2-MinnumberofElement-ID342"></th>
+                  <th id="prh3-MinnumberofElement-ID342"></th>
+                  <th id="prh4-MinnumberofElement-ID342"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-MinnumberofElement-ID342" class="propindent"></td>
+                  <td headers="prh2-MinnumberofElement-ID342"><i>Min number of Elements</i>
+                  </td>
+                  <td headers="prh3-MinnumberofElement-ID342" class="propgap"></td>
+                  <td headers="prh4-MinnumberofElement-ID342">0</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Array of price tags.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.NAME"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-NAME-ID372"></th>
+               <th id="fth2-NAME-ID372"></th>
+               <th id="fth3-NAME-ID372"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-NAME-ID372" class="level">5</td>
+               <td headers="fth2-NAME-ID372"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>NAME</b>
+               </td>
+               <td headers="fth3-NAME-ID372" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID372"></th>
+                  <th id="prh2-Ue-ID372"></th>
+                  <th id="prh3-Ue-ID372"></th>
+                  <th id="prh4-Ue-ID372"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID372" class="propindent"></td>
+                  <td headers="prh2-Ue-ID372"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID372" class="propgap"></td>
+                  <td headers="prh4-Ue-ID372">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID372"></th>
+                  <th id="prh2-Parent-ID372"></th>
+                  <th id="prh3-Parent-ID372"></th>
+                  <th id="prh4-Parent-ID372"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID372" class="propindent"></td>
+                  <td headers="prh2-Parent-ID372"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID372" class="propgap"></td>
+                  <td headers="prh4-Parent-ID372"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID372"></th>
+                  <th id="prh2-Maxlength-ID372"></th>
+                  <th id="prh3-Maxlength-ID372"></th>
+                  <th id="prh4-Maxlength-ID372"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID372" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID372"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID372" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID372">255</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Name of the scaled or fixed tag.<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.AMOUNT"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-AMOUNT-ID354"></th>
+               <th id="fth2-AMOUNT-ID354"></th>
+               <th id="fth3-AMOUNT-ID354"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-AMOUNT-ID354" class="level">5</td>
+               <td headers="fth2-AMOUNT-ID354"><b>decimal</b>
+	      &nbsp;&nbsp;
+	    <b>AMOUNT</b>
+               </td>
+               <td headers="fth3-AMOUNT-ID354" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID354"></th>
+                  <th id="prh2-Ue-ID354"></th>
+                  <th id="prh3-Ue-ID354"></th>
+                  <th id="prh4-Ue-ID354"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID354" class="propindent"></td>
+                  <td headers="prh2-Ue-ID354"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID354" class="propgap"></td>
+                  <td headers="prh4-Ue-ID354">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID354"></th>
+                  <th id="prh2-Parent-ID354"></th>
+                  <th id="prh3-Parent-ID354"></th>
+                  <th id="prh4-Parent-ID354"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID354" class="propindent"></td>
+                  <td headers="prh2-Parent-ID354"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID354" class="propgap"></td>
+                  <td headers="prh4-Parent-ID354"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Override amount in Decimal data type<hr width="0">
+         <p></p><a name="in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS.PERCENT"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-PERCENT-ID363"></th>
+               <th id="fth2-PERCENT-ID363"></th>
+               <th id="fth3-PERCENT-ID363"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-PERCENT-ID363" class="level">5</td>
+               <td headers="fth2-PERCENT-ID363"><b>decimal</b>
+	      &nbsp;&nbsp;
+	    <b>PERCENT</b>
+               </td>
+               <td headers="fth3-PERCENT-ID363" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID363"></th>
+                  <th id="prh2-Ue-ID363"></th>
+                  <th id="prh3-Ue-ID363"></th>
+                  <th id="prh4-Ue-ID363"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID363" class="propindent"></td>
+                  <td headers="prh2-Ue-ID363"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID363" class="propgap"></td>
+                  <td headers="prh4-Ue-ID363">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID363"></th>
+                  <th id="prh2-Parent-ID363"></th>
+                  <th id="prh3-Parent-ID363"></th>
+                  <th id="prh4-Parent-ID363"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID363" class="propindent"></td>
+                  <td headers="prh2-Parent-ID363"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID363" class="propgap"></td>
+                  <td headers="prh4-Parent-ID363"><a href="#in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS"> in.DISCOUNTS.OVERRIDE_DISCOUNTS.USAGE_MAP.DATE_RANGES.PRICE_TAGS</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Override percentage for cycle events<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CONTEXT_INFO-ID392"></th>
+               <th id="fth2-CONTEXT_INFO-ID392"></th>
+               <th id="fth3-CONTEXT_INFO-ID392"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CONTEXT_INFO-ID392" class="level">0</td>
+               <td headers="fth2-CONTEXT_INFO-ID392"><b>substruct</b>
+	      &nbsp;&nbsp;
+	    <b>CONTEXT_INFO</b>
+               </td>
+               <td headers="fth3-CONTEXT_INFO-ID392" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID392"></th>
+                  <th id="prh2-Ue-ID392"></th>
+                  <th id="prh3-Ue-ID392"></th>
+                  <th id="prh4-Ue-ID392"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID392" class="propindent"></td>
+                  <td headers="prh2-Ue-ID392"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID392" class="propgap"></td>
+                  <td headers="prh4-Ue-ID392">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Substruct to pass information from external clients.<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO.CORRELATION_ID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CORRELATION_ID-ID402"></th>
+               <th id="fth2-CORRELATION_ID-ID402"></th>
+               <th id="fth3-CORRELATION_ID-ID402"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CORRELATION_ID-ID402" class="level">1</td>
+               <td headers="fth2-CORRELATION_ID-ID402"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>CORRELATION_ID</b>
+               </td>
+               <td headers="fth3-CORRELATION_ID-ID402" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID402"></th>
+                  <th id="prh2-Ue-ID402"></th>
+                  <th id="prh3-Ue-ID402"></th>
+                  <th id="prh4-Ue-ID402"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID402" class="propindent"></td>
+                  <td headers="prh2-Ue-ID402"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID402" class="propgap"></td>
+                  <td headers="prh4-Ue-ID402">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID402"></th>
+                  <th id="prh2-Parent-ID402"></th>
+                  <th id="prh3-Parent-ID402"></th>
+                  <th id="prh4-Parent-ID402"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID402" class="propindent"></td>
+                  <td headers="prh2-Parent-ID402"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID402" class="propgap"></td>
+                  <td headers="prh4-Parent-ID402"><a href="#in.CONTEXT_INFO"> in.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID402"></th>
+                  <th id="prh2-Maxlength-ID402"></th>
+                  <th id="prh3-Maxlength-ID402"></th>
+                  <th id="prh4-Maxlength-ID402"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID402" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID402"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID402" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID402">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Correlation id passed by an external system to BRM.<hr width="0">
+         <p></p><a name="in.CONTEXT_INFO.EXTERNAL_USER"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-EXTERNAL_USER-ID412"></th>
+               <th id="fth2-EXTERNAL_USER-ID412"></th>
+               <th id="fth3-EXTERNAL_USER-ID412"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-EXTERNAL_USER-ID412" class="level">1</td>
+               <td headers="fth2-EXTERNAL_USER-ID412"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>EXTERNAL_USER</b>
+               </td>
+               <td headers="fth3-EXTERNAL_USER-ID412" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID412"></th>
+                  <th id="prh2-Ue-ID412"></th>
+                  <th id="prh3-Ue-ID412"></th>
+                  <th id="prh4-Ue-ID412"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID412" class="propindent"></td>
+                  <td headers="prh2-Ue-ID412"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID412" class="propgap"></td>
+                  <td headers="prh4-Ue-ID412">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID412"></th>
+                  <th id="prh2-Parent-ID412"></th>
+                  <th id="prh3-Parent-ID412"></th>
+                  <th id="prh4-Parent-ID412"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID412" class="propindent"></td>
+                  <td headers="prh2-Parent-ID412"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID412" class="propgap"></td>
+                  <td headers="prh4-Parent-ID412"><a href="#in.CONTEXT_INFO"> in.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID412"></th>
+                  <th id="prh2-Maxlength-ID412"></th>
+                  <th id="prh3-Maxlength-ID412"></th>
+                  <th id="prh4-Maxlength-ID412"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID412" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID412"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID412" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID412">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>User of an external system connecting to BRM.<hr width="0">
+         <p></p>
+         <p></p>
+         <hr><a name="OD"></a>
+         <table summary="Output details table" width="100%" class="sectiontitle">
+            <tr>
+               <th id="od"></th>
+            </tr>
+            <tr>
+               <td headers="od">Output details</td>
+            </tr>
+         </table>
+         <p></p>
+         <p></p><a name="out.POID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-POID-ID432"></th>
+               <th id="fth2-POID-ID432"></th>
+               <th id="fth3-POID-ID432"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-POID-ID432" class="level">0</td>
+               <td headers="fth2-POID-ID432"><b>poid</b>
+	      &nbsp;&nbsp;
+	    <b>POID</b>
+               </td>
+               <td headers="fth3-POID-ID432" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID432"></th>
+                  <th id="prh2-Ue-ID432"></th>
+                  <th id="prh3-Ue-ID432"></th>
+                  <th id="prh4-Ue-ID432"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID432" class="propindent"></td>
+                  <td headers="prh2-Ue-ID432"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID432" class="propgap"></td>
+                  <td headers="prh4-Ue-ID432">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Cla-ID441"></th>
+                  <th id="prh2-Cla-ID441"></th>
+                  <th id="prh3-Cla-ID441"></th>
+                  <th id="prh4-Cla-ID441"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Cla-ID441" class="propindent"></td>
+                  <td headers="prh2-Cla-ID441"><i>Class</i>
+                  </td>
+                  <td headers="prh3-Cla-ID441" class="propgap"></td>
+                  <td headers="prh4-Cla-ID441"><a href="../object.specs/account.html">/account</a>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Account object passed into call.<hr width="0">
+         <p></p><a name="out.RESULTS"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-RESULTS-ID445"></th>
+               <th id="fth2-RESULTS-ID445"></th>
+               <th id="fth3-RESULTS-ID445"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-RESULTS-ID445" class="level">0</td>
+               <td headers="fth2-RESULTS-ID445"><b>array</b>
+	      &nbsp;&nbsp;
+	    <b>RESULTS</b>
+               </td>
+               <td headers="fth3-RESULTS-ID445" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID445"></th>
+                  <th id="prh2-Ue-ID445"></th>
+                  <th id="prh3-Ue-ID445"></th>
+                  <th id="prh4-Ue-ID445"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID445" class="propindent"></td>
+                  <td headers="prh2-Ue-ID445"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID445" class="propgap"></td>
+                  <td headers="prh4-Ue-ID445">required</td>
+               </tr>
+               <tr>
+                  <th id="prh1-ElemIDmode-ID445"></th>
+                  <th id="prh2-ElemIDmode-ID445"></th>
+                  <th id="prh3-ElemIDmode-ID445"></th>
+                  <th id="prh4-ElemIDmode-ID445"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-ElemIDmode-ID445" class="propindent"></td>
+                  <td headers="prh2-ElemIDmode-ID445"><i>ElemID mode</i>
+                  </td>
+                  <td headers="prh3-ElemIDmode-ID445" class="propgap"></td>
+                  <td headers="prh4-ElemIDmode-ID445">ignored</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Iteration-ID445"></th>
+                  <th id="prh2-Iteration-ID445"></th>
+                  <th id="prh3-Iteration-ID445"></th>
+                  <th id="prh4-Iteration-ID445"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Iteration-ID445" class="propindent"></td>
+                  <td headers="prh2-Iteration-ID445"><i>Iteration</i>
+                  </td>
+                  <td headers="prh3-Iteration-ID445" class="propgap"></td>
+                  <td headers="prh4-Iteration-ID445">undefined</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Array of results information. Since only one event object is created by
+         this call, only one element will be returned. The element-id is not
+         significant. Fields of event object.Additional event object fields are added to 
+        the return flist here. If the PCM_OPFLG_READ_RESULT flag is set for 
+        the operation, all the fields in the event object are returned on the
+        output flist, not just the POID. If the PCM_OPFLG_CALC_ONLY flag is 
+        set, no fields in the database are changed and the event object is 
+        not actually created, but the fields that would have been used to 
+        create the event object are returned to the caller on the output 
+        flist.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CONTEXT_INFO-ID456"></th>
+               <th id="fth2-CONTEXT_INFO-ID456"></th>
+               <th id="fth3-CONTEXT_INFO-ID456"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CONTEXT_INFO-ID456" class="level">0</td>
+               <td headers="fth2-CONTEXT_INFO-ID456"><b>substruct</b>
+	      &nbsp;&nbsp;
+	    <b>CONTEXT_INFO</b>
+               </td>
+               <td headers="fth3-CONTEXT_INFO-ID456" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID456"></th>
+                  <th id="prh2-Ue-ID456"></th>
+                  <th id="prh3-Ue-ID456"></th>
+                  <th id="prh4-Ue-ID456"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID456" class="propindent"></td>
+                  <td headers="prh2-Ue-ID456"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID456" class="propgap"></td>
+                  <td headers="prh4-Ue-ID456">optional</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Substruct to pass information from external clients.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO.CORRELATION_ID"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-CORRELATION_ID-ID466"></th>
+               <th id="fth2-CORRELATION_ID-ID466"></th>
+               <th id="fth3-CORRELATION_ID-ID466"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-CORRELATION_ID-ID466" class="level">1</td>
+               <td headers="fth2-CORRELATION_ID-ID466"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>CORRELATION_ID</b>
+               </td>
+               <td headers="fth3-CORRELATION_ID-ID466" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID466"></th>
+                  <th id="prh2-Ue-ID466"></th>
+                  <th id="prh3-Ue-ID466"></th>
+                  <th id="prh4-Ue-ID466"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID466" class="propindent"></td>
+                  <td headers="prh2-Ue-ID466"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID466" class="propgap"></td>
+                  <td headers="prh4-Ue-ID466">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID466"></th>
+                  <th id="prh2-Parent-ID466"></th>
+                  <th id="prh3-Parent-ID466"></th>
+                  <th id="prh4-Parent-ID466"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID466" class="propindent"></td>
+                  <td headers="prh2-Parent-ID466"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID466" class="propgap"></td>
+                  <td headers="prh4-Parent-ID466"><a href="#out.CONTEXT_INFO"> out.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID466"></th>
+                  <th id="prh2-Maxlength-ID466"></th>
+                  <th id="prh3-Maxlength-ID466"></th>
+                  <th id="prh4-Maxlength-ID466"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID466" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID466"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID466" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID466">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>Correlation id passed by an external system to BRM.<hr width="0">
+         <p></p><a name="out.CONTEXT_INFO.EXTERNAL_USER"></a>
+         <table summary="level table" width="100%" class="fieldtitle" cellspacing="0" cellpadding="0">
+            <tr>
+               <th id="fth1-EXTERNAL_USER-ID476"></th>
+               <th id="fth2-EXTERNAL_USER-ID476"></th>
+               <th id="fth3-EXTERNAL_USER-ID476"></th>
+            </tr>
+            <tr>
+               <td headers="fth1-EXTERNAL_USER-ID476" class="level">1</td>
+               <td headers="fth2-EXTERNAL_USER-ID476"><b>string</b>
+	      &nbsp;&nbsp;
+	    <b>EXTERNAL_USER</b>
+               </td>
+               <td headers="fth3-EXTERNAL_USER-ID476" width="20%" align="right" class="indexlinks"><a href="#II">In</a> <a href="#OI">Out</a>
+               </td>
+            </tr>
+         </table>
+         <table summary="FldProperties" border="0" cellpadding="1" cellspacing="0">
+            <tbody class="properties">
+               <tr>
+                  <th id="prh1-Ue-ID476"></th>
+                  <th id="prh2-Ue-ID476"></th>
+                  <th id="prh3-Ue-ID476"></th>
+                  <th id="prh4-Ue-ID476"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Ue-ID476" class="propindent"></td>
+                  <td headers="prh2-Ue-ID476"><i>Use</i>
+                  </td>
+                  <td headers="prh3-Ue-ID476" class="propgap"></td>
+                  <td headers="prh4-Ue-ID476">optional</td>
+               </tr>
+               <tr>
+                  <th id="prh1-Parent-ID476"></th>
+                  <th id="prh2-Parent-ID476"></th>
+                  <th id="prh3-Parent-ID476"></th>
+                  <th id="prh4-Parent-ID476"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Parent-ID476" class="propindent"></td>
+                  <td headers="prh2-Parent-ID476"><i>Parent</i>
+                  </td>
+                  <td headers="prh3-Parent-ID476" class="propgap"></td>
+                  <td headers="prh4-Parent-ID476"><a href="#out.CONTEXT_INFO"> out.CONTEXT_INFO</a>
+                  </td>
+               </tr>
+               <tr>
+                  <th id="prh1-Maxlength-ID476"></th>
+                  <th id="prh2-Maxlength-ID476"></th>
+                  <th id="prh3-Maxlength-ID476"></th>
+                  <th id="prh4-Maxlength-ID476"></th>
+               </tr>
+               <tr>
+                  <td headers="prh1-Maxlength-ID476" class="propindent"></td>
+                  <td headers="prh2-Maxlength-ID476"><i>Max length</i>
+                  </td>
+                  <td headers="prh3-Maxlength-ID476" class="propgap"></td>
+                  <td headers="prh4-Maxlength-ID476">128</td>
+               </tr>
+            </tbody>
+         </table>
+         <p></p>User of an external system connecting to BRM.<hr width="0">
+         <p></p>
+         <hr noshade="true">
+         <table summary="Shortcuts table" width="100%" cellspacing="0">
+            <tbody class="shortcuts">
+               <tr align="center">
+                  <th><a href="#II">Input index</a>
+                  </th>
+                  <th><a href="#ID">Input details</a>
+                  </th>
+                  <th><a href="#OI">Output index</a>
+                  </th>
+                  <th><a href="#OD">Output details</a>
+                  </th>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+   </body>
+</html>

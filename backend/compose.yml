@@ -1,0 +1,30 @@
+services:
+  api:
+    image: local/ai-assistant-backend:latest
+    build: .
+    container_name: ai-assistant-api
+
+    # Archivo .env con todas tus variables (DB_DSN, etc.)
+    env_file: .env
+
+    # Variables de entorno adicionales (sobrescriben si duplicadas)
+    environment:
+      OCI_AUTH_MODE: config_file
+      OCI_CONFIG_PATH: /root/.oci/config
+      OCI_CONFIG_PROFILE: ${OCI_CONFIG_PROFILE:-DEFAULT}
+
+    # Expone el puerto del backend al host
+    ports:
+      - "8000:8000"
+
+    # Monta las llaves de OCI (carpeta fuera del repo)
+    volumes:
+      - type: bind
+        source: ../oci
+        target: /root/.oci
+        read_only: true
+
+    # Permite que el contenedor resuelva 'host.docker.internal'
+    # apuntando a la IP del host, para conectar a la DB (1530)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

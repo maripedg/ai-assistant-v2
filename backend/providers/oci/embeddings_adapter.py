@@ -5,16 +5,18 @@ import inspect
 import os
 import random
 import time
-from typing import List, Tuple, Dict, Any
+from http.client import RemoteDisconnected
+from typing import List, Tuple, Dict, Any, Optional
 import logging
 import math
 import re
 import pathlib
 
 logger = logging.getLogger(__name__)
+log = logger
 
-_EMBED_MAX_RETRIES = 6  # 1 try + up to 5 retries
-_EMBED_MIN_BATCH = 4    # lower bound when reducing batch size on throttling
+_EMBED_MAX_RETRIES = 2  # 1 try + up to 5 retries
+_EMBED_MIN_BATCH = 1    # lower bound when reducing batch size on throttling
 from langchain_core.embeddings import Embeddings
 import oci
 
@@ -23,6 +25,29 @@ try:
     from langchain_community.embeddings import OCIGenAIEmbeddings
 except Exception as exc:  # pragma: no cover
     raise
+
+
+class EmbeddingError(Exception):
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str | None = None,
+        status: int | None = None,
+        retryable: bool | None = None,
+        cause: Exception | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.status = status
+        self.retryable = retryable
+        self.cause = cause
+
+
+_OCI_REQUEST_EXCEPTION = getattr(getattr(oci, "exceptions", None), "RequestException", None)
+_CONNECTION_ERROR_TYPES = tuple(
+    t for t in (_OCI_REQUEST_EXCEPTION, ConnectionError, TimeoutError, RemoteDisconnected) if t is not None
+)
 
 class OCIEmbeddingsAdapter(Embeddings):
     """
@@ -40,6 +65,7 @@ class OCIEmbeddingsAdapter(Embeddings):
         auth_profile: str,
         doc_input_type: str = "search_document",
         query_input_type: str = "search_query",
+        batch_size: Optional[int] = None,
     ) -> None:
         # Store config
         self._model_id = model_id
@@ -57,6 +83,10 @@ class OCIEmbeddingsAdapter(Embeddings):
         self.token_limit_splits = 0
         self.token_limit_truncations = 0
         self.skipped_token_limit = 0
+        self._batch_size = batch_size if batch_size is not None else getattr(self, "_batch_size", 32)
+        log.info("OCIEmbeddingsAdapter initialized with batch_size=%s", self._batch_size)
+        self._rate_limit_per_min: Optional[int] = None
+        self._next_allowed_ts = 0.0
         # Ensure OCI SDK picks up the desired config file/profile as a baseline
         if auth_file_location:
             os.environ["OCI_CONFIG_FILE"] = auth_file_location
@@ -114,9 +144,43 @@ class OCIEmbeddingsAdapter(Embeddings):
         else:
             serving_mode = self._models.OnDemandServingMode(model_id=self._model_id)
         expanded, exp_map = self._preflight_expand_batch([text])
+        if not expanded:
+            raise EmbeddingError(
+                "Query text skipped during preprocessing; no embedding generated",
+                code="invalid_input",
+                retryable=False,
+            )
         vecs, out_map = self._embed_with_retry(serving_mode, expanded, input_type or self._query_input_type, exp_map)
         reassembled = self._reassemble_by_map(vecs, out_map, 1)
-        return reassembled[0] if reassembled else []
+        if not reassembled or not isinstance(reassembled[0], list) or not reassembled[0]:
+            raise EmbeddingError(
+                "Embeddings service returned no vector for query",
+                code="service_unavailable",
+                retryable=False,
+            )
+        return reassembled[0]
+
+    def configure_batching(
+        self,
+        *,
+        batch_size: Optional[int] = None,
+        rate_limit_per_min: Optional[int] = None,
+    ) -> None:
+        if batch_size is not None:
+            try:
+                self._batch_size = max(_EMBED_MIN_BATCH, int(batch_size))
+            except Exception:
+                self._batch_size = max(_EMBED_MIN_BATCH, 32)
+        if rate_limit_per_min is not None and rate_limit_per_min > 0:
+            self._rate_limit_per_min = int(rate_limit_per_min)
+        else:
+            self._rate_limit_per_min = None
+        self._next_allowed_ts = 0.0
+        logger.info(
+            "Embedding adapter configured: batch_size=%s rate_limit_per_min=%s",
+            self._batch_size,
+            self._rate_limit_per_min or "disabled",
+        )
 
     # ---------- Token handling helpers ----------
     def _load_token_limit_config(self) -> None:
@@ -288,6 +352,15 @@ class OCIEmbeddingsAdapter(Embeddings):
             while chunk:
                 attempt += 1
                 try:
+                    if getattr(self, "_rate_limit_per_min", None):
+                        interval = 60.0 / float(self._rate_limit_per_min)
+                        now = time.monotonic()
+                        if self._next_allowed_ts > 0 and now < self._next_allowed_ts:
+                            sleep_for = self._next_allowed_ts - now
+                            logger.debug("Embedding pacing sleep %.3fs to respect rate limit", sleep_for)
+                            time.sleep(sleep_for)
+                            now = time.monotonic()
+                        self._next_allowed_ts = max(self._next_allowed_ts, now) + interval
                     details = self._build_embed_payload(chunk, input_type, serving_mode)
                     resp = self._client.embed_text(details)
                     vectors = self._extract_vectors(resp)
@@ -333,6 +406,7 @@ class OCIEmbeddingsAdapter(Embeddings):
                         except Exception:
                             status_int = None
                     transient = status_int in (500, 502, 503, 504)
+                    connection_like = isinstance(exc, _CONNECTION_ERROR_TYPES) if _CONNECTION_ERROR_TYPES else False
 
                     if is_429:
                         delay = self._compute_retry_delay(exc, attempt, honor_retry_after=True)
@@ -352,7 +426,13 @@ class OCIEmbeddingsAdapter(Embeddings):
                             "Embedding failed after retries (429). Skipping this batch of %s items.",
                             span,
                         )
-                        break
+                        raise EmbeddingError(
+                            f"Embedding failed after retries (429) for chunk span={span}",
+                            code="throttled",
+                            status=status_int or 429,
+                            retryable=False,
+                            cause=exc,
+                        )
 
                     if transient and attempt <= _EMBED_MAX_RETRIES:
                         delay = self._compute_retry_delay(exc, attempt, honor_retry_after=False)
@@ -366,7 +446,14 @@ class OCIEmbeddingsAdapter(Embeddings):
                         continue
 
                     logger.exception("Embedding error not recoverable; skipping batch of %s items", span)
-                    break
+                    error_code = "connection_error" if connection_like else "service_error"
+                    raise EmbeddingError(
+                        f"Embedding error not recoverable for chunk span={span}",
+                        code=error_code,
+                        status=status_int,
+                        retryable=False,
+                        cause=exc,
+                    )
 
             idx += span
 

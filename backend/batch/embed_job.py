@@ -13,7 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from backend.app.deps import make_embeddings, settings
+from backend.app import config as app_config
+from backend.app.deps import make_embeddings, settings as deps_settings
 from backend.ingest.manifests.spec import validate_and_expand_manifest
 from backend.ingest.router import route_and_load
 from backend.ingest.normalizer import normalize_metadata
@@ -431,7 +432,7 @@ def _load_golden_queries(path: Path) -> List[Dict[str, Any]]:
 def _evaluate_golden_queries(golden_path: Path, alias_name: str) -> Dict[str, Any]:
     queries = _load_golden_queries(golden_path)
 
-    retrieval_cfg = settings.app.get("retrieval", {}) or {}
+    retrieval_cfg = deps_settings.app.get("retrieval", {}) or {}
     default_top_k = retrieval_cfg.get("top_k")
     try:
         default_top_k_int = int(default_top_k)
@@ -559,7 +560,7 @@ def run_embed_job(
     max_workers: Optional[int] = None,
     evaluate_path: Optional[str] = None,
 ) -> EmbeddingJobSummary:
-    app_settings = settings.app
+    app_settings = deps_settings.app
     embeddings_cfg = app_settings.get("embeddings", {}) or {}
     profile_name = profile_name or embeddings_cfg.get("active_profile")
     if not profile_name:
@@ -576,16 +577,37 @@ def run_embed_job(
 
     alias_cfg = embeddings_cfg.get("alias", {}) or {}
     alias_name = alias_cfg.get("name")
-    batching_cfg = embeddings_cfg.get("batching", {}) or {}
-    batch_size = int(batching_cfg.get("batch_size", 32))
-    if batch_size_override is not None:
-        if batch_size_override <= 0:
-            raise ValueError("batch_size must be a positive integer")
-        batch_size = batch_size_override
-    rate_limit = batching_cfg.get("rate_limit_per_min")
-    rate_interval = 60.0 / float(rate_limit) if rate_limit else 0.0
+    raw_batch = getattr(app_config, "EMBED_BATCH_SIZE", 32) or 32
+    effective_batch = max(1, int(raw_batch))
+    raw_workers = getattr(app_config, "EMBED_WORKERS", 1) or 1
+    effective_workers = max(1, int(raw_workers))
+    raw_rate = getattr(app_config, "EMBED_RATE_LIMIT_PER_MIN", None)
+    effective_rate_limit = int(raw_rate) if raw_rate and int(raw_rate) > 0 else None
+    if batch_size_override is not None and batch_size_override != effective_batch:
+        logger.info(
+            "Ignoring CLI batch_size_override=%s; using EMBED_BATCH_SIZE=%s from env",
+            batch_size_override,
+            effective_batch,
+        )
+    if max_workers is not None and max_workers != effective_workers:
+        logger.info(
+            "Ignoring CLI workers override=%s; using EMBED_WORKERS=%s from env",
+            max_workers,
+            effective_workers,
+        )
+    batch_size = effective_batch
     dedupe_cfg = embeddings_cfg.get("dedupe", {}) or {}
     dedupe_enabled = bool(dedupe_cfg.get("by_hash", False))
+    logger.info(
+        "Embedding config: batch_size=%s | workers_hint=%s | rate_limit_per_min=%s",
+        batch_size,
+        effective_workers,
+        effective_rate_limit or "disabled",
+    )
+    logger.info(
+        "Worker pools not implemented; running single-threaded despite EMBED_WORKERS hint=%s",
+        effective_workers,
+    )
 
     strategy = _build_strategy(profile_name, app_settings)
     try:
@@ -595,7 +617,15 @@ def run_embed_job(
             raise
         logger.warning("Embeddings unavailable (%s); using dummy vectors for dry-run", exc)
         embedder = _DummyEmbedder()
-    oraclevs_cfg = settings.providers.get("oraclevs")
+    if hasattr(embedder, "configure_batching"):
+        try:
+            embedder.configure_batching(
+                batch_size=batch_size,
+                rate_limit_per_min=effective_rate_limit,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Failed to configure embedding adapter batching controls: %s", exc)
+    oraclevs_cfg = deps_settings.providers.get("oraclevs")
     if not isinstance(oraclevs_cfg, dict):
         raise ValueError("providers.oraclevs configuration missing")
     upserter = OracleVSUpserter(oraclevs_cfg)
@@ -731,14 +761,9 @@ def run_embed_job(
 
     logger.info("Prepared %d chunks. Embedding in batches of %d", len(vector_buffer), batch_size)
 
-    last_batch_time = 0.0
     ensured_table = False
     logged_target_table = False
     for offset in range(0, len(vector_buffer), batch_size):
-        if rate_interval:
-            elapsed = time.time() - last_batch_time
-            if elapsed < rate_interval:
-                time.sleep(rate_interval - elapsed)
         batch = vector_buffer[offset : offset + batch_size]
         # Filter out empty/whitespace-only texts to avoid OCI 400 errors
         non_empty_idx = [i for i, item in enumerate(batch) if (item.get("text") or "").strip()]
@@ -816,7 +841,6 @@ def run_embed_job(
         batch_inserted, batch_skipped = upserter.upsert_vectors(upsert_batch, dedupe_enabled, dry_run=dry_run)
         inserted += batch_inserted
         skipped += batch_skipped
-        last_batch_time = time.time()
         logger.info(
             "Processed batch %d/%d",
             (offset // batch_size) + 1,

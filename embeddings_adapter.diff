@@ -15,8 +15,8 @@
  
  logger = logging.getLogger(__name__)
 +
-+_EMBED_MAX_RETRIES = 6  # 1 try + up to 5 retries
-+_EMBED_MIN_BATCH = 4    # lower bound when reducing batch size on throttling
++_EMBED_MAX_RETRIES = 2  # 1 try + up to 5 retries
++_EMBED_MIN_BATCH = 1    # lower bound when reducing batch size on throttling
  from langchain_core.embeddings import Embeddings
  import oci
  

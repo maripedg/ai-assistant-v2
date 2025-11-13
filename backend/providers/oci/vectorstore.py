@@ -7,6 +7,7 @@ from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
 
 from backend.core.ports.vector_store import VectorStorePort
+from backend.providers.oci.embeddings_adapter import EmbeddingError
 
 
 def _lazy_import_oracledb():
@@ -62,7 +63,20 @@ class OracleVSStore(VectorStorePort):
 
     def similarity_search_with_score(self, query: str, k: int) -> List[Tuple[Any, float]]:
         start = perf_counter()
-        raw_results = self.vs.similarity_search_with_score(query, k=k)
+        try:
+            raw_results = self.vs.similarity_search_with_score(query, k=k)
+        except EmbeddingError as exc:
+            logger.warning("Vector search skipped because embeddings are unavailable: %s", exc)
+            return []
+        except RuntimeError as exc:
+            msg = str(exc)
+            if "DPY-4031: vector cannot contain zero dimensions" in msg:
+                logger.error(
+                    "Vector search failed due to zero-dimension embedding (DPY-4031). Treating as no results. error=%s",
+                    msg,
+                )
+                return []
+            raise
 
         # Oracle VECTOR_DISTANCE returns a distance for both DOT and COSINE
         # (smaller = more similar). Keep ascending order for all metrics.

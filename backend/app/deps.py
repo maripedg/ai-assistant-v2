@@ -17,6 +17,11 @@ from dotenv import load_dotenv
 import oci
 from backend.providers.oci.embeddings_adapter import OCIEmbeddingsAdapter
 
+try:
+    from app import config as app_config
+except ImportError:  # pragma: no cover - fallback when backend package used directly
+    from backend.app import config as app_config  # type: ignore
+
 try:  # Optional at import time; enforced via requirements.
     from tenacity import before_sleep_log, retry, stop_after_delay, wait_exponential
 
@@ -65,6 +70,9 @@ def _load_env_file() -> None:
             candidate = (PROJECT_ROOT / candidate).resolve()
         if candidate.exists():
             load_dotenv(candidate)
+            logger.info("deps._load_env_file: loaded env file %s", candidate)
+            for key in ("EMBED_BATCH_SIZE", "EMBED_WORKERS", "EMBED_RATE_LIMIT_PER_MIN"):
+                logger.info("deps._load_env_file: raw env %s=%r", key, os.environ.get(key))
             break
 
     _DOTENV_LOADED = True
@@ -460,6 +468,7 @@ def _probe_service(section: str) -> Dict[str, Any]:
                 auth_profile=cfg["auth_profile"],
                 doc_input_type=doc_it,
                 query_input_type=qry_it,
+                batch_size=app_config.EMBED_BATCH_SIZE,
             )
             adapter.embed_query("ping")
         elif section == "llm_primary":
@@ -531,6 +540,7 @@ def make_embeddings():
         auth_profile=cfg["auth_profile"],
         doc_input_type=doc_it,
         query_input_type=qry_it,
+        batch_size=app_config.EMBED_BATCH_SIZE,
     )
 
 
@@ -683,7 +693,16 @@ def get_vector_store_safe(embeddings: Optional[Any] = None):
     Returns None when the store is currently unavailable.
     """
     if embeddings is None:
-        embeddings = make_embeddings()
+        try:
+            embeddings = make_embeddings()
+        except Exception as exc:  # noqa: BLE001
+            now = time.monotonic()
+            log.error(
+                "Failed to initialize embeddings for vector store: %s",
+                _summarize_exc(exc),
+            )
+            _on_vector_failure(now)
+            return None
 
     with _VECTOR_LOCK:
         cached = _VECTOR_CACHE.get("instance")

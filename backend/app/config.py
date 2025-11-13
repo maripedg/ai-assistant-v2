@@ -1,8 +1,45 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+from pathlib import Path
 from typing import Iterable, Set
+
+from dotenv import load_dotenv
+
+
+logger = logging.getLogger(__name__)
+
+_DOTENV_LOADED = False
+_BACKEND_DIR = Path(__file__).resolve().parents[1]
+_PROJECT_ROOT = _BACKEND_DIR.parent
+
+
+def _load_env_once() -> None:
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+
+    candidates = []
+    env_hint = os.environ.get("APP_ENV_FILE")
+    if env_hint:
+        candidates.append(Path(env_hint))
+    candidates.append(_PROJECT_ROOT / ".env")
+    candidates.append(_BACKEND_DIR / ".env")
+
+    for candidate in candidates:
+        candidate = Path(candidate).expanduser()
+        if not candidate.is_absolute():
+            candidate = (_PROJECT_ROOT / candidate).resolve()
+        if candidate.exists():
+            load_dotenv(candidate)
+            break
+
+    _DOTENV_LOADED = True
+
+
+_load_env_once()
 
 
 def _env(key: str, default: str | None = None) -> str | None:
@@ -27,6 +64,16 @@ def _env_int(key: str, default: int) -> int:
         return int(raw)
     except Exception:
         return default
+
+
+def _env_int_or_none(key: str) -> int | None:
+    raw = _env(key)
+    if raw is None:
+        return None
+    try:
+        return int(raw)
+    except Exception:
+        return None
 
 
 def jwt_secret() -> str:
@@ -125,3 +172,15 @@ def sp_schedule_cron() -> str:
 
 def sp_timezone() -> str:
     return _env("SP_TIMEZONE", "America/Bogota") or "America/Bogota"
+
+
+EMBED_BATCH_SIZE = _env_int("EMBED_BATCH_SIZE", 32)
+EMBED_WORKERS = _env_int("EMBED_WORKERS", 1)
+EMBED_RATE_LIMIT_PER_MIN = _env_int_or_none("EMBED_RATE_LIMIT_PER_MIN")
+
+logger.info(
+    "config: EMBED_BATCH_SIZE=%s EMBED_WORKERS=%s EMBED_RATE_LIMIT_PER_MIN=%s",
+    EMBED_BATCH_SIZE,
+    EMBED_WORKERS,
+    EMBED_RATE_LIMIT_PER_MIN,
+)

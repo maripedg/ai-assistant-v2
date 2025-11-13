@@ -1,0 +1,127 @@
+--- a/backend/batch/embed_job.py
++++ b/backend/batch/embed_job.py
+@@ -47,6 +47,7 @@
+     token_limit_splits: int = 0
+     token_limit_truncations: int = 0
+     skipped_token_limit: int = 0
++    embedding_summary: Optional[Dict[str, Any]] = None
+ 
+ 
+ def format_summary(summary: EmbeddingJobSummary) -> str:
+@@ -67,6 +68,16 @@
+         f" Token-limit: splits={summary.token_limit_splits} truncations={summary.token_limit_truncations}"
+         f" skipped={summary.skipped_token_limit} provider_errors={summary.errors_token_limit}"
+     )
++    if summary.embedding_summary:
++        emb = summary.embedding_summary
++        base += (
++            " EmbeddingStats"
++            f" prepared={emb.get('prepared')}"
++            f" embedded={emb.get('embedded')}"
++            f" saved={emb.get('saved')}"
++            f" skipped={emb.get('skipped')}"
++            f" failed_batches={emb.get('failed_batches')}"
++        )
+     return base
+ 
+ PDF_EXTENSIONS = {".pdf"}
+@@ -611,6 +622,9 @@
+     inserted = 0
+     skipped = 0
+     errors = 0
++    embedding_prepared = 0
++    embedding_embedded = 0
++    embedding_failed_batches = 0
+ 
+     vector_buffer: List[Dict[str, Any]] = []
+     # Per content_type counters
+@@ -732,14 +746,40 @@
+             # Nothing to embed in this batch
+             continue
+         texts = [batch[i]["text"] for i in non_empty_idx]
+-        embeddings = embedder.embed_documents(texts, input_type="search_document")
++        prepared = len(texts)
++        embedding_prepared += prepared
++        ok_vecs: List[List[float]] = []
++        out_map: List[int] = []
++        try:
++            embeddings_result = embedder.embed_documents(texts, input_type="search_document")
++            if isinstance(embeddings_result, tuple) and len(embeddings_result) == 2:
++                ok_vecs = list(embeddings_result[0] or [])
++                raw_map = embeddings_result[1]
++                if isinstance(raw_map, dict):
++                    out_map = [raw_map[k] for k in sorted(raw_map.keys())]
++                elif isinstance(raw_map, list):
++                    out_map = list(raw_map)
++                else:
++                    out_map = list(range(len(ok_vecs)))
++            else:
++                ok_vecs = list(embeddings_result or [])
++                out_map = list(range(len(ok_vecs)))
++        except Exception:
++            logger.exception("Embedding job crashed at adapter level")
++            ok_vecs = []
++            out_map = []
++            if prepared:
++                embedding_failed_batches += 1
++
++        embedded_count = len(ok_vecs)
++        embedding_embedded += embedded_count
+         # Ensure physical table exists with proper embedding dimension, once we know it
+         if not dry_run and not ensured_table:
+-            if not embeddings:
++            if not ok_vecs:
+                 continue
+             # Find first non-empty embedding to determine dimension
+             dim = 0
+-            for _vec in embeddings:
++            for _vec in ok_vecs:
+                 if isinstance(_vec, list) and len(_vec) > 0:
+                     dim = len(_vec)
+                     break
+@@ -756,8 +796,18 @@
+             logger.debug("Upserting into physical table: %s", index_name)
+             logged_target_table = True
+         # Attach embeddings back to the corresponding payloads
+-        for idx, embedding in zip(non_empty_idx, embeddings):
+-            batch[idx]["embedding"] = embedding
++        if out_map:
++            for vector, local_idx in zip(ok_vecs, out_map):
++                if not isinstance(local_idx, int):
++                    continue
++                if not isinstance(vector, list) or not vector:
++                    continue
++                if 0 <= local_idx < len(non_empty_idx):
++                    batch_idx = non_empty_idx[local_idx]
++                    batch[batch_idx]["embedding"] = vector
++        else:
++            for idx, embedding in zip(non_empty_idx, ok_vecs):
++                batch[idx]["embedding"] = embedding
+         # Only upsert items that actually have embeddings
+         # Only upsert items with a non-empty embedding vector
+         upsert_batch = [item for item in batch if ("embedding" in item and isinstance(item["embedding"], list) and len(item["embedding"]) > 0)]
+@@ -791,6 +841,16 @@
+     tl_truncs = int(getattr(embedder, "token_limit_truncations", 0) or 0)
+     tl_skipped = int(getattr(embedder, "skipped_token_limit", 0) or 0)
+ 
++    embedding_skipped = max(0, embedding_prepared - embedding_embedded)
++    embedding_saved = inserted if not dry_run else 0
++    embedding_summary = {
++        "prepared": embedding_prepared,
++        "embedded": embedding_embedded,
++        "saved": embedding_saved,
++        "skipped": embedding_skipped,
++        "failed_batches": embedding_failed_batches,
++    }
++
+     summary = EmbeddingJobSummary(
+         docs=total_docs,
+         chunks=total_chunks,
+@@ -803,6 +863,7 @@
+         token_limit_splits=tl_splits,
+         token_limit_truncations=tl_truncs,
+         skipped_token_limit=tl_skipped,
++        embedding_summary=embedding_summary,
+     )
+     logger.info(
+         "Job summary: docs=%d chunks=%d inserted=%d skipped=%d errors=%d dry_run=%s",

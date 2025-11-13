@@ -1,0 +1,48 @@
+--- a/backend/batch/cli.py
++++ b/backend/batch/cli.py
+@@ -11,7 +11,10 @@
+ from __future__ import annotations
+ 
+ import argparse
++import json
+ import logging
++import sys
++from dataclasses import asdict
+ from pathlib import Path
+ from typing import Dict, Any, List
+ 
+@@ -130,16 +133,24 @@
+         return
+ 
+     # Normal (non dry-run) path executes embeddings/upsert
+-    summary = run_embed_job(
+-        manifest_path=args.manifest,
+-        profile_name=args.profile,
+-        dry_run=args.dry_run,
+-        update_alias=args.update_alias,
+-        batch_size_override=args.batch_size,
+-        max_workers=args.workers,
+-        evaluate_path=args.evaluate_path,
+-    )
+-    print(f"Embed job complete: {format_summary(summary)}")
++    try:
++        summary = run_embed_job(
++            manifest_path=args.manifest,
++            profile_name=args.profile,
++            dry_run=args.dry_run,
++            update_alias=args.update_alias,
++            batch_size_override=args.batch_size,
++            max_workers=args.workers,
++            evaluate_path=args.evaluate_path,
++        )
++    except Exception:
++        logger.exception("Embed CLI failed unexpectedly")
++        print(json.dumps({"ok": False, "error": "embed_failed_unexpectedly"}, indent=2))
++        sys.exit(2)
++    logger.info("Embed job complete: %s", format_summary(summary))
++    payload = asdict(summary)
++    payload["ok"] = True
++    print(json.dumps(payload, indent=2, default=str))
+ 
+ 
+ def main(argv: list[str] | None = None) -> None:

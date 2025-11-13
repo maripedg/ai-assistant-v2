@@ -3,13 +3,18 @@ from __future__ import annotations
 
 import inspect
 import os
-from typing import List, Iterable, Tuple, Dict, Any
+import random
+import time
+from typing import List, Tuple, Dict, Any
 import logging
 import math
 import re
 import pathlib
 
 logger = logging.getLogger(__name__)
+
+_EMBED_MAX_RETRIES = 6  # 1 try + up to 5 retries
+_EMBED_MIN_BATCH = 4    # lower bound when reducing batch size on throttling
 from langchain_core.embeddings import Embeddings
 import oci
 
@@ -77,7 +82,7 @@ class OCIEmbeddingsAdapter(Embeddings):
 
     # Methods expected by LangChain:
 
-    def embed_documents(self, texts: List[str], input_type: str | None = None) -> List[List[float]]:
+    def embed_documents(self, texts: List[str], input_type: str | None = None):
         # Determine serving mode
         if self._model_id.startswith("ocid1.generativeaiendpoint"):
             serving_mode = self._models.DedicatedServingMode(endpoint_id=self._model_id)
@@ -85,6 +90,7 @@ class OCIEmbeddingsAdapter(Embeddings):
             serving_mode = self._models.OnDemandServingMode(model_id=self._model_id)
 
         embeddings: List[List[float]] = []
+        index_map: List[int] = []
         batch_size = 96
         for i in range(0, len(texts), batch_size):
             original_batch = texts[i : i + batch_size]
@@ -94,8 +100,12 @@ class OCIEmbeddingsAdapter(Embeddings):
             flat_vecs, out_map = self._embed_with_retry(serving_mode, expanded, input_type or self._doc_input_type, exp_map)
             # Reassemble per original position (average when split, empty vector when skipped)
             batch_vecs = self._reassemble_by_map(flat_vecs, out_map, len(original_batch))
-            embeddings.extend(batch_vecs)
-        return embeddings
+            for local_idx, vec in enumerate(batch_vecs):
+                if not isinstance(vec, list) or not vec:
+                    continue
+                embeddings.append(vec)
+                index_map.append(i + local_idx)
+        return embeddings, index_map
 
     def embed_query(self, text: str, input_type: str | None = None) -> List[float]:
         # Same handling as documents but with single item
@@ -255,81 +265,152 @@ class OCIEmbeddingsAdapter(Embeddings):
     def _embed_with_retry(self, serving_mode, inputs: List[str], input_type: str | None, exp_map: List[int]) -> Tuple[List[List[float]], List[int]]:
         if not inputs:
             return [], []
-        attempt = 0
-        expanded = list(inputs)
-        idx_map = list(exp_map)
-        while attempt < 3:
-            attempt += 1
-            try:
-                kwargs = {
-                    "serving_mode": serving_mode,
-                    "compartment_id": self._compartment_id,
-                    "inputs": expanded,
-                }
-                if "truncate" in self._details_init_params:
-                    kwargs["truncate"] = "END"
-                if "input_type" in self._details_init_params and input_type:
-                    kwargs["input_type"] = input_type
-                details = self._models.EmbedTextDetails(**kwargs)
-                resp = self._client.embed_text(details)
-                return resp.data.embeddings, list(idx_map)
-            except Exception as exc:  # noqa: BLE001
-                # Detect OCI 400 token-limit style errors
-                msg = str(exc)
-                idx_match = re.search(r"texts\[(\d+)\] is too long", msg)
-                status_400 = ("400" in msg) or (getattr(exc, "status", None) == 400)
-                if status_400 and idx_match:
-                    self.errors_token_limit += 1
-                    bad_idx = int(idx_match.group(1))
-                    logger.warning("Provider 400 on inputs[%d]; applying token-limit strategy and retry (attempt %d)", bad_idx, attempt)
-                    expanded, idx_map = self._repair_bad_index_with_map(expanded, idx_map, bad_idx)
-                    continue
-                if attempt >= 3:
+
+        flat_vecs: List[List[float]] = []
+        vec_map: List[int] = []
+
+        configured = getattr(self, "_batch_size", 32) or 32
+        batch_size = max(int(configured), _EMBED_MIN_BATCH)
+
+        total = len(inputs)
+        idx = 0
+
+        while idx < total:
+            chunk_end = min(total, idx + batch_size)
+            chunk = list(inputs[idx:chunk_end])
+            chunk_map = list(exp_map[idx:chunk_end])
+            span = chunk_end - idx
+            if not chunk or not chunk_map:
+                idx += span
+                continue
+
+            attempt = 0
+            while chunk:
+                attempt += 1
+                try:
+                    details = self._build_embed_payload(chunk, input_type, serving_mode)
+                    resp = self._client.embed_text(details)
+                    vectors = self._extract_vectors(resp)
+                    if not vectors:
+                        logger.warning("Embedding call returned no vectors for chunk span=%s", span)
+                    for local_idx, vector in enumerate(vectors):
+                        if local_idx >= len(chunk_map):
+                            break
+                        if not isinstance(vector, list) or not vector:
+                            continue
+                        flat_vecs.append(vector)
+                        vec_map.append(chunk_map[local_idx])
                     break
-                raise
-        # Last-resort: skip any remaining offenders by removing too-long items
-        survivors: List[str] = []
-        survivors_map: List[int] = []
-        for j, s in enumerate(expanded):
-            if self._estimate_tokens(s) <= self._max_input_tokens:
-                survivors.append(s)
-                survivors_map.append(idx_map[j])
-            else:
-                self.skipped_token_limit += 1
-                logger.warning("Token limit: forced skip inputs[%d] after retries (~%d tokens)", j, self._estimate_tokens(s))
-        if not survivors:
-            return [], []
-        # Attempt final call; if provider still flags an index, skip offenders and retry until success
-        while True:
-            if not survivors:
-                return [], []
-            kwargs = {
-                "serving_mode": serving_mode,
-                "compartment_id": self._compartment_id,
-                "inputs": survivors,
-            }
-            if "truncate" in self._details_init_params:
-                kwargs["truncate"] = "END"
-            if "input_type" in self._details_init_params and input_type:
-                kwargs["input_type"] = input_type
-            details = self._models.EmbedTextDetails(**kwargs)
-            try:
-                resp = self._client.embed_text(details)
-                return resp.data.embeddings, list(survivors_map)
-            except Exception as exc:  # noqa: BLE001
-                msg = str(exc)
-                idx_match = re.search(r"texts\[(\d+)\] is too long", msg)
-                status_400 = ("400" in msg) or (getattr(exc, "status", None) == 400)
-                if status_400 and idx_match:
-                    self.errors_token_limit += 1
-                    bad_idx = int(idx_match.group(1))
-                    if 0 <= bad_idx < len(survivors):
-                        logger.warning("Token limit: forced skip inputs[%d] after retries (post-filter)", bad_idx)
-                        self.skipped_token_limit += 1
-                        survivors.pop(bad_idx)
-                        survivors_map.pop(bad_idx)
+                except Exception as exc:  # noqa: BLE001
+                    msg = str(exc)
+                    idx_match = re.search(r"texts\[(\d+)\] is too long", msg)
+                    status = getattr(exc, "status", getattr(exc, "status_code", None))
+                    status_400 = ("400" in msg) or (status == 400)
+                    if status_400 and idx_match:
+                        self.errors_token_limit += 1
+                        bad_idx = int(idx_match.group(1))
+                        logger.warning(
+                            "Token limit provider error on chunk item %d (attempt %d); applying strategy",
+                            bad_idx,
+                            attempt,
+                        )
+                        chunk, chunk_map = self._repair_bad_index_with_map(chunk, chunk_map, bad_idx)
+                        if not chunk:
+                            logger.warning("Token limit handling removed entire chunk span=%s; skipping", span)
+                            break
                         continue
-                raise
+
+                    code = getattr(exc, "code", None)
+                    status_str = str(status) if status is not None else ""
+                    code_str = str(code) if code is not None else ""
+                    is_429 = status_str == "429" or code_str == "429"
+                    status_int = None
+                    try:
+                        status_int = int(status_str)
+                    except Exception:
+                        try:
+                            status_int = int(code_str)
+                        except Exception:
+                            status_int = None
+                    transient = status_int in (500, 502, 503, 504)
+
+                    if is_429:
+                        delay = self._compute_retry_delay(exc, attempt, honor_retry_after=True)
+                        logger.warning(
+                            "Embedding throttled (429). attempt=%s batch_size=%s sleeping=%.2fs",
+                            attempt,
+                            batch_size,
+                            delay,
+                        )
+                        time.sleep(delay)
+                        if attempt >= 2 and batch_size > _EMBED_MIN_BATCH:
+                            batch_size = max(_EMBED_MIN_BATCH, batch_size // 2)
+                            logger.warning("Reducing embedding batch_size to %s due to repeated 429", batch_size)
+                        if attempt <= _EMBED_MAX_RETRIES:
+                            continue
+                        logger.error(
+                            "Embedding failed after retries (429). Skipping this batch of %s items.",
+                            span,
+                        )
+                        break
+
+                    if transient and attempt <= _EMBED_MAX_RETRIES:
+                        delay = self._compute_retry_delay(exc, attempt, honor_retry_after=False)
+                        logger.warning(
+                            "Transient embedding error (status=%s). attempt=%s sleeping=%.2fs",
+                            status,
+                            attempt,
+                            delay,
+                        )
+                        time.sleep(delay)
+                        continue
+
+                    logger.exception("Embedding error not recoverable; skipping batch of %s items", span)
+                    break
+
+            idx += span
+
+        return flat_vecs, vec_map
+
+    def _build_embed_payload(self, inputs: List[str], input_type: str | None, serving_mode):
+        kwargs = {
+            "serving_mode": serving_mode,
+            "compartment_id": self._compartment_id,
+            "inputs": inputs,
+        }
+        if "truncate" in self._details_init_params:
+            kwargs["truncate"] = "END"
+        if "input_type" in self._details_init_params and input_type:
+            kwargs["input_type"] = input_type
+        return self._models.EmbedTextDetails(**kwargs)
+
+    def _extract_vectors(self, response) -> List[List[float]]:
+        try:
+            return list(getattr(response.data, "embeddings", []) or [])
+        except Exception:  # noqa: BLE001
+            return []
+
+    def _compute_retry_delay(self, exc: Exception, attempt: int, *, honor_retry_after: bool) -> float:
+        if honor_retry_after:
+            retry_after = None
+            headers = getattr(exc, "headers", None)
+            if isinstance(headers, dict):
+                retry_after = headers.get("retry-after") or headers.get("Retry-After")
+            if retry_after is None:
+                response = getattr(exc, "response", None)
+                if response is not None:
+                    resp_headers = getattr(response, "headers", None)
+                    if isinstance(resp_headers, dict):
+                        retry_after = resp_headers.get("retry-after") or resp_headers.get("Retry-After")
+            if retry_after is not None:
+                try:
+                    delay = float(retry_after)
+                    if delay > 0:
+                        return delay
+                except Exception:  # noqa: BLE001
+                    pass
+        base = min(8.0, float(2 ** min(attempt, 5)))
+        return base * random.uniform(0.5, 1.0)
 
     def _repair_bad_index_with_map(self, inputs: List[str], idx_map: List[int], bad_idx: int) -> Tuple[List[str], List[int]]:
         if bad_idx < 0 or bad_idx >= len(inputs):

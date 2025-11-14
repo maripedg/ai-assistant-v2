@@ -1,24 +1,27 @@
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import EmailStr
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from backend.app.config import jwt_secret, jwt_ttl_min
+from backend.app.config import jwt_secret, jwt_ttl_min, usage_log_enabled
 from backend.app.core.security import issue_jwt, decode_jwt, verify_password
 from backend.app.schemas.auth import LoginRequest, LoginResponse, UserPublic
-from backend.core.db.session import get_db
+from backend.core.db.session import get_db, session_scope
 from backend.core.models.users import User
+from backend.core.repos.usage_repo_db import UsageRepoDB
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     email: EmailStr = payload.email
     # Case-insensitive lookup
     stmt = select(User).where(func.lower(User.email) == func.lower(str(email)))
@@ -32,10 +35,28 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="unauthorized")
 
     token = issue_jwt(user_id=user.id, email=user.email, role=user.role or "user", ttl_min=jwt_ttl_min(), secret=jwt_secret())
-    return LoginResponse(
+    response_payload = LoginResponse(
         token=token,
         user=UserPublic(id=user.id, email=user.email, role=user.role or "user", status=user.status or "active"),
     )
+    if usage_log_enabled():
+        client_label, ui_version = _resolve_client_headers(request)
+        ip = _extract_ip(request)
+        user_agent = request.headers.get("user-agent")
+        try:
+            with session_scope() as usage_db:
+                UsageRepoDB.log_login(
+                    usage_db,
+                    user_id=int(user.id) if user.id is not None else None,
+                    email=user.email,
+                    client=client_label,
+                    ui_version=ui_version,
+                    ip=ip,
+                    user_agent=user_agent,
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("usage.log_login skipped (%s)", exc.__class__.__name__)
+    return response_payload
 
 
 @router.post("/refresh", response_model=LoginResponse)
@@ -57,3 +78,19 @@ def refresh(authorization: Optional[str] = Header(default=None), db: Session = D
     new_token = issue_jwt(user_id=user.id, email=user.email, role=user.role or "user", ttl_min=jwt_ttl_min(), secret=jwt_secret())
     return LoginResponse(token=new_token, user=UserPublic(id=user.id, email=user.email, role=user.role or "user", status=user.status or "active"))
 
+
+def _resolve_client_headers(request: Request) -> tuple[str, Optional[str]]:
+    headers = request.headers
+    client = headers.get("x-client-app") or "streamlit"
+    ui_version = headers.get("x-ui-version") or headers.get("x-app-version") or "chat-v2"
+    return str(client), ui_version
+
+
+def _extract_ip(request: Request) -> Optional[str]:
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        first = xff.split(",", 1)[0].strip()
+        if first:
+            return first
+    client = request.client
+    return getattr(client, "host", None)

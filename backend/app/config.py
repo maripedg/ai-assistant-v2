@@ -162,6 +162,13 @@ def embed_evaluate() -> bool:
     return _env_bool("EMBED_EVALUATE", False)
 
 
+def usage_log_enabled() -> bool:
+    raw = os.getenv("USAGE_LOG_ENABLED", "true")
+    if raw is None:
+        return True
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def sp_schedule_enabled() -> bool:
     return _env_bool("SP_SCHEDULE_ENABLED", True)
 

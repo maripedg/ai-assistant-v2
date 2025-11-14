@@ -319,12 +319,16 @@ class APIClient:
         except Exception as e:
             return False, {"ok": False, "error": str(e), "services": {}}
 
-    def chat(self, question: str) -> Dict[str, Any]:
+    def chat(self, question: str, *, user_id: Optional[int] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
         """Devuelve siempre un dict normalizado con:
         answer, answer2, retrieved_chunks_metadata, raw, mode, used_chunks, decision_explain
         """
         url = f"{self.base_url}/chat"
-        payload = {"question": question}
+        payload: Dict[str, Any] = {"question": question}
+        if user_id is not None:
+            payload["user_id"] = user_id
+        if session_id:
+            payload["session_id"] = session_id
         debug_enabled = bool(get_config().get("DEBUG_CHAT_UI", False))
         chat_logger = logging.getLogger("chat_ui")
         out = {

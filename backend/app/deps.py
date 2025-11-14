@@ -5,8 +5,10 @@ import time
 from importlib import resources
 from pathlib import Path
 from threading import Lock
+from types import SimpleNamespace
 from typing import Any, Dict, Optional
 
+from fastapi import Request
 import yaml
 from dotenv import load_dotenv
 
@@ -16,6 +18,7 @@ from dotenv import load_dotenv
 
 import oci
 from backend.providers.oci.embeddings_adapter import OCIEmbeddingsAdapter
+from backend.app.core.security import decode_jwt
 
 try:
     from app import config as app_config
@@ -765,6 +768,36 @@ def make_chat_model_fallback():
 def make_chat_model():
     """Backward-compatible factory referencing the primary chat model."""
     return make_chat_model_primary()
+
+
+def _safe_int(value: Any) -> Optional[int]:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def get_current_user_optional(request: Request) -> Optional[SimpleNamespace]:
+    auth_header = request.headers.get("authorization")
+    if not auth_header or not isinstance(auth_header, str):
+        return None
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+    token = parts[1].strip()
+    if not token:
+        return None
+    try:
+        payload = decode_jwt(token, secret=app_config.jwt_secret())
+    except Exception:
+        return None
+    user_id = _safe_int(payload.get("sub"))
+    return SimpleNamespace(
+        id=user_id,
+        email=payload.get("email"),
+        role=payload.get("role"),
+        claims=payload,
+    )
 
 
 # ---------------- opcional: self-test ----------------

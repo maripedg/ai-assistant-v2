@@ -610,8 +610,20 @@ def render(api_client, assistant_title: str, feedback_dir: str) -> None:
     if user_prompt:
         if DEBUG_CHAT_UI:
             logp("chat_submit", len_prompt=len(user_prompt))
+        user_id_value: Optional[int] = None
+        user_id_raw = st.session_state.get("user_id", CONFIG.get("FEEDBACK_DEFAULT_USER_ID"))
+        if user_id_raw not in (None, ""):
+            try:
+                user_id_value = int(user_id_raw)
+            except (TypeError, ValueError):
+                logp("chat_submit:user_id_invalid", raw=user_id_raw)
+                user_id_value = None
+        session_identifier = st.session_state.get("feedback_session_id")
+        if not session_identifier:
+            session_identifier = str(uuid.uuid4())
+            st.session_state["feedback_session_id"] = session_identifier
         with st.spinner("Thinking..."):
-            result = api_client.chat(user_prompt)
+            result = api_client.chat(user_prompt, user_id=user_id_value, session_id=session_identifier)
         question_from_response = ""
         if isinstance(result, dict):
             question_from_response = (result.get("question") or "").strip()

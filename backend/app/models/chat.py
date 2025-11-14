@@ -1,10 +1,14 @@
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel
 
 
 class ChatRequest(BaseModel):
     question: str
+    user_id: Optional[int] = None
+    session_id: Optional[str] = None
+    message_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class DecisionExplain(BaseModel):

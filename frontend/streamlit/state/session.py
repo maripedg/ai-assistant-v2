@@ -1,3 +1,5 @@
+import copy
+
 import streamlit as st
 
 AUTH_KEYS = {
@@ -35,7 +37,7 @@ DEFAULT_KEYS = {
 def init_session():
     for k, v in DEFAULT_KEYS.items():
         if k not in st.session_state:
-            st.session_state[k] = v
+            st.session_state[k] = copy.deepcopy(v)
 
 
 def add_history(role: str, content: str):

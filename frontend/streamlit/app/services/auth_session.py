@@ -17,7 +17,8 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     stx = None
 
-_COOKIE_MANAGER = None
+
+_COOKIE_MANAGER_STATE_KEY = "_cookie_manager_component"
 _FALLBACK_STORE_KEY = "_cookie_fallback_store"
 _API_TOKEN_KEY = "api_token"
 
@@ -89,13 +90,20 @@ def cookies_available() -> bool:
     return stx is not None or _FALLBACK_STORE_KEY in st.session_state
 
 
+def _cookie_manager_key(cfg: Optional[dict]) -> str:
+    name = (cfg or {}).get("SESSION_COOKIE_NAME", "assistant_session")
+    return f"{name}_manager"
+
+
 def get_cookie_manager():
-    global _COOKIE_MANAGER
     if stx is None:
         return None
-    if _COOKIE_MANAGER is None:
-        _COOKIE_MANAGER = stx.CookieManager()
-    return _COOKIE_MANAGER
+    if _COOKIE_MANAGER_STATE_KEY not in st.session_state:
+        cfg = get_config()
+        st.session_state[_COOKIE_MANAGER_STATE_KEY] = stx.CookieManager(
+            key=_cookie_manager_key(cfg)
+        )
+    return st.session_state[_COOKIE_MANAGER_STATE_KEY]
 
 
 def set_cookie(name: str, value: str, max_age: int) -> None:
@@ -269,6 +277,7 @@ def logout() -> None:
     delete_cookie(cfg.get("SESSION_COOKIE_NAME", "assistant_session"))
     delete_cookie(_api_cookie_name(cfg))
     st.session_state.pop(_API_TOKEN_KEY, None)
+    st.session_state.pop("chat_history", None)
     _clear_auth_state()
 
 

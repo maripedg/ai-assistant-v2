@@ -8,7 +8,7 @@ server:
 
 retrieval:
   mode: hybrid_prefer_db
-  top_k: 12
+  top_k: 200
   distance: dot_product
   score_kind: similarity
   docs_normalized: true

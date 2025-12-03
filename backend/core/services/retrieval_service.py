@@ -49,6 +49,7 @@ def is_no_context_reply(text: str, cfg: Dict[str, Any]) -> Tuple[bool, str]:
                     continue
     return False, ""
 
+
 log = logging.getLogger(__name__)
 
 
@@ -134,7 +135,7 @@ class RetrievalService:
         Select context chunks using adaptive thresholding and MMR with per-doc cap.
 
         Returns (selected_chunks, best3_chunks, explain_dict).
-        - selected_chunks: up to 7 chunks after filtering and MMR (cap 2 per doc)
+        - selected_chunks: up to max_keep chunks after filtering and MMR (cap per_doc_cap per doc)
         - best3_chunks: top 3 by similarity from selected_chunks (for LLM)
         - explain_dict: {t_adapt, p90, sim_max, kept_n, cap_per_doc, mmr, gate_failed?}
         """
@@ -150,15 +151,39 @@ class RetrievalService:
             meta = dict(getattr(doc, "metadata", {}) or {})
             if "raw_score" not in meta:
                 meta["raw_score"] = rv
-            candidates.append({
-                "doc": doc,
-                "sim": sim,
-                "raw_score": rv,
-                "text": getattr(doc, "page_content", "") or "",
-                "doc_id": meta.get("doc_id") or meta.get("source") or "",
-                "chunk_id": meta.get("chunk_id") or "",
-                "metadata": meta,
-            })
+            candidates.append(
+                {
+                    "doc": doc,
+                    "sim": sim,
+                    "raw_score": rv,
+                    "text": getattr(doc, "page_content", "") or "",
+                    "doc_id": meta.get("doc_id") or meta.get("source") or "",
+                    "chunk_id": meta.get("chunk_id") or "",
+                    "metadata": meta,
+                }
+            )
+
+        # 🔍 DEBUG: loguear TODOS los candidatos crudos antes de filtros / MMR
+        if candidates:
+            sorted_cands = sorted(candidates, key=lambda x: x["sim"], reverse=True)
+            log.info(
+                "=== RAW VECTOR CANDIDATES (top_k=%d) for query: %s ===",
+                len(sorted_cands),
+                (query or "").replace("\n", " ")[:200],
+            )
+            for idx, c in enumerate(sorted_cands, start=1):
+                meta = c.get("metadata") or {}
+                snippet = (c.get("text") or "").replace("\n", " ")[:200]
+                log.info(
+                    "  #%02d sim=%.4f raw=%.4f doc_id=%s chunk_id=%s source=%s snippet=%s",
+                    idx,
+                    float(c.get("sim", 0.0)),
+                    float(c.get("raw_score", 0.0)),
+                    c.get("doc_id", ""),
+                    c.get("chunk_id", ""),
+                    meta.get("source", ""),
+                    snippet,
+                )
 
         sims = [c["sim"] for c in candidates]
         sim_max = max(sims) if sims else 0.0
@@ -202,8 +227,8 @@ class RetrievalService:
 
         # MMR selection with per-doc cap
         lam = 0.30
-        per_doc_cap = 2
-        max_keep = 7
+        per_doc_cap = 6
+        max_keep = 12
         selected: List[Dict[str, Any]] = []
         counts: Dict[str, int] = {}
 
@@ -250,7 +275,7 @@ class RetrievalService:
         # Take top-3 by similarity from selected
         by_similarity = sorted(selected, key=lambda x: x["sim"], reverse=True)
         best3 = by_similarity[:3]
-        # Preserve best-7 order by final MMR score
+        # Preserve best-7 order by final MMR score (aquí ahora es hasta max_keep, pero el nombre se mantiene)
         best7 = sorted(selected, key=lambda x: x.get("mmr_score", x["sim"]), reverse=True)
 
         # Gates
@@ -421,12 +446,14 @@ class RetrievalService:
                 sim_val = 0.0
             elif sim_val > 1.0:
                 sim_val = 1.0
-            uchunks.append({
-                "chunk_id": meta.get("chunk_id", ""),
-                "source": meta.get("source", ""),
-                "score": float(sim_val),
-                "snippet": text[:320],
-            })
+            uchunks.append(
+                {
+                    "chunk_id": meta.get("chunk_id", ""),
+                    "source": meta.get("source", ""),
+                    "score": float(sim_val),
+                    "snippet": text[:320],
+                }
+            )
         context_text = "\n\n".join(parts)
         used_chunks = uchunks
         # Track used chunks in decision_explain
@@ -584,14 +611,16 @@ class RetrievalService:
             raw_value = float(raw_score)
             similarity = self._normalize(raw_value)
             meta = dict(getattr(doc, "metadata", {}) or {})
-            metas.append({
-                "text": getattr(doc, "page_content", ""),
-                "source": meta.get("source", ""),
-                "doc_id": meta.get("doc_id", ""),
-                "chunk_id": meta.get("chunk_id", ""),
-                "raw_score": raw_value,
-                "similarity": similarity,
-            })
+            metas.append(
+                {
+                    "text": getattr(doc, "page_content", ""),
+                    "source": meta.get("source", ""),
+                    "doc_id": meta.get("doc_id", ""),
+                    "chunk_id": meta.get("chunk_id", ""),
+                    "raw_score": raw_value,
+                    "similarity": similarity,
+                }
+            )
         return metas
 
     def _normalize(self, raw_value: float) -> float:
@@ -688,7 +717,6 @@ class RetrievalService:
     def _compose_prompt(self, system_prompt: str, context: str, question: str) -> str:
         body = f"[Context]\n{context}\n\n[Question]\n{question}" if context else f"[Question]\n{question}"
         return f"{system_prompt}\n\n{body}" if system_prompt else body
-
 
     def _build_response(
         self,

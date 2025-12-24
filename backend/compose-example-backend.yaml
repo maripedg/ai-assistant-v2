@@ -1,0 +1,30 @@
+
+services:
+  api:
+    image: local/ai-assistant-backend:${DEPLOY_ID}
+    build: .
+    container_name: ai-assistant-api-${DEPLOY_ID}
+    env_file: .env
+
+    environment:
+      OCI_AUTH_MODE: config_file
+      OCI_CONFIG_PATH: /root/.oci/config
+      OCI_CONFIG_PROFILE: ${OCI_CONFIG_PROFILE:-DEFAULT}
+
+    expose:
+      - "8000"
+
+    volumes:
+      - type: bind
+        source: ../oci
+        target: /root/.oci
+        read_only: true
+
+    restart: unless-stopped
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    name: ai-assistant-${DEPLOY_ID}-net
+    external: true

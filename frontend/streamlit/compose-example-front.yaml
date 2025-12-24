@@ -1,0 +1,22 @@
+services:
+  app:
+    image: local/ai-assistant-frontend:${DEPLOY_ID}
+    build: .
+    container_name: ai-assistant-frontend-${DEPLOY_ID}
+    env_file: .env
+
+    ports:
+      - "${FRONTEND_PORT:-8501}:8501"
+
+    # Persistencia local opcional (solo si el FE usa filesystem para algo)
+    volumes:
+      - ./data:/app/data
+
+    restart: unless-stopped
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    name: ai-assistant-${DEPLOY_ID}-net
+    external: true

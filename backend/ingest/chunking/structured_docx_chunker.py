@@ -15,6 +15,8 @@ import re
 from collections import Counter
 from typing import Dict, List, Sequence
 
+from backend.ingest.chunking.toc_utils import strip_toc_region, is_toc_like
+
 
 def _estimate_tokens(text: str) -> int:
     # Heuristic: ~4 chars per token
@@ -25,7 +27,6 @@ def _split_to_token_limit(text: str, max_tokens: int) -> List[str]:
     if _estimate_tokens(text) <= max_tokens:
         return [text] if text.strip() else []
 
-    # Split by sentences first
     parts = re.split(r"(?<=[.!?])\s+", text)
     chunks: List[str] = []
     buf: List[str] = []
@@ -40,7 +41,6 @@ def _split_to_token_limit(text: str, max_tokens: int) -> List[str]:
             chunks.append(" ".join(buf).strip())
             buf = [part]
         else:
-            # Fallback: split by words
             words = part.split()
             wbuf: List[str] = []
             for w in words:
@@ -69,6 +69,36 @@ def _is_toc_line(line: str) -> bool:
     return bool(re.search(r"\.{3,}\s*\d+$", line))
 
 
+def _is_toc_line_strict(line: str) -> bool:
+    """Stricter TOC signal: dotted leaders, tabs, or numbered heading with trailing page."""
+    if not line or len(line) < 4:
+        return False
+    if re.search(r"\.{3,}\s*\d+$", line):
+        return True
+    if re.search(r"\t+\s*\d+$", line):
+        return True
+    if re.match(r"\s*\d+(\.\d+)*\s+.+\s+\d{1,4}$", line):
+        return True
+    return False
+
+
+def _is_toc_candidate(line: str) -> bool:
+    """Conservative TOC-like heuristic for auto mode."""
+    if not line:
+        return False
+    if len(line) > 160:
+        return False
+    return is_toc_like(line)
+
+
+def _count_toc_entries_in_line(line: str) -> int:
+    """Count TOC-like entries inside a single flattened line."""
+    if not line:
+        return 0
+    pattern = re.compile(r"\b\d+(?:\.\d+)*\s*[A-Za-z][^0-9]{0,80}?\s*\d{1,4}\b")
+    return len(pattern.findall(line))
+
+
 def _looks_admin_heading(text: str) -> bool:
     lowered = text.lower()
     admin_keys = (
@@ -92,7 +122,6 @@ def _table_to_rows(lines: Sequence[str], mode: str) -> List[str]:
     if mode == "raw_text":
         return [" ".join(lines).strip()]
 
-    # row_kv: split each row on common separators
     rows: List[str] = []
     for ln in lines:
         if "|" in ln:
@@ -109,13 +138,30 @@ def _table_to_rows(lines: Sequence[str], mode: str) -> List[str]:
     return rows
 
 
-def _clean_lines(lines: List[str], *, drop_toc: bool, repeated: set[str]) -> List[str]:
+def _clean_lines(
+    lines: List[str],
+    *,
+    drop_toc: bool,
+    toc_mode: str,
+    toc_min_hits: int,
+    toc_window_lines: int,
+    repeated: set[str],
+) -> List[str]:
+    filtered = strip_toc_region(
+        lines,
+        {
+            "toc_stop_on_heading": True,
+        },
+    ) if (drop_toc and toc_mode == "auto") else lines
     cleaned: List[str] = []
-    for ln in lines:
+    for ln in filtered:
         if not ln:
             continue
-        if drop_toc and _is_toc_line(ln):
-            continue
+        if drop_toc and toc_mode != "off":
+            if toc_mode == "strict" and _is_toc_line_strict(ln):
+                continue
+            if toc_mode == "auto" and (_is_toc_line(ln) or _is_toc_candidate(ln)):
+                continue
         if ln in repeated:
             continue
         cleaned.append(ln)
@@ -166,7 +212,6 @@ def _build_units(
         units.append({"type": btype, "text": text})
         i += 1
 
-    # Enforce max_tokens
     final_units: List[Dict[str, str]] = []
     for unit in units:
         splits = _split_to_token_limit(unit["text"], max_tokens)
@@ -183,6 +228,9 @@ def chunk_structured_docx_items(
 ) -> List[Dict[str, object]]:
     """Return structured chunks with metadata preserved."""
     drop_toc = bool(chunker_cfg.get("drop_toc", True))
+    toc_mode = str(chunker_cfg.get("toc_mode", "auto") or "auto").lower() if drop_toc else "off"
+    toc_min_hits = int(chunker_cfg.get("toc_min_hits", 6) or 6)
+    toc_window_lines = int(chunker_cfg.get("toc_window_lines", 20) or 20)
     drop_repeated = bool(chunker_cfg.get("drop_repeated_headers_footers", True))
     drop_admin = bool(chunker_cfg.get("drop_admin_sections", False))
     table_mode = str(chunker_cfg.get("table_mode", "row_kv") or "row_kv").lower()
@@ -203,7 +251,14 @@ def chunk_structured_docx_items(
         cleaned_blocks: List[Dict[str, str]] = []
         for blk in blocks_raw:
             lines = _normalize_block_lines(blk)
-            lines = _clean_lines(lines, drop_toc=drop_toc, repeated=repeated_lines)
+            lines = _clean_lines(
+                lines,
+                drop_toc=drop_toc,
+                toc_mode=toc_mode,
+                toc_min_hits=toc_min_hits,
+                toc_window_lines=toc_window_lines,
+                repeated=repeated_lines,
+            )
             if not lines:
                 continue
             joined = "\n".join(lines).strip()

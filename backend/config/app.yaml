@@ -105,7 +105,7 @@ embeddings:
           - page
           - lang
     standard_profile:
-      index_name: MY_DEMO_v2
+      index_name: MY_DEMO_v1
       max_input_tokens: 512
       chunker:
         # To revert structured chunking, set type back to tokens (or char) and drop structured-only keys.
@@ -113,6 +113,11 @@ embeddings:
         size: 900
         overlap: 0.15
         drop_toc: true
+        toc_mode: auto
+        toc_min_hits: 6
+        toc_window_lines: 20
+        toc_stop_on_heading: true
+        pdf_toc_max_pages: 5
         drop_repeated_headers_footers: true
         drop_admin_sections: true
         token_safety_margin: 64

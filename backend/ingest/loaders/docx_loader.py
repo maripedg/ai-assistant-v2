@@ -82,6 +82,8 @@ def load(path: str) -> List[Dict]:
                     "metadata": {
                         "source": abs_path,
                         "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        "heading_path": [],
+                        "section_heading": None,
                     },
                 }
             )
@@ -92,12 +94,15 @@ def load(path: str) -> List[Dict]:
         text = clean_text("\n".join(sec), preserve_tables=False)
         if not text:
             continue
+        heading = sec[0] if sec else None
         items.append(
             {
                 "text": text,
                 "metadata": {
                     "source": abs_path,
                     "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "section_heading": heading,
+                    "heading_path": [heading] if heading else [],
                 },
             }
         )

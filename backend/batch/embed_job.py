@@ -20,6 +20,8 @@ from backend.ingest.router import route_and_load
 from backend.ingest.normalizer import normalize_metadata
 from backend.ingest.chunking.char_chunker import chunk_text
 from backend.ingest.chunking.token_chunker import chunk_text_by_tokens
+from backend.ingest.chunking.structured_docx_chunker import chunk_structured_docx_items
+from backend.ingest.chunking.structured_pdf_chunker import chunk_structured_pdf_items
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -88,6 +90,21 @@ PDF_EXTENSIONS = {".pdf"}
 class SimpleChunk:
     text: str
     metadata: Dict[str, Any]
+
+
+def _effective_max_tokens(chunker_cfg: Dict[str, Any], profile_cfg: Dict[str, Any]) -> int:
+    profile_limit = int(profile_cfg.get("max_input_tokens", 512) or 512)
+    safety = int(chunker_cfg.get("token_safety_margin", 64) or 64)
+    base_limit = max(1, profile_limit - safety)
+    raw_max = chunker_cfg.get("max_tokens")
+    if raw_max is not None:
+        try:
+            raw_int = int(raw_max)
+            if raw_int > 0:
+                return max(1, min(raw_int, base_limit))
+        except Exception:
+            pass
+    return base_limit
 
 
 class _DummyEmbedder:
@@ -671,6 +688,7 @@ def run_embed_job(
             logger.exception("Failed to load %s: %s", filepath, exc)
             continue
 
+        normalized_items: List[Dict[str, Any]] = []
         for item_idx, raw_item in enumerate(items, start=1):
             try:
                 norm = normalize_metadata(raw_item)
@@ -699,17 +717,93 @@ def run_embed_job(
                     if _san_counts:
                         print(f"[sanitizer:{os.path.basename(filepath)}] {_san_counts}")
 
+            norm["text"] = text
+            normalized_items.append(norm)
+
+        # Build chunker selection
+        chunker_cfg = profile_cfg.get("chunker", {}) or {}
+        chunker_type = (chunker_cfg.get("type") or "char").lower()
+        effective_max = _effective_max_tokens(chunker_cfg, profile_cfg)
+
+        def _append_chunks(chunks_in: List[Dict[str, Any]], base_ct: str, starting_idx: int = 1) -> int:
+            nonlocal total_chunks
+            appended = 0
+            for idx, chunk in enumerate(chunks_in, start=starting_idx):
+                ctext = (chunk.get("text") or "").strip()
+                if not ctext:
+                    continue
+                cmeta_raw = dict(chunk.get("metadata") or {})
+                ct_key_local = base_ct
+                low_ct = str(cmeta_raw.get("content_type") or base_ct or "").lower()
+                if "pdf" in low_ct:
+                    ct_key_local = "pdf"
+                elif "presentation" in low_ct or "ppt" in low_ct:
+                    ct_key_local = "pptx"
+                elif "spreadsheet" in low_ct or "xlsx" in low_ct:
+                    ct_key_local = "xlsx"
+                elif "html" in low_ct:
+                    ct_key_local = "html"
+                elif "wordprocessingml" in low_ct or "docx" in low_ct:
+                    ct_key_local = "docx"
+                elif "plain" in low_ct or "markdown" in low_ct or "txt" in low_ct:
+                    ct_key_local = "txt"
+                if ct_key_local:
+                    content_counts[ct_key_local] = content_counts.get(ct_key_local, 0) + 1
+
+                chunk_id = f"{doc_id_base}_chunk_{len(vector_buffer) + 1}"
+                meta_out = dict(cmeta_raw)
+                meta_out.update(
+                    {
+                        "doc_id": doc_id_base,
+                        "chunk_id": chunk_id,
+                        "profile": profile_name,
+                        "index_name": index_name,
+                        "distance_metric": profile_cfg.get("distance_metric", "dot_product"),
+                    }
+                )
+                if dedupe_enabled:
+                    meta_out["hash_norm"] = _hash_normalize(ctext)
+                vector_buffer.append({"text": ctext, "metadata": meta_out})
+                appended += 1
+            total_chunks += appended
+            return appended
+
+        handled_indices: set[int] = set()
+
+        # Structured chunking branches
+        if chunker_type == "structured_pdf":
+            pdf_items = [
+                it
+                for it in normalized_items
+                if "pdf" in str(it["metadata"].get("content_type", "")).lower()
+            ]
+            if pdf_items:
+                struct_chunks = chunk_structured_pdf_items(pdf_items, chunker_cfg, effective_max)
+                _append_chunks(struct_chunks, "pdf")
+                handled_indices.update({id(it) for it in pdf_items})
+
+        if chunker_type == "structured_docx":
+            docx_items = [
+                it
+                for it in normalized_items
+                if (
+                    "wordprocessingml" in str(it["metadata"].get("content_type", "")).lower()
+                    or "docx" in str(it["metadata"].get("content_type", "")).lower()
+                )
+            ]
+            if docx_items:
+                struct_chunks = chunk_structured_docx_items(docx_items, chunker_cfg, effective_max)
+                _append_chunks(struct_chunks, "docx")
+                handled_indices.update({id(it) for it in docx_items})
+
+        # Fallback to existing fixed chunking for remaining items
+        for item_idx, norm in enumerate(normalized_items, start=1):
+            if id(norm) in handled_indices:
+                continue
             meta = dict(norm["metadata"])
-            ctype_simple = meta.get("content_type")
-            if isinstance(ctype_simple, str):
-                # Map common MIME to simple type keywords
-                if ctype_simple.startswith("application/") or ctype_simple.startswith("text/"):
-                    # leave; normalizer maps to MIME; counters use keyword below
-                    pass
-            # Build chunker selection
-            chunker_cfg = profile_cfg.get("chunker", {}) or {}
+            text = norm.get("text") or ""
             chunks_text: List[str] = []
-            if (chunker_cfg.get("type") or "char").lower() == "tokens":
+            if chunker_type == "tokens":
                 max_tokens = int(chunker_cfg.get("size", 900) or 900)
                 ov = float(chunker_cfg.get("overlap", 0.15) or 0.0)
                 chunks_text = chunk_text_by_tokens(text, max_tokens=max_tokens, overlap=ov)
@@ -718,7 +812,6 @@ def run_embed_job(
                 ov = int(chunker_cfg.get("overlap", 100) or 0)
                 chunks_text = chunk_text(text, size=size, overlap=ov)
 
-            # Counters by simplified type token
             ct_key = None
             if isinstance(meta.get("content_type"), str):
                 low = meta["content_type"].lower()

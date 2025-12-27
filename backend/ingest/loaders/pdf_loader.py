@@ -22,6 +22,8 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 from backend.ingest.text_cleaner import clean_text
+from backend.ingest.chunking.block_types import Block
+from backend.ingest.chunking.block_cleaner import clean_blocks
 
 import pdfplumber  # type: ignore
 
@@ -143,22 +145,27 @@ def load(path: str) -> List[Dict]:
 
     pages_ocr += performed_ocr
 
-    items: List[Dict] = []
+    blocks: List[Block] = []
     for idx in range(n_pages):
         text = ocr_texts[idx] or native_texts[idx] or ""
-        text = clean_text(text, preserve_tables=False)
-        if not text:
-            # Skip empty items
-            continue
-        items.append(
-            {
-                "text": text,
-                "metadata": {
+        blocks.append(
+            Block(
+                type="paragraph",
+                text=text,
+                meta={
                     "source": abs_path,
                     "content_type": "application/pdf",
                     "page": idx + 1,
                     "has_ocr": bool(ocr_texts[idx]),
                 },
-            }
+            )
         )
+
+    cleaned = clean_blocks("pdf", blocks)
+    items: List[Dict] = []
+    for blk in cleaned:
+        text_clean = clean_text(blk.text, preserve_tables=False)
+        if not text_clean:
+            continue
+        items.append({"text": text_clean, "metadata": blk.meta})
     return items

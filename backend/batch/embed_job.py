@@ -22,9 +22,12 @@ from backend.ingest.chunking.char_chunker import chunk_text
 from backend.ingest.chunking.token_chunker import chunk_text_by_tokens
 from backend.ingest.chunking.structured_docx_chunker import chunk_structured_docx_items
 from backend.ingest.chunking.structured_pdf_chunker import chunk_structured_pdf_items
+from backend.ingest.chunking.toc_section_docx_chunker import chunk_docx_toc_sections
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+PIPELINE_CHUNK_DEBUG = (os.getenv("PIPELINE_CHUNK_DEBUG") or "").lower() in {"1", "true", "on", "yes"}
+USE_TOC_SECTION_DOCX_CHUNKER = (os.getenv("USE_TOC_SECTION_DOCX_CHUNKER") or "").lower() in {"1", "true", "on", "yes"}
 
 
 # --- Sanitizer (optional import)
@@ -768,6 +771,27 @@ def run_embed_job(
             total_chunks += appended
             return appended
 
+        def _strip_repeated_doc_title_prefix(chunks_in: List[Dict[str, Any]]) -> tuple[List[Dict[str, Any]], str | None]:
+            if len(chunks_in) < 2:
+                return chunks_in, None
+            first_lines: List[str] = []
+            for ch in chunks_in:
+                lines = (ch.get("text") or "").splitlines()
+                if not lines or not lines[0].strip():
+                    return chunks_in, None
+                first_lines.append(lines[0].strip())
+            candidate = first_lines[0]
+            if not all(fl == candidate for fl in first_lines):
+                return chunks_in, None
+            cleaned: List[Dict[str, Any]] = []
+            for idx, ch in enumerate(chunks_in):
+                lines = (ch.get("text") or "").splitlines()
+                body = "\n".join(lines[1:]).strip()
+                meta = dict(ch.get("metadata") or {})
+                meta["doc_title"] = candidate
+                cleaned.append({"text": body if idx > 0 else ch.get("text") or "", "metadata": meta})
+            return cleaned, candidate
+
         handled_indices: set[int] = set()
 
         # Structured chunking branches
@@ -779,6 +803,12 @@ def run_embed_job(
             ]
             if pdf_items:
                 struct_chunks = chunk_structured_pdf_items(pdf_items, chunker_cfg, effective_max)
+                if PIPELINE_CHUNK_DEBUG:
+                    logger.info(
+                        "PIPELINE_CHUNK_DEBUG structured_pdf items=%d chunks=%d",
+                        len(pdf_items),
+                        len(struct_chunks or []),
+                    )
                 _append_chunks(struct_chunks, "pdf")
                 handled_indices.update({id(it) for it in pdf_items})
 
@@ -792,7 +822,30 @@ def run_embed_job(
                 )
             ]
             if docx_items:
-                struct_chunks = chunk_structured_docx_items(docx_items, chunker_cfg, effective_max)
+                if USE_TOC_SECTION_DOCX_CHUNKER:
+                    struct_chunks = chunk_docx_toc_sections(docx_items, cfg={"effective_max_tokens": effective_max}, source_meta={})
+                    if PIPELINE_CHUNK_DEBUG:
+                        logger.info(
+                            "PIPELINE_CHUNK_DEBUG structured_docx items=%d chunks=%d DOCX chunker selected: toc_section_docx_chunker",
+                            len(docx_items),
+                            len(struct_chunks or []),
+                        )
+                else:
+                    struct_chunks = chunk_structured_docx_items(docx_items, chunker_cfg, effective_max)
+                    if PIPELINE_CHUNK_DEBUG:
+                        logger.info(
+                            "PIPELINE_CHUNK_DEBUG structured_docx items=%d chunks=%d DOCX chunker selected: structured_docx_chunker",
+                            len(docx_items),
+                            len(struct_chunks or []),
+                        )
+                doc_title_removed = None
+                if struct_chunks:
+                    struct_chunks, doc_title_removed = _strip_repeated_doc_title_prefix(struct_chunks)
+                if PIPELINE_CHUNK_DEBUG:
+                    if doc_title_removed:
+                        logger.info("PIPELINE_CHUNK_DEBUG docx doc_title prefix removed from chunks: %s", doc_title_removed)
+                    else:
+                        logger.info("PIPELINE_CHUNK_DEBUG docx doc_title prefix not applied to chunks")
                 _append_chunks(struct_chunks, "docx")
                 handled_indices.update({id(it) for it in docx_items})
 

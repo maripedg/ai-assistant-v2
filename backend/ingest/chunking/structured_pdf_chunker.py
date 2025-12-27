@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 from backend.ingest.chunking.toc_utils import strip_toc_region
 
@@ -62,6 +62,23 @@ def _is_toc_line(line: str) -> bool:
 
 def _is_bullet(line: str) -> bool:
     return bool(re.match(r"^(\s*[-*•\u2022]\s+|\s*\d+[.)]\s+)", line))
+
+
+def _is_strong_numbered_heading(line: str) -> bool:
+    return bool(re.match(r"^\s*(\d{1,3}(?:\.\d{1,3}){0,4}\.?)\s+.+$", line))
+
+
+def _is_headingish_line(line: str) -> bool:
+    if not line:
+        return False
+    if _is_strong_numbered_heading(line):
+        return True
+    if len(line) > 120:
+        return False
+    if _is_bullet(line):
+        return False
+    words = line.split()
+    return len(words) <= 12 and (line.isupper() or line.istitle())
 
 
 def _toc_like_score(line: str) -> int:
@@ -155,6 +172,17 @@ def _reconstruct_blocks(lines: List[str]) -> List[Dict[str, str]]:
     return blocks
 
 
+def _heading_from_meta(meta: Dict[str, object]) -> str:
+    heading = meta.get("section_heading")
+    if isinstance(heading, str) and heading.strip():
+        return heading.strip()
+    hpath = meta.get("heading_path")
+    if isinstance(hpath, (list, tuple)) and hpath:
+        parts = [str(x).strip() for x in hpath if str(x).strip()]
+        return " > ".join(parts) if parts else ""
+    return ""
+
+
 def _combine_blocks(blocks: List[Dict[str, str]], max_tokens: int) -> List[Dict[str, str]]:
     combined: List[Dict[str, str]] = []
     for blk in blocks:
@@ -165,11 +193,25 @@ def _combine_blocks(blocks: List[Dict[str, str]], max_tokens: int) -> List[Dict[
             combined[-1]["text"] = (combined[-1]["text"] + "\n" + text).strip()
             continue
 
-        splits = _split_to_token_limit(text, max_tokens)
-        for part in splits:
-            if part.strip():
-                combined.append({"type": blk["type"], "text": part.strip()})
+        combined.append({"type": blk["type"], "text": text})
     return combined
+
+
+def _explode_unit_on_strong_headings(text: str) -> List[str]:
+    parts: List[str] = []
+    buf: List[str] = []
+    for line in text.splitlines():
+        ln = line.strip()
+        if _is_strong_numbered_heading(ln):
+            if buf:
+                parts.append("\n".join(buf).strip())
+                buf = []
+            buf.append(ln)
+            continue
+        buf.append(line)
+    if buf:
+        parts.append("\n".join(buf).strip())
+    return [p for p in parts if p]
 
 
 def chunk_structured_pdf_items(
@@ -184,6 +226,8 @@ def chunk_structured_pdf_items(
     pdf_toc_max_pages = int(chunker_cfg.get("pdf_toc_max_pages", 5) or 5)
     drop_repeated = bool(chunker_cfg.get("drop_repeated_headers_footers", True))
     min_tokens = int(chunker_cfg.get("min_tokens", 0) or 0)
+    min_block_tokens = int(chunker_cfg.get("min_block_tokens", 20) or 20)
+    overlap_tokens = int(chunker_cfg.get("overlap_tokens", 0) or 0)
     pdf_cfg = {
         "drop_toc": drop_toc,
         "toc_mode": toc_mode,
@@ -207,18 +251,88 @@ def chunk_structured_pdf_items(
             continue
         blocks = _reconstruct_blocks(lines)
         units = _combine_blocks(blocks, effective_max_tokens)
+        if not units:
+            continue
+        total_lines = [ln for u in units for ln in u.get("text", "").splitlines() if ln.strip()]
+        heading_candidates = [ln for ln in total_lines if _is_headingish_line(ln)]
+        heading_density = (len(heading_candidates) / len(total_lines)) if total_lines else 0.0
+        avg_gap = (len(total_lines) / len(heading_candidates)) if heading_candidates else float("inf")
+        headings_overused = bool(heading_candidates) and (heading_density > 0.25 or avg_gap < 5)
+
+        blocks_with_headings: List[Dict[str, str]] = []
+        current_heading = _heading_from_meta(meta)
+        accumulator: List[str] = []
+
+        def _flush():
+            if not accumulator:
+                return
+            body = "\n\n".join(accumulator).strip()
+            heading_val = current_heading
+            text_out = f"{heading_val}\n{body}".strip() if heading_val and not body.startswith(heading_val) else body
+            blocks_with_headings.append({"heading": heading_val, "text": text_out})
+            accumulator.clear()
+
         for unit in units:
-            if min_tokens > 0 and _estimate_tokens(unit["text"]) < min_tokens:
-                continue
-            chunk_meta = dict(meta)
-            if page_no is not None:
-                chunk_meta["page_start"] = page_no
-                chunk_meta["page_end"] = page_no
-            chunk_meta["unit_type"] = unit["type"]
-            chunks.append(
-                {
-                    "text": unit["text"],
-                    "metadata": chunk_meta,
-                }
-            )
+            for u_text in _explode_unit_on_strong_headings(unit.get("text", "").strip()):
+                if not u_text:
+                    continue
+                first_line = u_text.splitlines()[0].strip()
+                is_strong = _is_strong_numbered_heading(first_line)
+                is_headingish = _is_headingish_line(first_line)
+                boundary = is_strong or (is_headingish and not headings_overused)
+                if boundary:
+                    _flush()
+                    current_heading = first_line if is_headingish else current_heading
+                    remaining = "\n".join(u_text.splitlines()[1:]).strip()
+                    if remaining:
+                        accumulator.append(f"{current_heading}\n{remaining}".strip() if current_heading else remaining)
+                    else:
+                        continue
+                    continue
+                accumulator.append(u_text)
+        _flush()
+
+        unit_type = next((u["type"] for u in units if u.get("type")), "paragraph")
+        for blk in blocks_with_headings:
+            heading = blk.get("heading") or _heading_from_meta(meta)
+            combined_text = blk.get("text", "")
+            split_chunks = _split_to_token_limit(combined_text, effective_max_tokens)
+            final_chunks: List[str] = []
+            prev_tail: List[str] = []
+            for idx_part, part in enumerate(split_chunks):
+                body = part.strip()
+                if idx_part > 0 and overlap_tokens > 0 and prev_tail:
+                    overlap = " ".join(prev_tail[-overlap_tokens:]).strip()
+                    if overlap:
+                        body = f"{overlap}\n{body}"
+                if heading and not body.startswith(heading):
+                    body = f"{heading}\n{body}".strip()
+                tokens = _estimate_tokens(body)
+                if min_block_tokens and tokens < min_block_tokens and final_chunks:
+                    body_to_merge = body
+                    if heading and body.startswith(heading):
+                        body_to_merge = body[len(heading):].strip()
+                    if body_to_merge:
+                        final_chunks[-1] = (final_chunks[-1] + "\n" + body_to_merge).strip()
+                else:
+                    final_chunks.append(body)
+                body_no_heading = body
+                if heading and body.startswith(heading):
+                    body_no_heading = body[len(heading):].strip()
+                prev_tail = body_no_heading.split()
+
+            for text_chunk in final_chunks:
+                if min_tokens > 0 and _estimate_tokens(text_chunk) < min_tokens:
+                    continue
+                chunk_meta = dict(meta)
+                if page_no is not None:
+                    chunk_meta["page_start"] = page_no
+                    chunk_meta["page_end"] = page_no
+                chunk_meta["unit_type"] = unit_type
+                chunks.append(
+                    {
+                        "text": text_chunk,
+                        "metadata": chunk_meta,
+                    }
+                )
     return chunks

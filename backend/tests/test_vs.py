@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from backend.providers.oci.vectorstore import OracleVSStore
+from langchain_community.vectorstores.oraclevs import _coerce_metadata_value
 
 
 class DummyVectorClient:
@@ -31,3 +32,16 @@ def test_similarity_search_returns_requested_k_and_scores_between_zero_and_one()
     assert len(result) == 3
     assert all(0.0 <= float(score) <= 1.0 for _, score in result)
     assert store.vs.seen == [("unit test query", 3)]
+
+
+def test_coerce_metadata_value_parses_json_strings():
+    raw = '{"doc_id":"doc-42","chunk_id":"chunk-7","source":"/tmp/doc"}'
+    meta = _coerce_metadata_value(raw, lambda v: v)
+    assert meta["doc_id"] == "doc-42"
+    assert meta["chunk_id"] == "chunk-7"
+    assert meta["source"] == "/tmp/doc"
+
+
+def test_coerce_metadata_value_handles_invalid_input():
+    meta = _coerce_metadata_value("not-json", lambda v: v)
+    assert meta == {}

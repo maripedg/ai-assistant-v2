@@ -45,6 +45,11 @@ def route_and_load(path: str) -> List[Dict]:
     module_path = _resolve_loader_module(ext)
     try:
         mod = importlib.import_module(module_path)
-        return mod.load(abs_path)  # type: ignore[attr-defined]
+        result = mod.load(abs_path)  # type: ignore[attr-defined]
+        if isinstance(result, tuple):
+            items = result[0]
+        else:
+            items = result
+        return items
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(f"Failed to load file via {module_path} | path={abs_path}: {exc}") from exc

@@ -1,6 +1,9 @@
 import logging
+logger = logging.getLogger(__name__)
 import math
 import re
+import os
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 from backend.core.ports.chat_model import ChatModelPort
@@ -51,6 +54,56 @@ def is_no_context_reply(text: str, cfg: Dict[str, Any]) -> Tuple[bool, str]:
 
 
 log = logging.getLogger(__name__)
+DEBUG_RETRIEVAL_METADATA = (os.getenv("DEBUG_RETRIEVAL_METADATA") or "false").lower() in {"1", "true", "yes", "on"}
+
+
+def _preview(val: Any, limit: int = 200) -> str:
+    try:
+        s = str(val)
+    except Exception:
+        return ""
+    return s[:limit]
+
+
+def _dbg(label: str, obj: Any) -> None:
+    if not DEBUG_RETRIEVAL_METADATA:
+        return
+    try:
+        if isinstance(obj, dict):
+            log.info("DEBUG_METADATA %s type=dict keys=%s", label, list(obj.keys()))
+            return
+        if isinstance(obj, (list, tuple)):
+            log.info(
+                "DEBUG_METADATA %s type=%s len=%d first_type=%s",
+                label,
+                type(obj).__name__,
+                len(obj),
+                type(obj[0]).__name__ if obj else None,
+            )
+            if obj:
+                _dbg(f"{label}[0]", obj[0])
+            return
+        if hasattr(obj, "metadata"):
+            meta = getattr(obj, "metadata", None)
+            meta_info = None
+            if isinstance(meta, dict):
+                meta_info = list(meta.keys())
+            elif isinstance(meta, str):
+                meta_info = f"str:{_preview(meta)}"
+            else:
+                meta_info = type(meta).__name__
+            fields = list(getattr(obj, "__dict__", {}).keys())
+            log.info(
+                "DEBUG_METADATA %s type=%s fields=%s meta_info=%s",
+                label,
+                type(obj).__name__,
+                fields,
+                meta_info,
+            )
+            return
+        log.info("DEBUG_METADATA %s type=%s preview=%s", label, type(obj).__name__, _preview(obj))
+    except Exception:
+        return
 
 
 class RetrievalService:
@@ -130,6 +183,65 @@ class RetrievalService:
         # Extra decision-explain fields (filled by helpers like select_context)
         self._extra_explain: Dict[str, Any] = {}
 
+    def _resolve_metadata(self, doc: Any, row_meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Merge metadata from vector document and optional row dict, preserving chunk/source ids.
+        """
+        meta: Dict[str, Any] = {}
+        if isinstance(row_meta, dict):
+            meta = dict(row_meta)
+        elif isinstance(row_meta, str):
+            try:
+                parsed = json.loads(row_meta)
+                if isinstance(parsed, dict):
+                    meta = parsed
+            except Exception:  # noqa: BLE001
+                meta = {}
+        doc_meta = getattr(doc, "metadata", None)
+        if isinstance(doc_meta, dict) and doc_meta:
+            merged = dict(meta or {})
+            merged.update(doc_meta)
+            meta = merged
+        elif isinstance(doc_meta, str):
+            try:
+                parsed_doc = json.loads(doc_meta)
+                if isinstance(parsed_doc, dict):
+                    merged = dict(meta or {})
+                    merged.update(parsed_doc)
+                    meta = merged
+            except Exception:  # noqa: BLE001
+                pass
+
+        meta = dict(meta or {})
+        row_fields: Dict[str, Any] = {}
+        if isinstance(row_meta, dict):
+            row_fields.update(row_meta)
+        if isinstance(doc, dict):
+            row_fields.update(doc)
+        for key in ("id", "chunk_id", "doc_id", "source"):
+            val = getattr(doc, key, None)
+            if val is not None:
+                row_fields.setdefault(key, val)
+
+        chunk_id = meta.get("chunk_id") or row_fields.get("chunk_id") or row_fields.get("id") or ""
+        source = (
+            meta.get("source")
+            or meta.get("doc_id")
+            or row_fields.get("source")
+            or row_fields.get("doc_id")
+            or ""
+        )
+        doc_id = meta.get("doc_id") or row_fields.get("doc_id")
+
+        if chunk_id:
+            meta["chunk_id"] = chunk_id
+        if source:
+            meta["source"] = source
+        if doc_id:
+            meta["doc_id"] = doc_id
+
+        return meta
+
     def select_context(self, query: str) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
         """
         Select context chunks using adaptive thresholding and MMR with per-doc cap.
@@ -140,15 +252,54 @@ class RetrievalService:
         - explain_dict: {t_adapt, p90, sim_max, kept_n, cap_per_doc, mmr, gate_failed?}
         """
         raw_results = self.vs.similarity_search_with_score(query, k=self.top_k)
+        if DEBUG_RETRIEVAL_METADATA:
+            _dbg("VECTORSTORE_RETURN", raw_results)
         # Build candidate list with normalized similarity
         candidates: List[Dict[str, Any]] = []
-        for doc, raw_score in (raw_results or []):
+        for idx, (doc, raw_score) in enumerate(raw_results or []):
+            if DEBUG_RETRIEVAL_METADATA and idx < 2:
+                raw_meta = None
+                keys: Any = None
+                if isinstance(doc, dict):
+                    keys = list(doc.keys())
+                    raw_meta = doc.get("METADATA") or doc.get("metadata")
+                elif isinstance(doc, (list, tuple)):
+                    keys = list(range(len(doc)))
+                else:
+                    keys = list(getattr(doc, "__dict__", {}).keys())
+                    raw_meta = getattr(doc, "metadata", None)
+                meta_type = type(raw_meta).__name__ if raw_meta is not None else "None"
+                preview = ""
+                if isinstance(raw_meta, str):
+                    preview = raw_meta[:200]
+                elif isinstance(raw_meta, dict):
+                    preview = str(list(raw_meta.keys()))[:200]
+                elif raw_meta is not None:
+                    preview = str(raw_meta)[:200]
+                log.info(
+                    "DEBUG_METADATA raw_result idx=%d type=%s keys=%s meta_type=%s meta_preview=%s",
+                    idx,
+                    type(doc).__name__,
+                    keys,
+                    meta_type,
+                    preview,
+                )
             try:
                 rv = float(raw_score)
             except Exception:
                 rv = 0.0
             sim = self._normalize(rv)
-            meta = dict(getattr(doc, "metadata", {}) or {})
+            meta = self._resolve_metadata(doc)
+            if DEBUG_RETRIEVAL_METADATA and idx < 2:
+                meta_keys = list(meta.keys())
+                log.info(
+                    "DEBUG_METADATA parsed_meta idx=%d chunk_id=%s source=%s doc_id=%s meta_keys=%s",
+                    idx,
+                    meta.get("chunk_id"),
+                    meta.get("source"),
+                    meta.get("doc_id"),
+                    meta_keys,
+                )
             if "raw_score" not in meta:
                 meta["raw_score"] = rv
             candidates.append(
@@ -162,6 +313,18 @@ class RetrievalService:
                     "metadata": meta,
                 }
             )
+
+        if DEBUG_RETRIEVAL_METADATA and candidates:
+            _dbg("AFTER_MAPPING", candidates[:2])
+            for j, cand in enumerate(candidates[:2]):
+                meta = cand.get("metadata") or {}
+                log.info(
+                    "DEBUG_METADATA mapped_candidate idx=%d source=%s chunk_id=%s doc_id=%s",
+                    j,
+                    meta.get("source"),
+                    meta.get("chunk_id"),
+                    meta.get("doc_id"),
+                )
 
         # 🔍 DEBUG: loguear TODOS los candidatos crudos antes de filtros / MMR
         if candidates:
@@ -335,6 +498,8 @@ class RetrievalService:
             self._extra_explain = extra
 
         raw_results = self.vs.similarity_search_with_score(question, k=self.top_k)
+        if DEBUG_RETRIEVAL_METADATA:
+            _dbg("VECTORSTORE_RETURN_ANSWER", raw_results)
         if not raw_results:
             _update_extra(hybrid_candidates=0, hybrid_sent=0, gate_failed=None, fallback_reason=None)
             return self._build_response(question, "fallback", [], [], None, short_query, llm_used="fallback")
@@ -394,9 +559,7 @@ class RetrievalService:
         retrieved_metas: List[Dict[str, Any]] = []
         for idx, payload in enumerate(selected_docs, start=1):
             doc = payload.get("doc")
-            meta = dict(payload.get("metadata") or {})
-            if not meta and doc is not None:
-                meta = dict(getattr(doc, "metadata", {}) or {})
+            meta = self._resolve_metadata(doc, payload.get("metadata"))
             similarity = float(payload.get("similarity", 0.0))
             if similarity < 0.0:
                 similarity = 0.0
@@ -408,6 +571,17 @@ class RetrievalService:
             if raw_val is not None:
                 meta["raw_score"] = float(raw_val)
             retrieved_metas.append(meta)
+
+        if DEBUG_RETRIEVAL_METADATA and retrieved_metas:
+            _dbg("BEFORE_RESPONSE_metas", retrieved_metas[:2])
+            for j, meta in enumerate(retrieved_metas[:2]):
+                log.info(
+                    "DEBUG_METADATA before_response_meta idx=%d source=%s chunk_id=%s doc_id=%s",
+                    j,
+                    meta.get("source"),
+                    meta.get("chunk_id"),
+                    meta.get("doc_id"),
+                )
 
         if not best3_docs and explain.get("gate_failed"):
             gate_name = explain.get("gate_failed")
@@ -434,9 +608,7 @@ class RetrievalService:
         uchunks: List[Dict[str, Any]] = []
         for d in best3_docs:
             doc = d.get("doc")
-            meta = dict(d.get("metadata") or {})
-            if not meta and doc is not None:
-                meta = dict(getattr(doc, "metadata", {}) or {})
+            meta = self._resolve_metadata(doc, d.get("metadata"))
             text = (d.get("text") or getattr(doc, "page_content", "") or "").strip()
             parts.append(text)
             if "raw_score" not in meta and d.get("raw_score") is not None:
@@ -454,6 +626,15 @@ class RetrievalService:
                     "snippet": text[:320],
                 }
             )
+        if DEBUG_RETRIEVAL_METADATA and uchunks:
+            _dbg("BEFORE_RESPONSE_used_chunks", uchunks[:2])
+            for idx, ch in enumerate(uchunks[:2]):
+                log.info(
+                    "DEBUG_METADATA used_chunk idx=%d chunk_id=%s source=%s",
+                    idx,
+                    ch.get("chunk_id"),
+                    ch.get("source"),
+                )
         context_text = "\n\n".join(parts)
         used_chunks = uchunks
         # Track used chunks in decision_explain
@@ -610,17 +791,25 @@ class RetrievalService:
         for doc, raw_score in raw_results:
             raw_value = float(raw_score)
             similarity = self._normalize(raw_value)
-            meta = dict(getattr(doc, "metadata", {}) or {})
-            metas.append(
-                {
-                    "text": getattr(doc, "page_content", ""),
-                    "source": meta.get("source", ""),
-                    "doc_id": meta.get("doc_id", ""),
-                    "chunk_id": meta.get("chunk_id", ""),
-                    "raw_score": raw_value,
-                    "similarity": similarity,
-                }
-            )
+            meta = self._resolve_metadata(doc)
+            meta_out = dict(meta or {})
+            meta_out["text"] = getattr(doc, "page_content", "")
+            meta_out["raw_score"] = raw_value
+            meta_out["similarity"] = similarity
+            meta_out["source"] = meta_out.get("source") or ""
+            meta_out["doc_id"] = meta_out.get("doc_id") or ""
+            meta_out["chunk_id"] = meta_out.get("chunk_id") or ""
+            metas.append(meta_out)
+        if DEBUG_RETRIEVAL_METADATA and metas:
+            for idx, m in enumerate(metas[:2]):
+                log.info(
+                    "DEBUG_METADATA _build_metas idx=%d chunk_id=%s source=%s doc_id=%s keys=%s",
+                    idx,
+                    m.get("chunk_id"),
+                    m.get("source"),
+                    m.get("doc_id"),
+                    list(m.keys()),
+                )
         return metas
 
     def _normalize(self, raw_value: float) -> float:

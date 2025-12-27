@@ -1,7 +1,8 @@
+import json
 import logging
 import os
 from time import perf_counter
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
@@ -22,6 +23,7 @@ def _lazy_import_oracledb():
 
 
 logger = logging.getLogger(__name__)
+DEBUG_RETRIEVAL_METADATA = (os.getenv("DEBUG_RETRIEVAL_METADATA") or "false").lower() in {"1", "true", "yes", "on"}
 
 
 class OracleVSStore(VectorStorePort):
@@ -82,12 +84,54 @@ class OracleVSStore(VectorStorePort):
         # (smaller = more similar). Keep ascending order for all metrics.
         order = "ASC"
         enriched: List[Tuple[Any, float]] = []
+        if DEBUG_RETRIEVAL_METADATA:
+            logger.debug("DEBUG_METADATA raw_results_count=%d", len(raw_results or []))
+        for idx, (doc, score) in enumerate(raw_results):
+            if DEBUG_RETRIEVAL_METADATA and idx < 2:
+                raw_meta = getattr(doc, "metadata", None)
+                meta_kind = type(raw_meta).__name__
+                preview = ""
+                meta_keys = []
+                if isinstance(raw_meta, str):
+                    preview = raw_meta[:200]
+                elif isinstance(raw_meta, dict):
+                    meta_keys = list(raw_meta.keys())
+                logger.debug(
+                    "DEBUG_METADATA raw_result idx=%d type=%s meta_type=%s meta_keys=%s meta_preview=%s",
+                    idx,
+                    type(doc).__name__,
+                    meta_kind,
+                    meta_keys,
+                    preview,
+                )
+            # existing enrichment below
         for doc, score in raw_results:
-            metadata = dict(getattr(doc, "metadata", {}) or {})
+            raw_meta = getattr(doc, "metadata", None)
+            metadata: Dict[str, Any] = {}
+            if isinstance(raw_meta, dict):
+                metadata.update(raw_meta)
+            elif isinstance(raw_meta, str):
+                try:
+                    parsed = json.loads(raw_meta)
+                    if isinstance(parsed, dict):
+                        metadata.update(parsed)
+                except Exception:  # noqa: BLE001
+                    pass
+            extra_meta = getattr(doc, "METADATA", None) or getattr(doc, "metadata_json", None)
+            if isinstance(extra_meta, str):
+                try:
+                    parsed_extra = json.loads(extra_meta)
+                    if isinstance(parsed_extra, dict):
+                        metadata.update(parsed_extra)
+                except Exception:  # noqa: BLE001
+                    pass
+            elif isinstance(extra_meta, dict):
+                metadata.update(extra_meta)
             raw_score = float(score)
             metadata["raw_score"] = raw_score
             metadata.setdefault("source", metadata.get("source") or "")
             metadata.setdefault("chunk_id", metadata.get("chunk_id") or "")
+            metadata.setdefault("doc_id", metadata.get("doc_id") or "")
             preview_text = (getattr(doc, "page_content", "") or "")[:400]
             metadata["text_preview"] = preview_text.replace("\n", " ").strip()
             doc.metadata = metadata

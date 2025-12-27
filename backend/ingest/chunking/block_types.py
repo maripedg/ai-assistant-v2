@@ -1,11 +1,2 @@
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from typing import Any, Dict
-
-
-@dataclass
-class Block:
-    type: str
-    text: str
-    meta: Dict[str, Any] = field(default_factory=dict)
+"""Compatibility shim; re-exports loader chunking block_types."""
+from backend.ingest.loaders.chunking.block_types import *  # noqa: F401,F403

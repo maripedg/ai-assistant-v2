@@ -11,7 +11,7 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | --- | --- |
 | `server` | Bind address plus CORS allow lists. |
 | `retrieval` | `top_k`, `score_mode`, `distance`, short-query overrides, hybrid gates, and prompts. Controls rag/hybrid/fallback behaviour and the `X-Answer-Mode` header. |
-| `embeddings` | Active profile, alias name (`<alias>`, `<alias>_v1`), chunker specs, dedupe rules, batching, OCR. |
+| `embeddings` | Active profile, alias name (`<alias>`, `<alias>_v1`), optional domain overrides (`embeddings.domains.*`), chunker specs, dedupe rules, batching, OCR. |
 | `prompts` | `rag`, `hybrid`, `fallback` system prompts + `no_context_token`. |
 | `features` | Flags for `users_api` and `feedback_api`. |
 | `storage` | Mode (`db`/`json`) for users + feedback and optional dual-write. |
@@ -26,6 +26,9 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | `oraclevs` | Oracle DSN/user/password, logical table names, and distance metric. Backed by `DB_*` and `ORACLEVS_TABLE`. |
 
 ## Environment Keys (Quick Reference)
+### Embedding targets
+- `embeddings.domains.<domain_key>.index_name` — physical table to upsert chunks when `--domain-key` is used.
+- `embeddings.domains.<domain_key>.alias_name` — alias/view updated by `--update-alias` when paired with `--domain-key`.
 
 ### Database & Oracle
 | Key | Description |

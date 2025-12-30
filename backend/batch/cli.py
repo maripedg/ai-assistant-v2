@@ -36,6 +36,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Refresh alias to point to active index",
     )
+    embed_parser.add_argument(
+        "--domain-key",
+        dest="domain_key",
+        help="Override embedding target (index + alias) via embeddings.domains.<key>",
+    )
     embed_parser.add_argument("--dry-run", action="store_true", help="Process without DB writes")
     embed_parser.add_argument("--batch-size", type=int, help="Override batch size")
     embed_parser.add_argument("--workers", type=int, help="Override worker count")
@@ -137,6 +142,7 @@ def _handle_embed(args: argparse.Namespace) -> None:
         summary = run_embed_job(
             manifest_path=args.manifest,
             profile_name=args.profile,
+            domain_key=args.domain_key,
             dry_run=args.dry_run,
             update_alias=args.update_alias,
             batch_size_override=args.batch_size,

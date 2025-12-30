@@ -80,6 +80,13 @@ embeddings:
   alias:
     name: MY_DEMO
     active_index: v1
+  domains:
+    TS_SBC:
+      index_name: RAG_TS_SBC_CHUNKS
+      alias_name: VW_RAG_TS_SBC
+    TS_STP:
+      index_name: RAG_TS_STP_CHUNKS
+      alias_name: VW_RAG_TS_STP
 
   profiles:
     legacy_profile:

@@ -8,7 +8,7 @@ This document explains how documents are embedded, how the runtime chooses betwe
 2. **Cleaning & sanitization** – Loaders normalise text (strip invisible chars, harmonise line endings). `backend.common.sanitizer.sanitize_if_enabled()` then redacts or audits PII according to `SANITIZE_*` flags before chunking.
 3. **Chunking** – Profile-driven chunkers (char/tokens) apply `size` + `overlap`, attach metadata such as `source`, `doc_id`, `chunk_id`, `tags`, `lang`, and optional dedupe hashes.
 4. **Embeddings** – `make_embeddings()` (OCI adapter) batches requests using `embeddings.batching.{batch_size,rate_limit_per_min}`. Loader hints (`input_types.documents/queries`) ensure Oracle Vector Search uses compatible distance metrics.
-5. **Upsert & alias** – Chunks land in the physical table named by `embeddings.profiles.<profile>.index_name`. If `update_alias=true`, `backend/providers/oracle_vs/index_admin.py` recreates the alias view (e.g., `MY_DEMO`) pointing to the new table. Evaluation runs (optional) exercise golden queries before alias rotation.
+5. **Upsert & alias** – Chunks land in the physical table named by `embeddings.profiles.<profile>.index_name` (or, when `--domain-key` is provided, `embeddings.domains.<key>.index_name`). If `update_alias=true`, `backend/providers/oracle_vs/index_admin.py` recreates the alias view (default `embeddings.alias.name`, or `embeddings.domains.<key>.alias_name` when overridden) pointing to the new table. Evaluation runs (optional) exercise golden queries before alias rotation.
 
 ## Retrieval Modes
 Implementation: [backend/core/services/retrieval_service.py](../../backend/core/services/retrieval_service.py).

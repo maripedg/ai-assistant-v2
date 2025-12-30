@@ -574,6 +574,7 @@ def _evaluate_golden_queries(golden_path: Path, alias_name: str) -> Dict[str, An
 def run_embed_job(
     manifest_path: str,
     profile_name: Optional[str],
+    domain_key: Optional[str] = None,
     dry_run: bool = False,
     update_alias: bool = False,
     batch_size_override: Optional[int] = None,
@@ -591,12 +592,30 @@ def run_embed_job(
     if not isinstance(profile_cfg, dict):
         raise ValueError(f"Embedding profile '{profile_name}' not defined")
 
-    index_name = profile_cfg.get("index_name")
-    if not index_name:
-        raise ValueError(f"Embedding profile '{profile_name}' missing index_name")
-
     alias_cfg = embeddings_cfg.get("alias", {}) or {}
-    alias_name = alias_cfg.get("name")
+    domains_cfg = embeddings_cfg.get("domains") or {}
+
+    if domain_key:
+        domain_cfg = domains_cfg.get(domain_key)
+        if not isinstance(domain_cfg, dict):
+            raise ValueError(f"embeddings.domains.{domain_key} not found or invalid")
+        index_name = domain_cfg.get("index_name")
+        alias_name = domain_cfg.get("alias_name")
+        missing: List[str] = []
+        if not index_name:
+            missing.append("index_name")
+        if not alias_name:
+            missing.append("alias_name")
+        if missing:
+            raise ValueError(
+                f"embeddings.domains.{domain_key} missing required key(s): {', '.join(missing)}"
+            )
+        logger.info("Using domain override: domain_key=%s index_name=%s alias_name=%s", domain_key, index_name, alias_name)
+    else:
+        index_name = profile_cfg.get("index_name")
+        if not index_name:
+            raise ValueError(f"Embedding profile '{profile_name}' missing index_name")
+        alias_name = alias_cfg.get("name")
     raw_batch = getattr(app_config, "EMBED_BATCH_SIZE", 32) or 32
     effective_batch = max(1, int(raw_batch))
     raw_workers = getattr(app_config, "EMBED_WORKERS", 1) or 1
@@ -1085,6 +1104,7 @@ def _build_cli() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Embed manifest job")
     parser.add_argument("--manifest", required=True, help="Path to the manifest JSONL file")
     parser.add_argument("--profile", help="Embedding profile name override")
+    parser.add_argument("--domain-key", dest="domain_key", help="Override embedding target via embeddings.domains.<key>")
     parser.add_argument("--dry-run", action="store_true", help="Simulate without DB writes")
     parser.add_argument(
         "--update-alias",
@@ -1107,6 +1127,7 @@ if __name__ == "__main__":
     summary = run_embed_job(
         manifest_path=args.manifest,
         profile_name=args.profile,
+        domain_key=args.domain_key,
         dry_run=args.dry_run,
         update_alias=args.update_alias,
         batch_size_override=args.batch_size,

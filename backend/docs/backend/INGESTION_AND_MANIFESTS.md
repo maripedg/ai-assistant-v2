@@ -49,4 +49,9 @@ python -m backend.batch.cli embed \
   --update-alias \
   --evaluate backend/ingest/golden_queries.yaml
 ```
+Domain-targeted runs (one domain per job):
+```bash
+python -m backend.batch.cli embed --manifest backend/ingest/examples/my_docs.jsonl --profile standard_profile --domain-key TS_SBC --update-alias
+python -m backend.batch.cli embed --manifest backend/ingest/examples/my_docs.jsonl --profile standard_profile --domain-key TS_STP --update-alias
+```
 The CLI shares the same services and config as the API worker, so `.env`, OCI profiles, and Oracle grants must match.

@@ -45,7 +45,7 @@ retrieval:
 
   hybrid:
     max_context_chars: 8000
-    max_chunks: 3
+    max_chunks: 6
     min_tokens_per_chunk: 0
     llm_enrichment: true
     cite_sources: true

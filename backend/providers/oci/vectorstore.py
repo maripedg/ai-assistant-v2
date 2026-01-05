@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from time import perf_counter
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
@@ -63,8 +63,14 @@ class OracleVSStore(VectorStorePort):
             distance_strategy=strategy,
         )
 
-    def similarity_search_with_score(self, query: str, k: int) -> List[Tuple[Any, float]]:
+    def similarity_search_with_score(self, query: str, k: int, target_view: Optional[str] = None) -> List[Tuple[Any, float]]:
         start = perf_counter()
+        original_table = getattr(self.vs, "table_name", None)
+        if target_view:
+            try:
+                setattr(self.vs, "table_name", target_view)
+            except Exception:
+                pass
         try:
             raw_results = self.vs.similarity_search_with_score(query, k=k)
         except EmbeddingError as exc:
@@ -79,6 +85,12 @@ class OracleVSStore(VectorStorePort):
                 )
                 return []
             raise
+        finally:
+            if target_view and original_table:
+                try:
+                    setattr(self.vs, "table_name", original_table)
+                except Exception:
+                    pass
 
         # Oracle VECTOR_DISTANCE returns a distance for both DOT and COSINE
         # (smaller = more similar). Keep ascending order for all metrics.

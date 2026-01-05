@@ -1,5 +1,5 @@
 # Config Reference
-Last updated: 2025-11-07
+Last updated: 2025-12-30
 
 Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). The loader:
 1. Reads `.env` (order: `$APP_ENV_FILE`, repo `.env`, `backend/.env`).
@@ -11,7 +11,7 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | --- | --- |
 | `server` | Bind address plus CORS allow lists. |
 | `retrieval` | `top_k`, `score_mode`, `distance`, short-query overrides, hybrid gates, and prompts. Controls rag/hybrid/fallback behaviour and the `X-Answer-Mode` header. |
-| `embeddings` | Active profile, alias name (`<alias>`, `<alias>_v1`), optional domain overrides (`embeddings.domains.*`), chunker specs, dedupe rules, batching, OCR. |
+| `embeddings` | Active profile, alias view name (`embeddings.alias.name`), domain overrides (`embeddings.domains.<key>.alias_name` for `X-RAG-Domain` overrides, `.index_name` for ingest), chunker specs, dedupe rules, batching, OCR. |
 | `prompts` | `rag`, `hybrid`, `fallback` system prompts + `no_context_token`. |
 | `features` | Flags for `users_api` and `feedback_api`. |
 | `storage` | Mode (`db`/`json`) for users + feedback and optional dual-write. |
@@ -28,7 +28,7 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 ## Environment Keys (Quick Reference)
 ### Embedding targets
 - `embeddings.domains.<domain_key>.index_name` — physical table to upsert chunks when `--domain-key` is used.
-- `embeddings.domains.<domain_key>.alias_name` — alias/view updated by `--update-alias` when paired with `--domain-key`.
+- `embeddings.domains.<domain_key>.alias_name` — alias/view updated by `--update-alias` when paired with `--domain-key` and used at query time via `X-RAG-Domain`.
 
 ### Database & Oracle
 | Key | Description |
@@ -36,7 +36,7 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | `DB_DSN`, `DB_HOST`, `DB_PORT`, `DB_SERVICE` | Oracle connection info (DSN takes precedence). |
 | `DB_USER`, `DB_PASSWORD` | Database credentials (SYSDBA supported for bootstrap). |
 | `ORACLEVS_TABLE` | Logical base name for vector tables (`<alias>_vN`). |
-| `MAX_UPLOAD_MB` | Upload size limit (defaults to 100 MB). `max_upload_bytes()` multiplies by 1024². |
+| `MAX_UPLOAD_MB` | Upload size limit (defaults to 100 MB). `max_upload_bytes()` multiplies by 1024. |
 
 ### OCI Generative AI
 | Key | Description |

@@ -54,9 +54,30 @@ def chat(
             detail="Vector store unavailable. Please try again shortly.",
         )
 
+    target_view = None
+    domain_key = request.headers.get("x-rag-domain")
+    domain_key = domain_key.strip() if isinstance(domain_key, str) else ""
+    if domain_key:
+        embeddings_cfg = app_deps.settings.app.get("embeddings", {}) if isinstance(app_deps.settings.app, dict) else {}
+        domains_cfg = embeddings_cfg.get("domains") if isinstance(embeddings_cfg, dict) else {}
+        alias_name = None
+        if isinstance(domains_cfg, dict):
+            domain_cfg = domains_cfg.get(domain_key)
+            if isinstance(domain_cfg, dict):
+                alias_candidate = domain_cfg.get("alias_name")
+                if isinstance(alias_candidate, str):
+                    alias_name = alias_candidate.strip()
+        if not alias_name:
+            msg = (
+                f"Unknown domain_key '{domain_key}'. Configure embeddings.domains.{domain_key}.alias_name in app.yaml."
+            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        target_view = alias_name
+        logger.info("X-RAG-Domain override active domain_key=%s target_view=%s", domain_key, target_view)
+
     service = _get_service(vector_store)
     start_ts = perf_counter()
-    result = service.answer(req.question)
+    result = service.answer(req.question, target_view=target_view)
     latency_ms = int((perf_counter() - start_ts) * 1000.0)
     mode = result.get("mode")
     if mode:

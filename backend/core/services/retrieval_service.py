@@ -182,6 +182,10 @@ class RetrievalService:
         self.max_ctx_chars = int(retrieval_cfg.get("max_context_chars", 6000))
         # Extra decision-explain fields (filled by helpers like select_context)
         self._extra_explain: Dict[str, Any] = {}
+        embeddings_cfg = cfg.get("embeddings") if isinstance(cfg, dict) else {}
+        alias_cfg = embeddings_cfg.get("alias") if isinstance(embeddings_cfg, dict) else {}
+        alias_name = alias_cfg.get("name") if isinstance(alias_cfg, dict) else None
+        self.default_alias_view = alias_name.strip() if isinstance(alias_name, str) else None
 
     def _resolve_metadata(self, doc: Any, row_meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -242,7 +246,7 @@ class RetrievalService:
 
         return meta
 
-    def select_context(self, query: str) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
+    def select_context(self, query: str, *, target_view: Optional[str] = None) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
         """
         Select context chunks using adaptive thresholding and MMR with per-doc cap.
 
@@ -251,7 +255,8 @@ class RetrievalService:
         - best3_chunks: top 3 by similarity from selected_chunks (for LLM)
         - explain_dict: {t_adapt, p90, sim_max, kept_n, cap_per_doc, mmr, gate_failed?}
         """
-        raw_results = self.vs.similarity_search_with_score(query, k=self.top_k)
+        vector_kwargs = {"target_view": target_view} if target_view else {}
+        raw_results = self.vs.similarity_search_with_score(query, k=self.top_k, **vector_kwargs)
         if DEBUG_RETRIEVAL_METADATA:
             _dbg("VECTORSTORE_RETURN", raw_results)
         # Build candidate list with normalized similarity
@@ -485,7 +490,7 @@ class RetrievalService:
         best3_payload = [] if gate_failed else [_payload(c) for c in best3]
         return best7_payload, best3_payload, explain
 
-    def answer(self, question: str) -> Dict:
+    def answer(self, question: str, *, target_view: Optional[str] = None) -> Dict:
         question = (question or "").strip()
         log.debug("retrieval question=%s", question[:120])
         self._extra_explain = {}
@@ -497,7 +502,11 @@ class RetrievalService:
             extra.update(updates)
             self._extra_explain = extra
 
-        raw_results = self.vs.similarity_search_with_score(question, k=self.top_k)
+        effective_target = target_view or self.default_alias_view
+        _update_extra(retrieval_target=effective_target)
+
+        vector_kwargs = {"target_view": effective_target} if effective_target else {}
+        raw_results = self.vs.similarity_search_with_score(question, k=self.top_k, **vector_kwargs)
         if DEBUG_RETRIEVAL_METADATA:
             _dbg("VECTORSTORE_RETURN_ANSWER", raw_results)
         if not raw_results:
@@ -544,7 +553,7 @@ class RetrievalService:
             return self._build_response(question, mode, metas, [], decision_score, short_query, llm_used="fallback")
 
         # Drive decision via select_context for hybrid-or-fallback
-        selected_docs, best3_docs, explain = self.select_context(question)
+        selected_docs, best3_docs, explain = self.select_context(question, target_view=effective_target)
         best7_count = len(selected_docs)
         best3_count = len(best3_docs)
         extra = dict(explain or {})

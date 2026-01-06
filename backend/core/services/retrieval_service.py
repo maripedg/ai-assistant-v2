@@ -172,6 +172,12 @@ class RetrievalService:
 
         # No-context decision config
         self.llm_no_context_cfg = retrieval_cfg.get("llm_no_context", {}) or {}
+        exclude_cfg = hybrid_cfg.get("exclude_chunk_types_from_llm")
+        default_exclude = ["figure"]
+        if isinstance(exclude_cfg, list) and exclude_cfg:
+            self.exclude_chunk_types_from_llm = [str(x) for x in exclude_cfg]
+        else:
+            self.exclude_chunk_types_from_llm = default_exclude
 
         prompts_cfg = cfg.get("prompts", {}) or {}
         self.no_context_token = prompts_cfg.get("no_context_token", "__NO_CONTEXT__")
@@ -440,9 +446,19 @@ class RetrievalService:
             # Remove the chosen item from pool
             pool = [c for c in pool if c is not best]
 
-        # Take top-3 by similarity from selected
-        by_similarity = sorted(selected, key=lambda x: x["sim"], reverse=True)
-        best3 = by_similarity[:3]
+        # Take top-3 by similarity from thresholded candidates, skipping excluded chunk types
+        ranked_candidates = sorted(filtered, key=lambda x: x["sim"], reverse=True)
+        best3: List[Dict[str, Any]] = []
+        excluded_best3 = 0
+        for cand in ranked_candidates:
+            meta_tmp = self._resolve_metadata(cand.get("doc"), cand.get("metadata"))
+            ctype_tmp = str(meta_tmp.get("chunk_type") or "").lower()
+            if ctype_tmp and ctype_tmp in self.exclude_chunk_types_from_llm:
+                excluded_best3 += 1
+                continue
+            best3.append(cand)
+            if len(best3) >= 3:
+                break
         # Preserve best-7 order by final MMR score (aquí ahora es hasta max_keep, pero el nombre se mantiene)
         best7 = sorted(selected, key=lambda x: x.get("mmr_score", x["sim"]), reverse=True)
 
@@ -471,6 +487,8 @@ class RetrievalService:
             "mmr": True,
             "hybrid_candidates": int(len(best7)),
             "hybrid_sent": int(len(best3)) if not gate_failed else 0,
+            "ranked_candidates_total": int(len(ranked_candidates)),
+            "excluded_by_type": int(excluded_best3),
         }
         if gate_failed:
             explain["gate_failed"] = gate_failed
@@ -615,9 +633,14 @@ class RetrievalService:
         # Build context and used_chunks from best3_docs
         parts: List[str] = []
         uchunks: List[Dict[str, Any]] = []
+        excluded = 0
         for d in best3_docs:
             doc = d.get("doc")
             meta = self._resolve_metadata(doc, d.get("metadata"))
+            ctype = str(meta.get("chunk_type") or "").lower()
+            if ctype and ctype in self.exclude_chunk_types_from_llm:
+                excluded += 1
+                continue
             text = (d.get("text") or getattr(doc, "page_content", "") or "").strip()
             parts.append(text)
             if "raw_score" not in meta and d.get("raw_score") is not None:
@@ -635,6 +658,13 @@ class RetrievalService:
                     "snippet": text[:320],
                 }
             )
+        if DEBUG_RETRIEVAL_METADATA:
+            log.info(
+                "DEBUG_METADATA context_selection selected=%s sent_to_llm=%s excluded_by_type=%s",
+                len(best3_docs),
+                len(uchunks),
+                excluded,
+            )
         if DEBUG_RETRIEVAL_METADATA and uchunks:
             _dbg("BEFORE_RESPONSE_used_chunks", uchunks[:2])
             for idx, ch in enumerate(uchunks[:2]):
@@ -646,7 +676,15 @@ class RetrievalService:
                 )
         context_text = "\n\n".join(parts)
         used_chunks = uchunks
-        # Track used chunks in decision_explain
+        best3_sent = len(uchunks)
+        if DEBUG_RETRIEVAL_METADATA:
+            log.info(
+                "DEBUG_METADATA llm_context ranked_candidates_total=%s sent_to_llm=%s excluded_by_type=%s final_context_chars=%s",
+                explain.get("ranked_candidates_total"),
+                len(uchunks),
+                excluded,
+                len(context_text.encode("utf-8")),
+            )
         try:
             extra = dict(self._extra_explain or {})
             extra["used_chunks"] = used_chunks
@@ -760,7 +798,7 @@ class RetrievalService:
                 gate_failed=None,
                 fallback_reason="llm_returned_no_context",
                 hybrid_candidates=int(best7_count),
-                hybrid_sent=int(best3_count),
+                hybrid_sent=int(best3_sent),
             )
             return self._build_response(
                 question,
@@ -777,7 +815,7 @@ class RetrievalService:
             gate_failed=None,
             fallback_reason=None,
             hybrid_candidates=int(best7_count),
-            hybrid_sent=int(best3_count),
+            hybrid_sent=int(best3_sent),
         )
         return self._build_response(
             question,

@@ -17,6 +17,7 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | `storage` | Mode (`db`/`json`) for users + feedback and optional dual-write. |
 | `auth` | Local auth mode, password hashing algorithm, and invite defaults. |
 | `database` | SQLAlchemy pool tuning; DSN is usually derived from env. |
+| `retrieval.hybrid.exclude_chunk_types_from_llm` | List of chunk types removed from the LLM prompt while staying in retrieval metadata; defaults to `["figure"]`. |
 
 ## `config/providers.yaml`
 | Path | Purpose / Env |

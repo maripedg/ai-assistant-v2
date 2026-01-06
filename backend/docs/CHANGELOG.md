@@ -1,6 +1,20 @@
 # Backend Changelog
 
 ## 2026-01-06
+- Files changed: backend/core/services/retrieval_service.py; backend/tests/retrieval/test_exclude_figure_chunks.py; backend/docs/backend/EMBEDDING_AND_RETRIEVAL.md.
+- What changed: Made figure-type chunks selection-aware so retrieval skips them when building LLM context, continues deeper to fill text slots, and logs ranked/excluded/context size diagnostics.
+- Why: Figure-only chunks could consume context slots and trigger `min_total_chars_gate` failures after filtering, forcing fallback despite available text.
+- Backward compatibility: Figure metadata still returned for UI rendering; text-only flows unchanged.
+- Validation: Unit test exercises exclusion while keeping non-figure chunks in context (not executed here).
+
+## 2026-01-06
+- Files changed: backend/core/services/retrieval_service.py; backend/config/app.yaml; backend/tests/retrieval/test_exclude_figure_chunks.py; backend/docs/backend/EMBEDDING_AND_RETRIEVAL.md.
+- What changed: Added configurable `exclude_chunk_types_from_llm` (defaulting to `["figure"]`) and filtered figure-only chunks out of the LLM prompt while keeping them in retrieval metadata.
+- Why: Figure chunks could outrank procedural text, starving the LLM of context and causing unintended `NO_CONTEXT` fallbacks.
+- Backward compatibility: Text-only docs unaffected; figure metadata still returned for UI rendering.
+- Validation: Unit test covers figure exclusion from context (not executed here).
+
+## 2026-01-06
 - Files changed: backend/ingest/loaders/docx_loader.py.
 - What changed: Fixed DOCX inline image detection by using namespace-agnostic blip lookup (python-docx xpath namespace bug), ensured image emit attempts include hash/metadata even when writes fail, and incremented write attempts before disk writes.
 - Why: Inline images were silently skipped (no placeholders/figure chunks) because blip detection always failed.

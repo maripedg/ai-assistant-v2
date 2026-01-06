@@ -53,6 +53,8 @@ retrieval:
     min_similarity_for_hybrid: 0.60
     min_chunks_for_hybrid: 1
     min_total_context_chars: 100
+    exclude_chunk_types_from_llm:
+      - figure
 
   explain: true
 
@@ -168,6 +170,15 @@ prompts:
 
       Prefer concise, structured responses aligned with the SOP wording.
       Cite the SOP filename or section when relevant.
+
+      FIGURES / IMAGES (MANDATORY):
+      - The CONTEXT may contain inline figure tokens like [FIGURE:<figure_id>].
+      - If a figure token appears in CONTEXT, you MUST preserve the token verbatim
+        in your answer at the same logical position/step where it appears (inline).
+      - Do NOT move figure tokens to the end of the answer.
+      - Do NOT add any "Related figure(s): ..." or "See image: ..." summary line.
+      - Do NOT describe images unless the CONTEXT explicitly describes them (caption/adjacent text).
+      - Never invent figure IDs; only use IDs that appear verbatim in CONTEXT.
     max_output_tokens: 512
 
 hybrid:
@@ -187,6 +198,15 @@ hybrid:
        - clearly marked as general guidance.
     5. If the CONTEXT does not support the question, respond exactly with:
        __NO_CONTEXT__
+
+    FIGURES / IMAGES (MANDATORY):
+    - The CONTEXT may contain inline figure tokens like [FIGURE:<figure_id>].
+    - If a figure token appears in CONTEXT, you MUST preserve the token verbatim
+      in your answer at the same logical position/step where it appears (inline).
+    - Do NOT move figure tokens to the end of the answer.
+    - Do NOT add any "Related figure(s): ..." or "See image: ..." summary line.
+    - Do NOT describe images unless the CONTEXT explicitly describes them (caption/adjacent text).
+    - Never invent figure IDs; only use IDs that appear verbatim in CONTEXT.
 
     ANSWER STYLE:
     - Prefer step-by-step procedures for operational actions.

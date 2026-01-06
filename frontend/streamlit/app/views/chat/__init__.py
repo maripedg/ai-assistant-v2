@@ -18,6 +18,8 @@ CONFIG = get_config()
 DEBUG_CHAT_UI_STRICT = bool(CONFIG.get("DEBUG_CHAT_UI_STRICT", False))
 DEBUG_CHAT_UI = bool(CONFIG.get("DEBUG_CHAT_UI", False)) or DEBUG_CHAT_UI_STRICT
 LOGGER = logging.getLogger("chat_ui")
+RAG_ASSETS_DIR = Path(CONFIG.get("RAG_ASSETS_DIR", "data/rag-assets"))
+CHAT_FIGURES_DEBUG = str(CONFIG.get("CHAT_FIGURES_DEBUG", "0")).strip().lower() in {"1", "true", "yes", "on"}
 if DEBUG_CHAT_UI:
     LOGGER.setLevel(logging.DEBUG)
 
@@ -230,6 +232,81 @@ def _select_answer_text(payload: Dict[str, Any]) -> Tuple[Optional[str], str]:
     return None, "none"
 
 
+FIGURE_LABEL_PATTERN = re.compile(r"^\s*(related figure\(s\):|figure\(s\):|see images?:)", re.IGNORECASE)
+
+
+def _sanitize_figure_labels(answer: str) -> Tuple[str, bool]:
+    lines = (answer or "").split("\n")
+    found = False
+    sanitized_lines = []
+    skip_block = False
+    for line in lines:
+        if skip_block:
+            if not line.strip():
+                skip_block = False
+            continue
+        match = FIGURE_LABEL_PATTERN.match(line)
+        if match:
+            found = True
+            skip_block = True
+            continue
+        sanitized_lines.append(line)
+    return "\n".join(sanitized_lines), found
+
+
+def _figure_image_refs(meta_list: Optional[List[Dict[str, Any]]]) -> List[str]:
+    refs: List[str] = []
+    seen: set[str] = set()
+    if not meta_list:
+        return refs
+    for item in meta_list:
+        if not isinstance(item, dict):
+            continue
+        ctype = str(item.get("chunk_type") or "").lower()
+        ref = item.get("image_ref")
+        if ctype and ctype != "figure" and not ref:
+            continue
+        if not isinstance(ref, str):
+            continue
+        ref_clean = ref.strip()
+        if not ref_clean or ref_clean in seen:
+            continue
+        ref_path = Path(ref_clean)
+        if ref_path.is_absolute():
+            if CHAT_FIGURES_DEBUG:
+                st.warning(f"Skipping absolute image_ref (unsafe): {ref_clean}")
+            continue
+        seen.add(ref_clean)
+        refs.append(ref_clean)
+    return refs
+
+
+def _render_figure_thumbnails(image_refs: List[str]) -> None:
+    if not image_refs:
+        return
+    debug_rows = []
+    for ref in image_refs:
+        full_path = (RAG_ASSETS_DIR / Path(ref)).resolve()
+        exists = full_path.is_file()
+        size = None
+        if exists:
+            try:
+                size = full_path.stat().st_size
+            except Exception:  # noqa: BLE001
+                size = None
+        if exists:
+            try:
+                st.image(str(full_path), caption=None, use_container_width=True)
+            except Exception as exc:  # noqa: BLE001
+                st.warning(f"Failed to render image {ref}: {exc}")
+        else:
+            st.warning(f"Image not found: {ref}")
+        debug_rows.append({"image_ref": ref, "path": str(full_path), "exists": exists, "size": size})
+    if CHAT_FIGURES_DEBUG:
+        with st.expander("Figures debug", expanded=False):
+            st.write({"RAG_ASSETS_DIR": str(RAG_ASSETS_DIR), "images": debug_rows})
+
+
 def render_primary_answer(payload: Dict[str, Any]) -> Tuple[str, str]:
     from textwrap import shorten
 
@@ -255,7 +332,9 @@ def render_primary_answer(payload: Dict[str, Any]) -> Tuple[str, str]:
         logp("render_primary_answer:none")
         return "", "none"
 
-    normalized = answer_value.replace("\r\n", "\n").replace("\r", "\n")
+    normalized_raw = answer_value.replace("\r\n", "\n").replace("\r", "\n")
+    normalized, figure_label_present = _sanitize_figure_labels(normalized_raw)
+    figure_refs = _figure_image_refs(payload.get("retrieved_chunks_metadata"))
 
     if DEBUG_CHAT_UI_STRICT:
         st.markdown("<style>.stMarkdown{outline:1px dotted #915 !important;}</style>", unsafe_allow_html=True)
@@ -279,6 +358,12 @@ def render_primary_answer(payload: Dict[str, Any]) -> Tuple[str, str]:
         logp("render_primary_answer:error", error=str(exc))
         st.error("Error rendering answer.")
         return "", source_key
+
+    if figure_refs:
+        with st.expander("Figures", expanded=False):
+            _render_figure_thumbnails(figure_refs)
+    elif CHAT_FIGURES_DEBUG:
+        st.caption("Figures: none to render")
 
     return normalized, source_key
 

@@ -26,6 +26,8 @@ def get_config():
     # Defaults seguros
     backend = os.getenv("BACKEND_API_BASE", "http://localhost:5000")
     session_secret = os.getenv("SESSION_SECRET")
+    rag_assets_dir = os.getenv("RAG_ASSETS_DIR", "data/rag-assets")
+    chat_figures_debug = os.getenv("CHAT_FIGURES_DEBUG", "0")
     return {
         "BACKEND_API_BASE": backend.rstrip("/"),
         "FRONTEND_PORT": _int_env("FRONTEND_PORT", 8501),
@@ -37,6 +39,8 @@ def get_config():
         "SESSION_SECRET": session_secret,
         "REQUEST_TIMEOUT": _int_env("REQUEST_TIMEOUT", 60),
         "LOG_LEVEL": os.getenv("LOG_LEVEL", "INFO").upper(),
+        "RAG_ASSETS_DIR": rag_assets_dir,
+        "CHAT_FIGURES_DEBUG": chat_figures_debug,
         # Auth/Feedback toggles
         "AUTH_MODE": os.getenv("AUTH_MODE", "local"),              # local | db
         "FEEDBACK_MODE": os.getenv("FEEDBACK_MODE", "local"),      # local | db

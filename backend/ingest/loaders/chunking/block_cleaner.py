@@ -20,15 +20,27 @@ def _normalize_line(line: str) -> str:
 
 
 def _strip_toc(blocks: List[Block]) -> List[Block]:
+    cleaned: List[Block] = []
+    if not blocks:
+        return cleaned
+
     all_lines: List[str] = []
-    boundaries: List[Tuple[int, int]] = []
+    boundaries: List[Tuple[int, int] | None] = []
     cursor = 0
     for blk in blocks:
+        if blk.type == "image":
+            boundaries.append(None)
+            continue
         lines = blk.text.splitlines()
         start = cursor
         all_lines.extend(lines)
         cursor += len(lines)
         boundaries.append((start, cursor))
+
+    if not all_lines:
+        for blk in blocks:
+            cleaned.append(Block(type=blk.type, text=blk.text, meta=dict(blk.meta)))
+        return cleaned
 
     kept_lines = toc_utils.strip_toc_region(all_lines, {"toc_stop_on_heading": True})
     keep_mask = [False] * len(all_lines)
@@ -40,8 +52,11 @@ def _strip_toc(blocks: List[Block]) -> List[Block]:
         if ids:
             keep_mask[ids.pop(0)] = True
 
-    cleaned: List[Block] = []
-    for (start, end), blk in zip(boundaries, blocks):
+    for boundary, blk in zip(boundaries, blocks):
+        if boundary is None or blk.type == "image":
+            cleaned.append(Block(type=blk.type, text=blk.text, meta=dict(blk.meta)))
+            continue
+        start, end = boundary
         lines_out = [all_lines[i] for i in range(start, end) if keep_mask[i]]
         txt = "\n".join(lines_out).strip()
         if txt:
@@ -76,6 +91,8 @@ def _remove_repeated(blocks: List[Block], mode: str) -> tuple[List[Block], List[
     lines_by_page: Dict[int, List[str]] = defaultdict(list)
     lines_global: List[str] = []
     for blk in blocks:
+        if blk.type == "image":
+            continue
         page = blk.meta.get("page") if mode == "pdf" else 0
         for ln in blk.text.splitlines():
             lines_by_page[page].append(ln)
@@ -91,6 +108,9 @@ def _remove_repeated(blocks: List[Block], mode: str) -> tuple[List[Block], List[
     cleaned: List[Block] = []
     removed: List[str] = []
     for blk in blocks:
+        if blk.type == "image":
+            cleaned.append(Block(type=blk.type, text=blk.text, meta=dict(blk.meta)))
+            continue
         kept_lines = []
         for ln in blk.text.splitlines():
             norm = _normalize_line(ln)
@@ -125,6 +145,9 @@ def clean_blocks(mode: str, blocks: Iterable[Block]) -> List[Block]:
     # whitespace normalization
     normalized: List[Block] = []
     for blk in blist:
+        if blk.type == "image":
+            normalized.append(Block(type=blk.type, text=blk.text, meta=dict(blk.meta)))
+            continue
         lines = [ln.rstrip() for ln in blk.text.splitlines()]
         compact: List[str] = []
         last_blank = False

@@ -13,7 +13,8 @@ Last updated: 2025-11-07
    cp backend/.env.example backend/.env
    ```
 2. Fill in `DB_*`, `OCI_*`, `JWT_SECRET`, `SESSION_SECRET`, `MAX_UPLOAD_MB`, and any sanitization or usage logging flags (`USAGE_LOG_ENABLED`).
-3. Verify `oci/config` (or custom `OCI_CONFIG_PATH`) contains the profile referenced by `OCI_CONFIG_PROFILE`.
+3. For DOCX image extraction, ensure `RAG_ASSETS_DIR` (default `./data/rag-assets`) is writable and set `DOCX_EXTRACT_IMAGES`, `DOCX_INLINE_FIGURE_PLACEHOLDERS`, and `DOCX_FIGURE_CHUNKS` as needed.
+4. Verify `oci/config` (or custom `OCI_CONFIG_PATH`) contains the profile referenced by `OCI_CONFIG_PROFILE`.
 
 ## Install Dependencies
 ```bash

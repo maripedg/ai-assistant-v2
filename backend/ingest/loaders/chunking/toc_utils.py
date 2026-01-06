@@ -1,3 +1,4 @@
+
 """Shared TOC helpers for structured chunkers (DOCX/PDF)."""
 
 from __future__ import annotations

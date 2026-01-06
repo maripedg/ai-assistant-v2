@@ -33,6 +33,7 @@ Operational guidance for keeping the backend healthy and for validating new buil
 - **Oracle authentication failures** – Ensure `DB_*` env values match the database service. The service logs the effective DSN and whoami output on boot.
 - **Sanitization anomalies** – Inspect `sanitizer.log` for unexpected labels; adjust pattern packs or allowlists before re‑running ingestion/feedback writes.
 - **Usage logging gaps** – When enabled, missing records usually indicate grants or synonyms broke. Query `ALL_TABLES`/`ALL_OBJECTS` for `AUTH_LOGINS` et al. and verify insert privileges.
+- **DOCX figure assets missing** – Confirm `DOCX_EXTRACT_IMAGES` was enabled for the run, `RAG_ASSETS_DIR` is writable/mounted, and figure placeholders/chunks are turned on (`DOCX_INLINE_FIGURE_PLACEHOLDERS`, `DOCX_FIGURE_CHUNKS`) when you expect `[FIGURE:<id>]` markers or `chunk_type=figure` rows.
 
 ## References
 - [Setup & Run](./SETUP_AND_RUN.md) – local bootstrap instructions.

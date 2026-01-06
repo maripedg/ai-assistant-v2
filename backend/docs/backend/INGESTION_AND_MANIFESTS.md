@@ -40,6 +40,14 @@ Example:
 - **Alias safety** – Use `update_alias=false` when testing new profiles. Inspect job summaries, run golden queries, then re‑run with `update_alias=true` when satisfied.
 - **Dual writes** – If `storage.dual_write=true`, ingestion metadata is mirrored to JSON for easier local debugging. Uploads still read from the primary backend defined by `storage.feedback.mode`.
 - **Typical validation path** – After a successful job, hit `/chat` with a question that should match the new content and confirm `mode` is `rag` or `hybrid`. If fallback persists, check manifest coverage or sanitization settings.
+- **DOCX figures** – Opt-in via `DOCX_EXTRACT_IMAGES=true` to write embedded DOCX images under `<RAG_ASSETS_DIR>/<doc_id>/img_<NNN>.<ext>`. Pair with `DOCX_INLINE_FIGURE_PLACEHOLDERS=true` to see `[FIGURE:<figure_id>]` markers in text chunks and `DOCX_FIGURE_CHUNKS=true` to emit companion `chunk_type=figure` entries that reference the parent chunk and `image_ref`. With all flags off, chunk text matches the previous behaviour.
+
+## DOCX Inline Figures
+- **Feature flags**: `DOCX_EXTRACT_IMAGES` writes embedded DOCX images under `RAG_ASSETS_DIR` (default `./data/rag-assets`), `DOCX_INLINE_FIGURE_PLACEHOLDERS` injects `[FIGURE:<figure_id>]` markers at the inline position, and `DOCX_FIGURE_CHUNKS` emits `chunk_type=figure` entries that inherit document/section metadata plus `figure_id`, `image_ref` (relative only), and `parent_chunk_id/parent_chunk_local_index`. `DOCX_IMAGE_DEBUG=1` logs per-image extraction details; loader detects images by scanning `a:blip` embeds and resolves rIds via `word/_rels/document.xml.rels`. Leaving all flags unset keeps legacy text-only behaviour.
+- **Filesystem layout**: Images land at `<RAG_ASSETS_DIR>/<doc_id>/img_<NNN>.<ext>` with `figure_id=<doc_id>_img_<NNN>` and `image_ref=<doc_id>/img_<NNN>.<ext>`. `RAG_ASSETS_DIR` is created on demand when writable.
+- **Docker/local volumes**: Mount the assets directory when running in containers, e.g. `./data/rag-assets:/app/data/rag-assets`, so figure references stay portable and images persist between runs.
+- **Chunking & embeddings**: Placeholders preserve inline order; figure chunks store a deterministic text description only (no binary embeddings) to make the related image retrievable. SOP/procedure chunking repeats the procedure title on split chunks to avoid mixing steps across procedures.
+- **Troubleshooting**: Check `DOCX_IMAGES_SUMMARY` (loader) and `DOCX_FIGURE_CHUNKING_SUMMARY` (chunker). If `embed_rids` > 0 but `rels_mapped=0`, relationships parsing failed; if `zip_member_miss > 0`, the relationship target could not be located in the DOCX; if `image_emit_skip_reason=flags_disabled` the inline/figure flags were off; if `images_written` > 0 but `figure_chunks=0`, the chunker is not seeing `block_type=image` blocks.
 
 ## CLI Shortcut
 ```bash

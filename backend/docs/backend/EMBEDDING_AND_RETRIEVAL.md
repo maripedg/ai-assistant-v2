@@ -7,8 +7,16 @@ This document explains how documents are embedded, how the runtime chooses betwe
 1. **Manifest expansion** — JSONL manifests (see [Ingestion & Manifests](./INGESTION_AND_MANIFESTS.md)) list file paths, optional tags, language hints, and target profiles.
 2. **Cleaning & sanitization** — Loaders normalise text (strip invisible chars, harmonise line endings). `backend.common.sanitizer.sanitize_if_enabled()` then redacts or audits PII according to `SANITIZE_*` flags before chunking.
 3. **Chunking** — Profile-driven chunkers (char/tokens) apply `size` + `overlap`, attach metadata such as `source`, `doc_id`, `chunk_id`, `tags`, `lang`, and optional dedupe hashes.
+   - When DOCX image extraction is enabled, DOCX chunking injects `[FIGURE:<figure_id>]` markers and emits additional `chunk_type=figure` entries with `figure_id/image_ref/parent_chunk_id`; figure chunks embed their text description only (no binaries).
 4. **Embeddings** — `make_embeddings()` (OCI adapter) batches requests using `embeddings.batching.{batch_size,rate_limit_per_min}`. Loader hints (`input_types.documents/queries`) ensure Oracle Vector Search uses compatible distance metrics.
 5. **Upsert & alias** — Chunks land in the physical table named by `embeddings.profiles.<profile>.index_name` (or, when `--domain-key` is provided, `embeddings.domains.<key>.index_name`). If `update_alias=true`, `backend/providers/oracle_vs/index_admin.py` recreates the alias view (default `embeddings.alias.name`, or `embeddings.domains.<key>.alias_name` when overridden) pointing to the new table. Evaluation runs (optional) exercise golden queries before alias rotation.
+
+## DOCX Inline Figures
+- **What gets embedded**: Only text; figure chunks contain a deterministic description (no binaries). Inline text chunks may include `[FIGURE:<figure_id>]` placeholders to preserve position when `DOCX_INLINE_FIGURE_PLACEHOLDERS=1`.
+- **Metadata**: Figure chunks set `chunk_type=figure`, `figure_id`, `image_ref` (relative, e.g., `<doc_id>/img_003.png`), and `parent_chunk_id/parent_chunk_local_index` so retrieval can join the text chunk that referenced the image.
+- **Storage**: Images are written locally under `RAG_ASSETS_DIR/<doc_id>/img_<NNN>.<ext>` when `DOCX_EXTRACT_IMAGES=1`; `RAG_ASSETS_DIR` defaults to `./data/rag-assets` relative to the repo. Enable `DOCX_IMAGE_DEBUG=1` for per-image extraction logs.
+- **Troubleshooting**: Loader emits `DOCX_IMAGES_SUMMARY` (counts of blips/relationships/writes); chunker emits `DOCX_FIGURE_CHUNKING_SUMMARY` (placeholders/figure chunks/parent links). If figures exist but `rels_mapped=0`, relationships parsing is broken; if `zip_member_miss > 0`, the relationship targets are not found in the DOCX; if `image_emit_skip_reason=flags_disabled` the figure/placeholder flags were off; if images write but figure chunks are zero, the chunker did not receive `block_type=image`.
+- **Backwards compatibility**: With all DOCX flags off (`DOCX_EXTRACT_IMAGES`, `DOCX_INLINE_FIGURE_PLACEHOLDERS`, `DOCX_FIGURE_CHUNKS`), chunk text and embeddings match the legacy text-only pipeline.
 
 ## Retrieval Modes
 Implementation: [backend/core/services/retrieval_service.py](../../backend/core/services/retrieval_service.py).

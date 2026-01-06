@@ -61,6 +61,11 @@ Configuration is resolved by [backend/app/deps.py](../../backend/app/deps.py). T
 | `STORAGE_BACKEND`, `STAGING_DIR` | Upload staging provider and directory. |
 | `ALLOW_MIME` | CSV or JSON array of allowed MIME types for uploads (lower-case). Defaults to PDF/Office/TXT/HTML. |
 | `EMBED_PROFILE`, `EMBED_UPDATE_ALIAS`, `EMBED_EVALUATE` | CLI defaults for embed jobs triggered through APIs or scripts. |
+| `RAG_ASSETS_DIR` | Filesystem root for extracted RAG assets (DOCX images). Defaults to `./data/rag-assets` relative to the repo. Created on demand. |
+| `DOCX_EXTRACT_IMAGES` | When `true`, saves embedded DOCX images under `<RAG_ASSETS_DIR>/<doc_id>/img_<NNN>.<ext>` and feeds image markers to chunkers. Defaults to `false`. |
+| `DOCX_INLINE_FIGURE_PLACEHOLDERS` | When `true`, DOCX chunks include inline `[FIGURE:<figure_id>]` markers where images appear. |
+| `DOCX_FIGURE_CHUNKS` | When `true`, creates additional `chunk_type=figure` entries (text-only descriptions) for DOCX images; metadata includes `figure_id`, `parent_chunk_id`, and `image_ref`. |
+| `DOCX_IMAGE_DEBUG` | Optional debug flag to log per-image extraction details (rid/target/output); leave off in normal runs. |
 | `SP_*` | SharePoint sync service URL, schedule, and timezone hints. |
 
 ### Sanitization (see [SANITIZATION.md](./SANITIZATION.md))

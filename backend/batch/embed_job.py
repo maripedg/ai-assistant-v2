@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 PIPELINE_CHUNK_DEBUG = (os.getenv("PIPELINE_CHUNK_DEBUG") or "").lower() in {"1", "true", "on", "yes"}
 USE_TOC_SECTION_DOCX_CHUNKER = (os.getenv("USE_TOC_SECTION_DOCX_CHUNKER") or "").lower() in {"1", "true", "on", "yes"}
+CHUNKING_DIAGNOSTIC = (os.getenv("CHUNKING_DIAGNOSTIC") or "").lower() in {"1", "true", "on", "yes"}
 
 
 # --- Sanitizer (optional import)
@@ -746,6 +747,16 @@ def run_embed_job(
         chunker_cfg = profile_cfg.get("chunker", {}) or {}
         chunker_type = (chunker_cfg.get("type") or "char").lower()
         effective_max = _effective_max_tokens(chunker_cfg, profile_cfg)
+        if CHUNKING_DIAGNOSTIC:
+            logger.info(
+                "CHUNKING_DIAGNOSTIC chunker_type=%s effective_max=%s profile=%s toc_section_docx=%s",
+                chunker_type,
+                effective_max,
+                profile_name,
+                USE_TOC_SECTION_DOCX_CHUNKER,
+            )
+
+        local_idx_to_chunk_id: Dict[int, str] = {}
 
         def _append_chunks(chunks_in: List[Dict[str, Any]], base_ct: str, starting_idx: int = 1) -> int:
             nonlocal total_chunks
@@ -773,6 +784,7 @@ def run_embed_job(
                     content_counts[ct_key_local] = content_counts.get(ct_key_local, 0) + 1
 
                 chunk_id = f"{doc_id_base}_chunk_{len(vector_buffer) + 1}"
+                local_idx = cmeta_raw.get("chunk_local_index") if isinstance(cmeta_raw.get("chunk_local_index"), int) else None
                 meta_out = dict(cmeta_raw)
                 meta_out.update(
                     {
@@ -783,6 +795,11 @@ def run_embed_job(
                         "distance_metric": profile_cfg.get("distance_metric", "dot_product"),
                     }
                 )
+                if local_idx is not None and (meta_out.get("chunk_type") or "text") != "figure":
+                    local_idx_to_chunk_id[local_idx] = chunk_id
+                parent_local_idx = meta_out.get("parent_chunk_local_index") or cmeta_raw.get("parent_chunk_local_index")
+                if parent_local_idx and parent_local_idx in local_idx_to_chunk_id:
+                    meta_out["parent_chunk_id"] = local_idx_to_chunk_id[parent_local_idx]
                 if dedupe_enabled:
                     meta_out["hash_norm"] = _hash_normalize(ctext)
                 vector_buffer.append({"text": ctext, "metadata": meta_out})

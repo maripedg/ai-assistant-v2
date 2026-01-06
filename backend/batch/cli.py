@@ -18,7 +18,22 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Any, List
 
+from dotenv import load_dotenv
+
 logger = logging.getLogger(__name__)
+
+
+def _load_env() -> None:
+    """Load .env from repo root or backend/.env before any job logic."""
+    repo_root = Path(__file__).resolve().parents[2]
+    candidates = [repo_root / ".env", repo_root / "backend" / ".env"]
+    for candidate in candidates:
+        try:
+            if candidate.exists():
+                load_dotenv(candidate)
+                return
+        except Exception:
+            continue
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -160,6 +175,7 @@ def _handle_embed(args: argparse.Namespace) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
+    _load_env()
     parser = _build_parser()
     args = parser.parse_args(argv)
     command_handler = getattr(args, "command_handler", None)

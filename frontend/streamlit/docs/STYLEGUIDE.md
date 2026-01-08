@@ -40,7 +40,7 @@ Chat Answer Microcopy & Styling
 - Hide the entire Sources section when mode is fallback, gate_failed is true, or sim_max < threshold_low. In that case, show "No sources displayed because they did not meet the quality threshold." inside the Why panel.
 - Confidence bar buckets: Low (< threshold_low), Medium (between thresholds), High (>= threshold_high). Clamp 0-100%.
 - Snippet copy stays under 300 characters, no absolute paths, display file name and doc_id.
-- Figures: strip lines like "Related figure(s):" / "Figure(s):" / "See image:" from answers and render figure thumbnails underneath using `image_ref` resolved from `retrieved_chunks_metadata` and `RAG_ASSETS_DIR`.
+- Figures: strip lines like "Related figure(s):" / "Figure(s):" / "See image:" from answers and render inline figure placeholders `[FIGURE:<id>]` as expandable images (responsive, max width `FIGURE_MAX_WIDTH_PX`) resolved from `retrieved_chunks_metadata.image_ref` and `RAG_ASSETS_DIR`; leftover figures appear in a single fallback expander when needed.
 
 Message Layout (Chat)
 

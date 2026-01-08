@@ -36,6 +36,7 @@ Cookie/session settings:
 | `FEEDBACK_STORAGE_DIR` | Directory containing `fback.json`, `fback_icon.json`, `fback.csv`. |
 | `RAG_ASSETS_DIR` | Filesystem root where DOCX images live (e.g., `data/rag-assets`). Used by chat to render figure thumbnails. Mount as a shared volume in Docker so the UI can read the extracted assets. |
 | `CHAT_FIGURES_DEBUG` | When true, shows figure rendering diagnostics (paths, existence, sizes) under the answer. |
+| `FIGURE_MAX_WIDTH_PX` | Max pixel width for inline figure images (defaults to `900`). Images stay responsive and shrink on small viewports. |
 
 ## Admin Uploads & Jobs
 | Key | Description |

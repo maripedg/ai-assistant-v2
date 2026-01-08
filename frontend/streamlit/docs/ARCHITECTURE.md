@@ -15,6 +15,7 @@ The Streamlit app renders chat, admin dashboards, and feedback tooling against t
 - `app/services/*` – HTTP client (`api_client.py`), auth/session helpers, storage shims, feedback helpers. `frontend/streamlit/services/__init__.py` is a compatibility shim—always import from `app.services`.
 - `app/state/*` – Feature-specific state managers; e.g., `state/feedback_filters.py` keeps `feedback_filters_*` keys in sync.
 - `state/session.py` – Global defaults for `st.session_state` (auth flags, chat history, upload trackers).
+- Chat figures: `[FIGURE:<id>]` placeholders in answers render inline thumbnails resolved from `retrieved_chunks_metadata.image_ref` under `RAG_ASSETS_DIR`; a Figures expander remains for fallback/debug.
 
 ## Feedback History View
 - Location: `app/views/admin/feedback.py`.

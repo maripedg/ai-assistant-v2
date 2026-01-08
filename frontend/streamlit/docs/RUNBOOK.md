@@ -30,6 +30,7 @@ Stop with `Ctrl+C`. Clear Streamlit’s cache (`.streamlit/`) if layout glitches
 | CORS errors on uploads | Ensure backend `server.cors.allow_origins` includes the Streamlit origin. Verify `FRONTEND_BASE_URL`/`BACKEND_API_BASE` align. |
 | `Authorization header missing` banners | Login again to refresh the JWT. When `AUTH_ENABLED=true`, admin calls are blocked until `auth_session.get_auth_headers()` returns a token. |
 | Feedback History shows stale rows | Use the “Reset filters” button, confirm `fb_admin_raw` toggle state, and refresh. Debug state (set `DEBUG_FEEDBACK_UI=1`) to inspect `fb_*` keys. |
+| Figures not rendering inline | Verify `[FIGURE:<id>]` appears in the answer and `retrieved_chunks_metadata` has matching `figure_id`/`image_ref`. Ensure `RAG_ASSETS_DIR` points to the images. Set `CHAT_FIGURES_DEBUG=1` to view resolved paths and existence in the UI. |
 
 ## Smoke Tests
 1. **Login** – Authenticate as admin. Expect sidebar to show role and the “Documents & Embeddings” / “Feedback (Admin)” tabs.

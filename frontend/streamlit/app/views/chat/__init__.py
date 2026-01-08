@@ -20,6 +20,7 @@ DEBUG_CHAT_UI = bool(CONFIG.get("DEBUG_CHAT_UI", False)) or DEBUG_CHAT_UI_STRICT
 LOGGER = logging.getLogger("chat_ui")
 RAG_ASSETS_DIR = Path(CONFIG.get("RAG_ASSETS_DIR", "data/rag-assets"))
 CHAT_FIGURES_DEBUG = str(CONFIG.get("CHAT_FIGURES_DEBUG", "0")).strip().lower() in {"1", "true", "yes", "on"}
+FIGURE_MAX_WIDTH_PX = CONFIG.get("FIGURE_MAX_WIDTH_PX", 900)
 if DEBUG_CHAT_UI:
     LOGGER.setLevel(logging.DEBUG)
 
@@ -281,6 +282,64 @@ def _figure_image_refs(meta_list: Optional[List[Dict[str, Any]]]) -> List[str]:
     return refs
 
 
+def _figure_map(meta_list: Optional[List[Dict[str, Any]]]) -> Dict[str, str]:
+    mapping: Dict[str, str] = {}
+    if not meta_list:
+        return mapping
+    for item in meta_list:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("chunk_type") or "").lower() != "figure":
+            continue
+        fig_id = item.get("figure_id")
+        img_ref = item.get("image_ref")
+        if not isinstance(fig_id, str) or not isinstance(img_ref, str):
+            continue
+        fid = fig_id.strip()
+        ref = img_ref.strip()
+        if not fid or not ref or fid in mapping:
+            continue
+        ref_path = Path(ref)
+        if ref_path.is_absolute():
+            if CHAT_FIGURES_DEBUG:
+                st.warning(f"Skipping absolute image_ref (unsafe): {ref}")
+            continue
+        mapping[fid] = ref
+    return mapping
+
+
+def _split_answer_by_figures(answer: str) -> List[Tuple[str, str]]:
+    pattern = re.compile(r"\[FIGURE:([^\]]+)\]")
+    parts: List[Tuple[str, str]] = []
+    last_idx = 0
+    for match in pattern.finditer(answer or ""):
+        start, end = match.span()
+        fid = match.group(1).strip()
+        if start > last_idx:
+            parts.append(("text", (answer or "")[last_idx:start]))
+        parts.append(("figure", fid))
+        last_idx = end
+    if last_idx < len(answer or ""):
+        parts.append(("text", (answer or "")[last_idx:]))
+    return parts
+
+
+def _split_fenced_blocks(answer: str) -> List[Tuple[str, str]]:
+    """Return [("code", block) | ("text", block)]."""
+    blocks: List[Tuple[str, str]] = []
+    fence_pattern = re.compile(r"(```.*?```)", re.DOTALL)
+    last = 0
+    for m in fence_pattern.finditer(answer or ""):
+        start, end = m.span()
+        if start > last:
+            blocks.append(("text", (answer or "")[last:start]))
+        blocks.append(("code", m.group(1)))
+        last = end
+    if last < len(answer or ""):
+        blocks.append(("text", (answer or "")[last:]))
+    return blocks
+
+
 def _render_figure_thumbnails(image_refs: List[str]) -> None:
     if not image_refs:
         return
@@ -296,7 +355,7 @@ def _render_figure_thumbnails(image_refs: List[str]) -> None:
                 size = None
         if exists:
             try:
-                st.image(str(full_path), caption=None, use_container_width=True)
+                st.image(str(full_path), caption=None, use_container_width=False, width=int(FIGURE_MAX_WIDTH_PX))
             except Exception as exc:  # noqa: BLE001
                 st.warning(f"Failed to render image {ref}: {exc}")
         else:
@@ -334,7 +393,10 @@ def render_primary_answer(payload: Dict[str, Any]) -> Tuple[str, str]:
 
     normalized_raw = answer_value.replace("\r\n", "\n").replace("\r", "\n")
     normalized, figure_label_present = _sanitize_figure_labels(normalized_raw)
-    figure_refs = _figure_image_refs(payload.get("retrieved_chunks_metadata"))
+    meta_figures = payload.get("retrieved_chunks_metadata")
+    figure_refs = _figure_image_refs(meta_figures)
+    figure_map = _figure_map(meta_figures)
+    blocks = _split_fenced_blocks(normalized)
 
     if DEBUG_CHAT_UI_STRICT:
         st.markdown("<style>.stMarkdown{outline:1px dotted #915 !important;}</style>", unsafe_allow_html=True)
@@ -351,17 +413,45 @@ def render_primary_answer(payload: Dict[str, Any]) -> Tuple[str, str]:
             st.code(normalized[:400], language="markdown")
             logp("render_primary_answer:box_shown", preview=normalized[:120])
 
+    rendered_ids: set[str] = set()
     try:
-        st.markdown(normalized)
+        for block_kind, block_text in blocks:
+            if block_kind == "code":
+                st.markdown(block_text)
+                continue
+            segments = _split_answer_by_figures(block_text)
+            for kind, content in segments:
+                if kind == "text":
+                    if content:
+                        st.markdown(content)
+                else:
+                    ref = figure_map.get(content)
+                    if ref:
+                        full_path = (RAG_ASSETS_DIR / Path(ref)).resolve()
+                        if full_path.is_file():
+                            try:
+                                with st.expander("Figure", expanded=False):
+                                    st.image(str(full_path), caption=None, use_container_width=False, width=int(FIGURE_MAX_WIDTH_PX))
+                            except Exception as exc:  # noqa: BLE001
+                                if CHAT_FIGURES_DEBUG:
+                                    st.warning(f"Figure render failed: {content} ({exc})")
+                        else:
+                            if CHAT_FIGURES_DEBUG:
+                                st.warning(f"Figure not available on disk: {content}")
+                        rendered_ids.add(content)
+                    else:
+                        if CHAT_FIGURES_DEBUG:
+                            st.warning(f"Figure reference not found: {content}")
         logp("render_primary_answer:markdown_rendered", ok=True, len_answer=len(normalized))
     except Exception as exc:  # noqa: BLE001
         logp("render_primary_answer:error", error=str(exc))
         st.error("Error rendering answer.")
         return "", source_key
 
-    if figure_refs:
-        with st.expander("Figures", expanded=False):
-            _render_figure_thumbnails(figure_refs)
+    leftover = [ref for fid, ref in figure_map.items() if fid not in rendered_ids]
+    if leftover:
+        with st.expander("Other figures", expanded=False):
+            _render_figure_thumbnails(leftover)
     elif CHAT_FIGURES_DEBUG:
         st.caption("Figures: none to render")
 

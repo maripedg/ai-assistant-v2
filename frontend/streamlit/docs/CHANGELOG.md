@@ -10,6 +10,8 @@ Last updated: 2025-11-07
 - Added `RAG_ASSETS_DIR` frontend config (defaults to `data/rag-assets`) so chat can locate extracted DOCX images.
 - Chat answers now hide figure IDs after the “Related figure(s):” label and render figure thumbnails below the answer using `image_ref` metadata, warning when an image file is missing.
 - Added `CHAT_FIGURES_DEBUG` to surface figure rendering diagnostics (paths, existence, sizes) in chat.
+- Inline figure rendering now replaces `[FIGURE:<id>]` placeholders with thumbnails using `retrieved_chunks_metadata.image_ref` and `RAG_ASSETS_DIR`, keeping a Figures expander as fallback.
+- Adjusted inline figure sizing with `FIGURE_MAX_WIDTH_PX` (default 900px) to render responsive images without taking full width.
 
 ## 2026-02-05
 - Added `--domain-key` embed CLI override that resolves `index_name`/`alias_name` from `embeddings.domains.*` in `backend/config/app.yaml`; defaults remain unchanged when absent.

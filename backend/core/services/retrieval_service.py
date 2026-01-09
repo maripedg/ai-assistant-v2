@@ -258,7 +258,13 @@ class RetrievalService:
             return True
         return meta.get("block_type") == "image"
 
-    def select_context(self, query: str, *, target_view: Optional[str] = None) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
+    def select_context(
+        self,
+        query: str,
+        *,
+        target_view: Optional[str] = None,
+        raw_results: Optional[List[Any]] = None,
+    ) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
         """
         Select context chunks using adaptive thresholding and MMR with per-doc cap.
 
@@ -268,8 +274,9 @@ class RetrievalService:
         - explain_dict: {t_adapt, p90, sim_max, kept_n, cap_per_doc, mmr, gate_failed?}
         """
         vector_kwargs = {"target_view": target_view} if target_view else {}
-        k_overfetch = max(self.top_k, self.top_k * 4)
-        raw_results = self.vs.similarity_search_with_score(query, k=k_overfetch, **vector_kwargs)
+        if raw_results is None:
+            k_overfetch = max(self.top_k, self.top_k * 4)
+            raw_results = self.vs.similarity_search_with_score(query, k=k_overfetch, **vector_kwargs)
         if DEBUG_RETRIEVAL_METADATA:
             _dbg("VECTORSTORE_RETURN", raw_results)
         # Build candidate list with normalized similarity
@@ -563,7 +570,8 @@ class RetrievalService:
         _update_extra(retrieval_target=effective_target)
 
         vector_kwargs = {"target_view": effective_target} if effective_target else {}
-        raw_results = self.vs.similarity_search_with_score(question, k=self.top_k, **vector_kwargs)
+        k_overfetch = max(self.top_k, self.top_k * 4)
+        raw_results = self.vs.similarity_search_with_score(question, k=k_overfetch, **vector_kwargs)
         if DEBUG_RETRIEVAL_METADATA:
             _dbg("VECTORSTORE_RETURN_ANSWER", raw_results)
         if not raw_results:
@@ -586,8 +594,11 @@ class RetrievalService:
             if "raw_score" in meta:
                 meta["raw_score"] = float(meta["raw_score"])
 
-        max_raw = max(m["raw_score"] for m in metas)
-        max_norm = max(m["similarity"] for m in metas)
+        eligible_sims = [
+            m["similarity"] for m in metas if not self._is_excluded_from_llm_context(m)
+        ]
+        max_norm = max(eligible_sims) if eligible_sims else float("-inf")
+        max_raw = max(m["raw_score"] for m in metas) if metas else float("-inf")
 
         decision_score, low, high = self._pick_thresholds(max_raw, max_norm, short_query)
         mode = self._decide_mode(decision_score, low, high, short_query)
@@ -610,7 +621,11 @@ class RetrievalService:
             return self._build_response(question, mode, metas, [], decision_score, short_query, llm_used="fallback")
 
         # Drive decision via select_context for hybrid-or-fallback
-        selected_docs, best3_docs, explain = self.select_context(question, target_view=effective_target)
+        selected_docs, best3_docs, explain = self.select_context(
+            question,
+            target_view=effective_target,
+            raw_results=raw_results,
+        )
         best7_count = len(selected_docs)
         best3_count = len(best3_docs)
         extra = dict(explain or {})

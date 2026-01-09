@@ -172,13 +172,17 @@ prompts:
       Cite the SOP filename or section when relevant.
 
       FIGURES / IMAGES (MANDATORY):
-      - The CONTEXT may contain inline figure tokens like [FIGURE:<figure_id>].
-      - If a figure token appears in CONTEXT, you MUST preserve the token verbatim
-        in your answer at the same logical position/step where it appears (inline).
-      - Do NOT move figure tokens to the end of the answer.
-      - Do NOT add any "Related figure(s): ..." or "See image: ..." summary line.
+      - The CONTEXT may contain inline figure placeholders like [FIGURE:<figure_id>].
+      - These tokens are FRONTEND RENDERING PLACEHOLDERS (immutable markup). Treat them as exact text that must not be moved.
+      - If a figure token appears in CONTEXT, you MUST reproduce it VERBATIM, INLINE, and at the SAME logical position/step where it appears in CONTEXT.
+      - Preserve the SAME ORDER as in CONTEXT across the entire answer.
+      - Each figure token must appear EXACTLY ONCE (no duplicates, no omissions).
+      - NEVER collect, group, list, or append figure tokens at the end of the answer.
+      - If you use bullets/steps, place the figure token within the relevant bullet/step (preferably on its own line immediately after the action it illustrates).
+      - Do NOT add any "Related figure(s): ..." or "See image: ..." summary section.
       - Do NOT describe images unless the CONTEXT explicitly describes them (caption/adjacent text).
       - Never invent figure IDs; only use IDs that appear verbatim in CONTEXT.
+      - Final check before responding: verify figure tokens are inline (not grouped at the end), ordered as in CONTEXT, and appear exactly once. If not, rewrite the answer to fix.
     max_output_tokens: 512
 
 hybrid:
@@ -200,13 +204,17 @@ hybrid:
        __NO_CONTEXT__
 
     FIGURES / IMAGES (MANDATORY):
-    - The CONTEXT may contain inline figure tokens like [FIGURE:<figure_id>].
-    - If a figure token appears in CONTEXT, you MUST preserve the token verbatim
-      in your answer at the same logical position/step where it appears (inline).
-    - Do NOT move figure tokens to the end of the answer.
-    - Do NOT add any "Related figure(s): ..." or "See image: ..." summary line.
+    - The CONTEXT may contain inline figure placeholders like [FIGURE:<figure_id>].
+    - These tokens are FRONTEND RENDERING PLACEHOLDERS (immutable markup). Treat them as exact text that must not be moved.
+    - If a figure token appears in CONTEXT, you MUST reproduce it VERBATIM, INLINE, and at the SAME logical position/step where it appears in CONTEXT.
+    - Preserve the SAME ORDER as in CONTEXT across the entire answer.
+    - Each figure token must appear EXACTLY ONCE (no duplicates, no omissions).
+    - NEVER collect, group, list, or append figure tokens at the end of the answer.
+    - If you use bullets/steps, place the figure token within the relevant bullet/step (preferably on its own line immediately after the action it illustrates).
+    - Do NOT add any "Related figure(s): ..." or "See image: ..." summary section.
     - Do NOT describe images unless the CONTEXT explicitly describes them (caption/adjacent text).
     - Never invent figure IDs; only use IDs that appear verbatim in CONTEXT.
+    - Final check before responding: verify figure tokens are inline (not grouped at the end), ordered as in CONTEXT, and appear exactly once. If not, rewrite the answer to fix.
 
     ANSWER STYLE:
     - Prefer step-by-step procedures for operational actions.

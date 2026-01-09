@@ -1,5 +1,12 @@
 # Backend Changelog
 
+## 2026-01-08
+- Files changed: backend/core/services/retrieval_service.py; backend/docs/backend/EMBEDDING_AND_RETRIEVAL.md; backend/docs/CHANGELOG.md.
+- What changed: Text-first selection now skips image-like chunks (`chunk_type=figure` or `block_type=image`), excludes them from adaptive-threshold math (p90/t_adapt), and applies cap-per-doc/MMR on text-only candidates when building LLM context, while keeping images in retrieved metadata and honoring `max_chunks`/`max_context_chars`.
+- Why: Image/figure chunks could dominate similarity distributions and cap-per-doc/MMR budget, inflating adaptive thresholds and preventing relevant text from being selected.
+- Backward compatibility: Retrieval metadata still includes image chunks for UI rendering; text-only docs and existing modes remain unchanged.
+- Validation: Not run (not requested).
+
 ## 2026-01-06
 - Files changed: backend/core/services/retrieval_service.py; backend/tests/retrieval/test_exclude_figure_chunks.py; backend/docs/backend/EMBEDDING_AND_RETRIEVAL.md.
 - What changed: Made figure-type chunks selection-aware so retrieval skips them when building LLM context, continues deeper to fill text slots, and logs ranked/excluded/context size diagnostics.

@@ -175,7 +175,7 @@ class RetrievalService:
         exclude_cfg = hybrid_cfg.get("exclude_chunk_types_from_llm")
         default_exclude = ["figure"]
         if isinstance(exclude_cfg, list) and exclude_cfg:
-            self.exclude_chunk_types_from_llm = [str(x) for x in exclude_cfg]
+            self.exclude_chunk_types_from_llm = [str(x).lower() for x in exclude_cfg]
         else:
             self.exclude_chunk_types_from_llm = default_exclude
 
@@ -252,6 +252,12 @@ class RetrievalService:
 
         return meta
 
+    def _is_excluded_from_llm_context(self, meta: Dict[str, Any]) -> bool:
+        ctype = str(meta.get("chunk_type") or "").lower()
+        if ctype and ctype in self.exclude_chunk_types_from_llm:
+            return True
+        return meta.get("block_type") == "image"
+
     def select_context(self, query: str, *, target_view: Optional[str] = None) -> Tuple[List[Any], List[Any], Dict[str, Any]]:
         """
         Select context chunks using adaptive thresholding and MMR with per-doc cap.
@@ -262,7 +268,8 @@ class RetrievalService:
         - explain_dict: {t_adapt, p90, sim_max, kept_n, cap_per_doc, mmr, gate_failed?}
         """
         vector_kwargs = {"target_view": target_view} if target_view else {}
-        raw_results = self.vs.similarity_search_with_score(query, k=self.top_k, **vector_kwargs)
+        k_overfetch = max(self.top_k, self.top_k * 4)
+        raw_results = self.vs.similarity_search_with_score(query, k=k_overfetch, **vector_kwargs)
         if DEBUG_RETRIEVAL_METADATA:
             _dbg("VECTORSTORE_RETURN", raw_results)
         # Build candidate list with normalized similarity
@@ -359,8 +366,17 @@ class RetrievalService:
                     snippet,
                 )
 
-        sims = [c["sim"] for c in candidates]
-        sim_max = max(sims) if sims else 0.0
+        llm_eligible_candidates: List[Dict[str, Any]] = []
+        excluded_candidates: List[Dict[str, Any]] = []
+        for cand in candidates:
+            meta_tmp = self._resolve_metadata(cand.get("doc"), cand.get("metadata"))
+            if self._is_excluded_from_llm_context(meta_tmp):
+                excluded_candidates.append(cand)
+            else:
+                llm_eligible_candidates.append(cand)
+
+        sims_eligible = [c["sim"] for c in llm_eligible_candidates]
+        sim_max_eligible = max(sims_eligible) if sims_eligible else 0.0
 
         def p90(values: List[float]) -> float:
             if not values:
@@ -377,8 +393,8 @@ class RetrievalService:
             frac = pos - lo
             return vs[lo] * (1 - frac) + vs[hi] * frac
 
-        p90_val = p90(sims) if sims else 0.0
-        if not sims:
+        p90_val = p90(sims_eligible) if sims_eligible else 0.0
+        if not sims_eligible:
             p90_val = 0.0
         t_adapt = max(self.hybrid_gate_min_similarity, (p90_val - 0.03))
         # Stricter threshold for short queries
@@ -388,26 +404,25 @@ class RetrievalService:
         except Exception:
             pass
 
-        # Filter by adaptive threshold
-        filtered = [c for c in candidates if c["sim"] >= t_adapt]
+        # Filter by adaptive threshold (eligible-only), keep a minimum text pool
+        ranked_text_all = sorted(llm_eligible_candidates, key=lambda x: x["sim"], reverse=True)
+        filtered_eligible = [c for c in ranked_text_all if c["sim"] >= t_adapt]
+        min_text_keep = max(6, self.hybrid_max_chunks)
+        if len(filtered_eligible) < min_text_keep:
+            filtered_eligible = ranked_text_all[:min_text_keep]
 
         # Tokenize helper for diversity
         def _tokens(text: str) -> set:
             words = re.sub(r"[^\w\s]", " ", (text or "").lower()).split()
             return {w for w in words if w.isalpha()}
 
-        for c in filtered:
+        for c in filtered_eligible:
             c["tokens"] = _tokens(c["text"])  # type: ignore[assignment]
 
         # MMR selection with per-doc cap
         lam = 0.30
         per_doc_cap = 6
         max_keep = 12
-        selected: List[Dict[str, Any]] = []
-        counts: Dict[str, int] = {}
-
-        # Start from highest similarity
-        pool = sorted(filtered, key=lambda x: x["sim"], reverse=True)
 
         def pair_sim(a: Dict[str, Any], b: Dict[str, Any]) -> float:
             at = a.get("tokens") or set()
@@ -420,78 +435,102 @@ class RetrievalService:
             uni = len(at | bt)
             return inter / float(uni or 1)
 
-        while pool and len(selected) < max_keep:
-            best = None
-            best_score = -1e9
-            for cand in pool:
-                doc_key = cand.get("doc_id") or ""
-                if counts.get(doc_key, 0) >= per_doc_cap:
-                    continue
-                if not selected:
-                    score = cand["sim"]
-                else:
-                    max_div = 0.0
-                    for s in selected:
-                        max_div = max(max_div, pair_sim(cand, s))
-                    score = lam * cand["sim"] - (1.0 - lam) * max_div
-                if score > best_score:
-                    best_score = score
-                    best = cand
-            if best is None:
-                break
-            best["mmr_score"] = float(best_score)
-            selected.append(best)
-            dk = best.get("doc_id") or ""
-            counts[dk] = counts.get(dk, 0) + 1
-            # Remove the chosen item from pool
-            pool = [c for c in pool if c is not best]
+        def mmr_select(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+            selected_local: List[Dict[str, Any]] = []
+            counts_local: Dict[str, int] = {}
+            pool_local = sorted(candidates, key=lambda x: x["sim"], reverse=True)
+            while pool_local and len(selected_local) < max_keep:
+                best = None
+                best_score = -1e9
+                for cand in pool_local:
+                    doc_key = cand.get("doc_id") or ""
+                    if counts_local.get(doc_key, 0) >= per_doc_cap:
+                        continue
+                    if not selected_local:
+                        score = cand["sim"]
+                    else:
+                        max_div = 0.0
+                        for s in selected_local:
+                            max_div = max(max_div, pair_sim(cand, s))
+                        score = lam * cand["sim"] - (1.0 - lam) * max_div
+                    if score > best_score:
+                        best_score = score
+                        best = cand
+                if best is None:
+                    break
+                best["mmr_score"] = float(best_score)
+                selected_local.append(best)
+                dk = best.get("doc_id") or ""
+                counts_local[dk] = counts_local.get(dk, 0) + 1
+                pool_local = [c for c in pool_local if c is not best]
+            return selected_local
 
-        # Take top-3 by similarity from thresholded candidates, skipping excluded chunk types
-        ranked_candidates = sorted(filtered, key=lambda x: x["sim"], reverse=True)
+        selected_text = mmr_select(filtered_eligible)
+
+        # Select LLM context candidates by similarity from text-only MMR set
+        ranked_text = sorted(selected_text, key=lambda x: x["sim"], reverse=True)
         best3: List[Dict[str, Any]] = []
-        excluded_best3 = 0
-        for cand in ranked_candidates:
-            meta_tmp = self._resolve_metadata(cand.get("doc"), cand.get("metadata"))
-            ctype_tmp = str(meta_tmp.get("chunk_type") or "").lower()
-            if ctype_tmp and ctype_tmp in self.exclude_chunk_types_from_llm:
-                excluded_best3 += 1
+        total_bytes = 0
+        for cand in ranked_text:
+            text = (cand.get("text") or getattr(cand.get("doc"), "page_content", "") or "").strip()
+            if not text:
+                continue
+            chunk_bytes = len(text.encode("utf-8"))
+            extra = len(b"\n\n") if best3 else 0
+            if chunk_bytes + extra > self.hybrid_max_chars and not best3:
+                continue
+            if best3 and total_bytes + extra + chunk_bytes > self.hybrid_max_chars:
                 continue
             best3.append(cand)
-            if len(best3) >= 3:
+            total_bytes += chunk_bytes + extra
+            if len(best3) >= self.hybrid_max_chunks:
                 break
         # Preserve best-7 order by final MMR score (aquí ahora es hasta max_keep, pero el nombre se mantiene)
-        best7 = sorted(selected, key=lambda x: x.get("mmr_score", x["sim"]), reverse=True)
+        excluded_ranked = sorted(excluded_candidates, key=lambda x: x["sim"], reverse=True)
+        best7 = (selected_text + excluded_ranked)[:max_keep]
 
         # Gates
         gate_failed: Optional[str] = None
-        if sim_max < self.hybrid_gate_min_similarity:
+        if sim_max_eligible < self.hybrid_gate_min_similarity:
             gate_failed = "min_similarity_gate"
         elif len(best3) < self.hybrid_gate_min_chunks:
             gate_failed = "min_chunks_gate"
         else:
-            total_bytes = 0
-            for idx, item in enumerate(best3):
-                t = (item.get("text") or "").encode("utf-8")
-                total_bytes += len(t)
-                if idx > 0:
-                    total_bytes += len(b"\n\n")
             if total_bytes < self.hybrid_gate_min_total_chars:
                 gate_failed = "min_total_chars_gate"
 
         explain = {
             "t_adapt": float(t_adapt),
             "p90": float(p90_val),
-            "sim_max": float(sim_max),
-            "kept_n": int(len(selected)),
+            "sim_max": float(sim_max_eligible),
+            "kept_n": int(len(selected_text)),
             "cap_per_doc": per_doc_cap,
             "mmr": True,
             "hybrid_candidates": int(len(best7)),
             "hybrid_sent": int(len(best3)) if not gate_failed else 0,
-            "ranked_candidates_total": int(len(ranked_candidates)),
-            "excluded_by_type": int(excluded_best3),
+            "ranked_candidates_total": int(len(candidates)),
+            "eligible_candidates_total": int(len(llm_eligible_candidates)),
+            "excluded_candidates_total": int(len(excluded_candidates)),
+            "text_after_cap_total": int(len(selected_text)),
+            "selected_for_llm_count": int(len(best3)),
+            "final_context_chars": int(total_bytes),
         }
         if gate_failed:
             explain["gate_failed"] = gate_failed
+        if DEBUG_RETRIEVAL_METADATA:
+            log.info(
+                "DEBUG_METADATA llm_selection ranked_candidates_total=%s eligible_candidates_total=%s excluded_candidates_total=%s "
+                "text_after_cap_total=%s selected_for_llm_count=%s final_context_chars=%s p90_eligible=%s t_adapt=%s sim_max_eligible=%s",
+                explain.get("ranked_candidates_total"),
+                explain.get("eligible_candidates_total"),
+                explain.get("excluded_candidates_total"),
+                explain.get("text_after_cap_total"),
+                explain.get("selected_for_llm_count"),
+                explain.get("final_context_chars"),
+                explain.get("p90"),
+                explain.get("t_adapt"),
+                explain.get("sim_max"),
+            )
 
         def _payload(item: Dict[str, Any]) -> Dict[str, Any]:
             payload = {
@@ -633,14 +672,9 @@ class RetrievalService:
         # Build context and used_chunks from best3_docs
         parts: List[str] = []
         uchunks: List[Dict[str, Any]] = []
-        excluded = 0
         for d in best3_docs:
             doc = d.get("doc")
             meta = self._resolve_metadata(doc, d.get("metadata"))
-            ctype = str(meta.get("chunk_type") or "").lower()
-            if ctype and ctype in self.exclude_chunk_types_from_llm:
-                excluded += 1
-                continue
             text = (d.get("text") or getattr(doc, "page_content", "") or "").strip()
             parts.append(text)
             if "raw_score" not in meta and d.get("raw_score") is not None:
@@ -660,10 +694,9 @@ class RetrievalService:
             )
         if DEBUG_RETRIEVAL_METADATA:
             log.info(
-                "DEBUG_METADATA context_selection selected=%s sent_to_llm=%s excluded_by_type=%s",
+                "DEBUG_METADATA context_selection selected=%s sent_to_llm=%s",
                 len(best3_docs),
                 len(uchunks),
-                excluded,
             )
         if DEBUG_RETRIEVAL_METADATA and uchunks:
             _dbg("BEFORE_RESPONSE_used_chunks", uchunks[:2])
@@ -677,14 +710,6 @@ class RetrievalService:
         context_text = "\n\n".join(parts)
         used_chunks = uchunks
         best3_sent = len(uchunks)
-        if DEBUG_RETRIEVAL_METADATA:
-            log.info(
-                "DEBUG_METADATA llm_context ranked_candidates_total=%s sent_to_llm=%s excluded_by_type=%s final_context_chars=%s",
-                explain.get("ranked_candidates_total"),
-                len(uchunks),
-                excluded,
-                len(context_text.encode("utf-8")),
-            )
         try:
             extra = dict(self._extra_explain or {})
             extra["used_chunks"] = used_chunks

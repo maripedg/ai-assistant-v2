@@ -159,3 +159,53 @@ def test_structured_docx_sop_section_keeps_block_and_repeats_heading_on_split():
     # Splits (if any) keep heading prefix
     sop_chunks = [ch for ch in chunks if ch["text"].startswith("8.")]
     assert all(ch["text"].splitlines()[0].startswith("8.") for ch in sop_chunks)
+
+
+def test_structured_docx_admin_sections_filtered_by_heading():
+    items = [
+        {
+            "text": "Document Control\nOwner: Ops\nVersion: 1.0",
+            "metadata": {
+                "source": "/tmp/doc.docx",
+                "content_type": "docx",
+                "section_heading": "Document Control",
+                "heading_path": ["Document Control"],
+            },
+        },
+        {
+            "text": "Version History\nv1.0 Initial release",
+            "metadata": {
+                "source": "/tmp/doc.docx",
+                "content_type": "docx",
+                "section_heading": "Version History",
+                "heading_path": ["Version History"],
+            },
+        },
+        {
+            "text": "Procedure\nStep 1: Do the thing\nStep 2: Verify",
+            "metadata": {
+                "source": "/tmp/doc.docx",
+                "content_type": "docx",
+                "section_heading": "Procedure",
+                "heading_path": ["Procedure"],
+            },
+        },
+    ]
+
+    chunker_cfg = {
+        "type": "structured_docx",
+        "drop_admin_sections": True,
+        "admin_sections": {
+            "enabled": True,
+            "match_mode": "heading_regex",
+            "heading_regex": [r"(?i)^document control$", r"(?i)^version history$"],
+            "stop_excluding_after_heading_regex": [r"(?i)^procedure$"],
+        },
+    }
+    chunks = chunk_structured_docx_items(items, chunker_cfg, effective_max_tokens=64)
+
+    text = "\n".join(ch["text"] for ch in chunks)
+    assert "Document Control" not in text
+    assert "Version History" not in text
+    assert "Procedure" in text
+    assert "Step 1: Do the thing" in text

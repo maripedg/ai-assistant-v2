@@ -127,6 +127,18 @@ embeddings:
         pdf_toc_max_pages: 5
         drop_repeated_headers_footers: true
         drop_admin_sections: true
+        admin_sections:
+          enabled: true
+          match_mode: heading_regex
+          heading_regex:
+            - "(?i)^document control$"
+            - "(?i)^version history$"
+            - "(?i)^reviewers?$"
+            - "(?i)^scope and purpose( of the document)?$"
+            - "(?i)^approvals?$"
+            - "(?i)^distribution( list)?$"
+          stop_excluding_after_heading_regex:
+            - "(?i)^(procedure|steps to be followed|step\\s*1)\\b"
         token_safety_margin: 64
         min_tokens: 0
       distance_metric: cosine

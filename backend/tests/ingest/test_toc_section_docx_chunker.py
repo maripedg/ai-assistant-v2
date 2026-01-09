@@ -191,3 +191,36 @@ def test_procedure_title_repeats_on_split(monkeypatch):
     chunks = chunk_docx_toc_sections(items, cfg={"effective_max_tokens": 24}, source_meta={"doc_id": "doc"})
     assert len(chunks) > 1
     assert all(ch["text"].splitlines()[0].startswith("Procedure: SOP5") for ch in chunks)
+
+
+def test_toc_section_admin_sections_filtered_by_heading():
+    items = [
+        {
+            "text": "Document Control\nOwner: Ops\nVersion: 1.0",
+            "metadata": {"section_heading": "Document Control", "heading_level_of_section": 1},
+        },
+        {
+            "text": "Version History\nv1.0 Initial release",
+            "metadata": {"section_heading": "Version History", "heading_level_of_section": 1},
+        },
+        {
+            "text": "Procedure\nStep 1: Do the thing\nStep 2: Verify",
+            "metadata": {"section_heading": "Procedure", "heading_level_of_section": 1},
+        },
+    ]
+
+    cfg = {
+        "effective_max_tokens": 256,
+        "drop_admin_sections": True,
+        "admin_sections": {
+            "enabled": True,
+            "match_mode": "heading_regex",
+            "heading_regex": [r"(?i)^document control$", r"(?i)^version history$"],
+            "stop_excluding_after_heading_regex": [r"(?i)^procedure$"],
+        },
+    }
+    chunks = chunk_docx_toc_sections(items, cfg=cfg, source_meta={})
+    text = "\n".join(ch["text"] for ch in chunks)
+    assert "Document Control" not in text
+    assert "Version History" not in text
+    assert "Procedure" in text

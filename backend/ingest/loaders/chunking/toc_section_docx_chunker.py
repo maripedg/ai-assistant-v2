@@ -28,6 +28,42 @@ def _estimate_tokens(text: str) -> int:
     return max(0, int(round(len(text) / 4))) if text else 0
 
 
+def _normalize_heading_text(text: str) -> str:
+    return " ".join((text or "").split()).strip().lower()
+
+
+def _compile_heading_regex(patterns: List[str]) -> List[re.Pattern]:
+    compiled: List[re.Pattern] = []
+    for pat in patterns or []:
+        if not pat:
+            continue
+        try:
+            compiled.append(re.compile(pat, flags=re.IGNORECASE))
+        except re.error:
+            continue
+    return compiled
+
+
+def _matches_heading_regex(text: str, regexes: List[re.Pattern]) -> bool:
+    if not text or not regexes:
+        return False
+    return any(rx.search(text) for rx in regexes)
+
+
+def _current_heading_from_meta(meta: Dict[str, object]) -> str:
+    heading = meta.get("section_heading")
+    if isinstance(heading, str) and heading.strip():
+        return heading.strip()
+    hpath = meta.get("heading_path")
+    if isinstance(hpath, (list, tuple)) and hpath:
+        last = hpath[-1]
+        if isinstance(last, str) and last.strip():
+            return last.strip()
+        if last is not None:
+            return str(last).strip()
+    return ""
+
+
 def _figure_placeholder(figure_id: str | None) -> str:
     if not figure_id:
         return "[FIGURE:?]"
@@ -530,6 +566,54 @@ def _ensure_procedure_prefix(text: str, meta: Dict[str, object]) -> str:
 
 
 def chunk_docx_toc_sections(items: List[Dict], *, cfg: Dict, source_meta: Dict | None = None) -> List[Dict]:
+    drop_admin_sections = bool(cfg.get("drop_admin_sections", False))
+    admin_cfg = cfg.get("admin_sections") or {}
+    admin_enabled = bool(admin_cfg.get("enabled", False)) and drop_admin_sections
+    if admin_enabled:
+        match_mode = (admin_cfg.get("match_mode") or "heading_regex").strip().lower()
+        heading_regexes = _compile_heading_regex(admin_cfg.get("heading_regex") or [])
+        heading_exact = {_normalize_heading_text(h) for h in (admin_cfg.get("heading_exact") or []) if h}
+        stop_regexes = _compile_heading_regex(admin_cfg.get("stop_excluding_after_heading_regex") or [])
+        stop_exact = {
+            _normalize_heading_text(h) for h in (admin_cfg.get("stop_excluding_after_heading_exact") or []) if h
+        }
+        admin_exclusion_active = True
+        filtered_items: List[Dict] = []
+        for item in items:
+            meta = item.get("metadata") or {}
+            heading = _current_heading_from_meta(meta)
+            heading_norm = _normalize_heading_text(heading)
+            stop_match = False
+            if heading_norm:
+                if _matches_heading_regex(heading, stop_regexes):
+                    stop_match = True
+                elif heading_norm in stop_exact:
+                    stop_match = True
+            if stop_match:
+                admin_exclusion_active = False
+                filtered_items.append(item)
+                continue
+            admin_match = False
+            if heading_norm:
+                if match_mode in {"heading_regex", "both"} and _matches_heading_regex(heading, heading_regexes):
+                    admin_match = True
+                if not admin_match and match_mode in {"heading_exact", "both"} and heading_norm in heading_exact:
+                    admin_match = True
+            if admin_match:
+                continue
+            if admin_exclusion_active and not heading_norm:
+                filtered_items.append(item)
+                continue
+            filtered_items.append(item)
+        if DOCX_SECTION_CHUNK_DEBUG:
+            _log.info(
+                "DOCX_SECTION_CHUNK_DEBUG admin_filter enabled=%s before=%d after=%d",
+                admin_enabled,
+                len(items),
+                len(filtered_items),
+            )
+        items = filtered_items
+
     inline_placeholders = _env_flag("DOCX_INLINE_FIGURE_PLACEHOLDERS", False)
     figure_chunks_enabled = _env_flag("DOCX_FIGURE_CHUNKS", False)
     track_figures = inline_placeholders or figure_chunks_enabled

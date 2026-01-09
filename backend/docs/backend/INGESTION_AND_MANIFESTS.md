@@ -49,6 +49,27 @@ Example:
 - **Chunking & embeddings**: Placeholders preserve inline order; figure chunks store a deterministic text description only (no binary embeddings) to make the related image retrievable. SOP/procedure chunking repeats the procedure title on split chunks to avoid mixing steps across procedures.
 - **Troubleshooting**: Check `DOCX_IMAGES_SUMMARY` (loader) and `DOCX_FIGURE_CHUNKING_SUMMARY` (chunker). If `embed_rids` > 0 but `rels_mapped=0`, relationships parsing failed; if `zip_member_miss > 0`, the relationship target could not be located in the DOCX; if `image_emit_skip_reason=flags_disabled` the inline/figure flags were off; if `images_written` > 0 but `figure_chunks=0`, the chunker is not seeing `block_type=image` blocks.
 
+## DOCX Admin Section Filtering
+- **Purpose**: Filter administrative sections (Document Control, Version History, Reviewers, Scope and Purpose, etc.) based on section headings while preserving procedural tables and steps.
+- **Behavior**: Filtering is heading-based; only items whose section heading matches admin patterns are excluded. Optional stop patterns disable the initial exclusion window once a procedure section is reached.
+- **Pipeline note**: The `structured_docx` profile uses `toc_section_docx_chunker` when enabled; this filtering applies in that path as well.
+- **Config** (under `embeddings.profiles.<profile>.chunker`):
+```yaml
+drop_admin_sections: true
+admin_sections:
+  enabled: true
+  match_mode: heading_regex
+  heading_regex:
+    - "(?i)^document control$"
+    - "(?i)^version history$"
+    - "(?i)^reviewers?$"
+    - "(?i)^scope and purpose( of the document)?$"
+    - "(?i)^approvals?$"
+    - "(?i)^distribution( list)?$"
+  stop_excluding_after_heading_regex:
+    - "(?i)^(procedure|steps to be followed|step\\s*1)\\b"
+```
+
 ## CLI Shortcut
 ```bash
 python -m backend.batch.cli embed \

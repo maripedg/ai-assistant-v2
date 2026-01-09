@@ -859,7 +859,9 @@ def run_embed_job(
             ]
             if docx_items:
                 if USE_TOC_SECTION_DOCX_CHUNKER:
-                    struct_chunks = chunk_docx_toc_sections(docx_items, cfg={"effective_max_tokens": effective_max}, source_meta={})
+                    toc_cfg = dict(chunker_cfg or {})
+                    toc_cfg["effective_max_tokens"] = effective_max
+                    struct_chunks = chunk_docx_toc_sections(docx_items, cfg=toc_cfg, source_meta={})
                     if PIPELINE_CHUNK_DEBUG:
                         logger.info(
                             "PIPELINE_CHUNK_DEBUG structured_docx items=%d chunks=%d DOCX chunker selected: toc_section_docx_chunker",

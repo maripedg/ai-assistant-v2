@@ -1,5 +1,19 @@
 # Backend Changelog
 
+## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/batch/embed_job.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: Applied admin-section filtering to the effective `toc_section_docx_chunker` path and passed chunker config into that path, with debug logging when enabled.
+- Why: The embedding pipeline selects `toc_section_docx_chunker` for structured DOCX, so admin filtering needed to run there to reduce noise.
+- Backward compatibility: No change when `admin_sections.enabled` is false or missing; existing chunker selection remains unchanged.
+- Validation: Unit test covers admin heading exclusion for the toc_section path (not executed here).
+
+## 2026-01-08
+- Files changed: backend/ingest/loaders/chunking/structured_docx_chunker.py; backend/tests/ingest/test_structured_docx_chunker.py; backend/config/app.yaml; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: Added configurable admin-section filtering for structured DOCX chunking (heading-based) with stop-after patterns to preserve procedure tables while skipping administrative sections.
+- Why: Administrative sections (Document Control, Version History, Reviewers, Scope and Purpose) added retrieval noise and diluted procedural embeddings.
+- Backward compatibility: No change when `admin_sections.enabled` is false or missing; default chunking behavior preserved.
+- Validation: Unit test covers admin heading exclusion (not executed here).
+
 ## 2026-01-08
 - Files changed: backend/core/services/retrieval_service.py; backend/docs/backend/EMBEDDING_AND_RETRIEVAL.md; backend/docs/CHANGELOG.md.
 - What changed: Text-first selection now skips image-like chunks (`chunk_type=figure` or `block_type=image`), excludes them from adaptive-threshold math (p90/t_adapt), and applies cap-per-doc/MMR on text-only candidates when building LLM context, while keeping images in retrieved metadata and honoring `max_chunks`/`max_context_chars`.

@@ -1,11 +1,46 @@
 # Backend Changelog
 
 ## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker_toc_hierarchy.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: DOCX chunking now splits by heading hierarchy (level 3 if present, else level 2), emits `Procedure`/`Section`/`Path` headers, and no longer depends on numeric prefixes in heading text for boundaries.
+- Why: SOP documents without numbering metadata were merging sibling steps, degrading retrieval.
+- Backward compatibility: Figure placeholders and figure chunking remain unchanged; fallback strategies remain intact.
+- Validation: Unit tests cover heading-driven splits and TOC hierarchy (skipped if sample DOCX missing).
+
+## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker_toc_hierarchy.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: Added TOC hierarchy chunking to split any numeric sub-heading under a procedure (any depth), emit `Path:` lines, and resolve full numeric prefixes from the TOC with synthetic fallbacks.
+- Why: DOCX headings often lack numbering metadata, so TOC-based hierarchy is needed to prevent merged SOP sub-sections.
+- Backward compatibility: Figure placeholders and figure chunk metadata remain unchanged; fallback strategies stay intact when no nested TOC exists.
+- Validation: Unit test covers SOP4 sub-section chunking with TOC hierarchy (skips if the sample DOCX is missing).
+
+## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: NUM_PREFIX_MAJOR now splits procedures into chunks for any numeric subheading under the major (any depth), preserves full raw prefixes in metadata, and emits a `Step:` line when raw and display numbers differ.
+- Why: Normalizing deep prefixes caused collisions and merged chunks, making substeps indistinguishable in retrieval.
+- Backward compatibility: Procedure headers and figure handling remain unchanged; other strategies are unaffected.
+- Validation: Unit tests cover arbitrary-depth subheadings and raw/display numbering (not executed here).
+
+## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker_helpers.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: Fixed missing `_extract_numeric_heading_prefix` helper and updated NUM_PREFIX_MAJOR chunking to emit one chunk per step heading with parent context (Procedure + parent headings), normalizing section numbers like `4.1.1` to `4.1`.
+- Why: Step-level SOP chunks were being merged, and a missing helper caused NameError in the embed CLI.
+- Backward compatibility: Figure placeholders and figure chunks remain unchanged; other strategies are unaffected.
+- Validation: Unit tests cover step-level chunking and numeric prefix extraction (not executed here).
+
+## 2026-01-09
 - Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/batch/embed_job.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
 - What changed: Applied admin-section filtering to the effective `toc_section_docx_chunker` path and passed chunker config into that path, with debug logging when enabled.
 - Why: The embedding pipeline selects `toc_section_docx_chunker` for structured DOCX, so admin filtering needed to run there to reduce noise.
 - Backward compatibility: No change when `admin_sections.enabled` is false or missing; existing chunker selection remains unchanged.
 - Validation: Unit test covers admin heading exclusion for the toc_section path (not executed here).
+
+## 2026-01-09
+- Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
+- What changed: Procedure boundaries now open on level-1 integer headings (no SOP keyword required), emit normalized `Procedure: <major>` headers, and segment per numeric target level (`DOCX_NUMERIC_TARGET_LEVEL`, default 2) with `Section: <num>` headers while preserving figure placeholders.
+- Why: Numeric SOP sections without the SOP keyword were grouped incorrectly, causing procedure boundaries and section splits to be missed.
+- Backward compatibility: Figure handling unchanged; existing SOP headings still open procedures with normalized headers.
+- Validation: Unit test covers numeric major boundaries and inline figure placeholders (not executed here).
 
 ## 2026-01-08
 - Files changed: backend/ingest/loaders/chunking/structured_docx_chunker.py; backend/tests/ingest/test_structured_docx_chunker.py; backend/config/app.yaml; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.

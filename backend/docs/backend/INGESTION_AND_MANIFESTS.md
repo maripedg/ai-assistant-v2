@@ -70,6 +70,16 @@ admin_sections:
     - "(?i)^(procedure|steps to be followed|step\\s*1)\\b"
 ```
 
+## DOCX Procedure Boundaries
+- **Boundary detection**: Procedures open on heading level 1. SOP headings like `SOP4: ...` are treated as procedures and labeled as `Procedure: 4. <title>`.
+- **Section chunking**: Within a procedure, the chunker chooses the deepest available heading level (prefer level 3, else level 2) and emits one chunk per heading at that level.
+- **Parent context**: Each section chunk begins with:
+  - `Procedure: <procedure label>`
+  - `Section: <section heading text>`
+  - `Path: <procedure> | <parent if any> | <section>`
+- **Numeric prefixes**: If a heading text already contains a numeric prefix (e.g., `4.1.2`), it is preserved as-is in the `Section:` line. If no prefix exists, the chunker does not synthesize numbers.
+- **TOC hierarchy**: When the DOCX TOC contains nested entries, the chunker can resolve full numeric prefixes for section labels, but headings still drive boundaries.
+
 ## CLI Shortcut
 ```bash
 python -m backend.batch.cli embed \

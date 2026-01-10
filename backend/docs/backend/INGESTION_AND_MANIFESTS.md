@@ -77,6 +77,7 @@ admin_sections:
   - `Procedure: <procedure label>`
   - `Section: <section heading text>`
   - `Path: <procedure> | <parent if any> | <section>`
+- **Procedure line source**: For NUM_PREFIX_MAJOR chunks, `Procedure:` uses the section heading (or `heading_path[-1]`) so the actionable step is in the header while the parent H1 remains in `Path:`.
 - **Numeric prefixes**: If a heading text already contains a numeric prefix (e.g., `4.1.2`), it is preserved as-is in the `Section:` line. If no prefix exists, the chunker does not synthesize numbers.
 - **TOC hierarchy**: When the DOCX TOC contains nested entries, the chunker can resolve full numeric prefixes for section labels, but headings still drive boundaries.
 

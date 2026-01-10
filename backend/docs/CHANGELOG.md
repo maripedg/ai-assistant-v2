@@ -1,5 +1,8 @@
 # Backend Changelog
 
+## Unreleased
+- Fix DOCX NUM_PREFIX_MAJOR procedure headers to use the section heading (or `heading_path[-1]`) so chunk text does not repeat the first H1; include procedure numbers when available.
+
 ## 2026-01-09
 - Files changed: backend/ingest/loaders/chunking/toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker.py; backend/tests/ingest/test_toc_section_docx_chunker_toc_hierarchy.py; backend/docs/backend/INGESTION_AND_MANIFESTS.md; backend/docs/CHANGELOG.md.
 - What changed: DOCX chunking now splits by heading hierarchy (level 3 if present, else level 2), emits `Procedure`/`Section`/`Path` headers, and no longer depends on numeric prefixes in heading text for boundaries.

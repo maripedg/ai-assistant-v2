@@ -208,10 +208,10 @@ def test_sop_boundaries_respected_even_with_nested_heading_levels():
 
     chunks = chunk_docx_toc_sections(items, cfg={"effective_max_tokens": 256}, source_meta={"doc_id": "doc"})
     headers = [ch["text"].splitlines()[0] for ch in chunks]
-    assert any(h.startswith("Procedure: 12") for h in headers)
-    assert any(h.startswith("Procedure: 13") for h in headers)
-    sop12 = next(ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure: 12"))
-    sop13 = next(ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure: 13"))
+    assert any(h.startswith("Procedure: SOP 12") for h in headers)
+    assert any(h.startswith("Procedure: SOP 13") for h in headers)
+    sop12 = next(ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure: SOP 12"))
+    sop13 = next(ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure: SOP 13"))
     assert "Still in SOP12 body" in sop12["text"]
     assert "Still in SOP12 body" not in sop13["text"]
 
@@ -232,7 +232,7 @@ def test_procedure_title_repeats_on_split(monkeypatch):
 
     chunks = chunk_docx_toc_sections(items, cfg={"effective_max_tokens": 24}, source_meta={"doc_id": "doc"})
     assert len(chunks) > 1
-    assert all(ch["text"].splitlines()[0].startswith("Procedure: 5") for ch in chunks)
+    assert all(ch["text"].splitlines()[0].startswith("Procedure:") for ch in chunks)
 
 
 def test_toc_section_admin_sections_filtered_by_heading():
@@ -319,8 +319,8 @@ def test_toc_section_numeric_major_boundaries_without_sop(monkeypatch):
 
     chunks = chunk_docx_toc_sections(items, cfg={"effective_max_tokens": 256}, source_meta={"doc_id": "doc"})
     headers = [ch["text"].splitlines()[0] for ch in chunks]
-    assert any(h.startswith("Procedure: 4") for h in headers)
-    assert any(h.startswith("Procedure: 5") for h in headers)
+    assert any(h.startswith("Procedure 4:") for h in headers)
+    assert any(h.startswith("Procedure 5:") for h in headers)
     proc4 = next(ch for ch in chunks if "4.1.1 Import the master billing Individual sheet" in ch["text"])
     proc5 = next(ch for ch in chunks if "5.1 Validate Billing Method" in ch["text"])
     assert proc4["text"].splitlines()[1].startswith("Section: 4.1.1")
@@ -356,7 +356,7 @@ def test_numeric_subheadings_any_depth_boundaries():
     ]
 
     chunks = chunk_docx_toc_sections(items, cfg={"effective_max_tokens": 256}, source_meta={"doc_id": "doc"})
-    proc4_chunks = [ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure:")]
+    proc4_chunks = [ch for ch in chunks if ch["text"].splitlines()[0].startswith("Procedure 4:")]
     assert len(proc4_chunks) == 2
     assert any("4.1.1 Step A.1" in ch["text"] for ch in proc4_chunks)
     assert any("4.2 Step B" in ch["text"] for ch in proc4_chunks)

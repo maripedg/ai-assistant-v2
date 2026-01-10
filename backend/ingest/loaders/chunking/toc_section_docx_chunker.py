@@ -619,6 +619,11 @@ def _split_num_prefix_major(items: List[Dict], inline_placeholders: bool) -> Lis
                 has_subheadings = True
                 break
 
+        def _procedure_header(title: str) -> str:
+            if proc_number:
+                return f"Procedure {proc_number}: {title}"
+            return f"Procedure: {title}"
+
         def _path_line(path_parts: List[str]) -> str:
             return "Path: " + " | ".join(path_parts)
 
@@ -633,7 +638,7 @@ def _split_num_prefix_major(items: List[Dict], inline_placeholders: bool) -> Lis
                         body_lines.append(_figure_placeholder(fig.get("figure_id")))
                     continue
                 body_lines.extend((it.get("text") or "").splitlines())
-            header_lines = [f"Procedure: {proc_title}", f"Section: {proc_title}", _path_line([proc_title])]
+            header_lines = [_procedure_header(proc_title), f"Section: {proc_title}", _path_line([proc_title])]
             meta = dict(proc_meta or {})
             if proc_number:
                 meta["procedure_number"] = proc_number
@@ -671,7 +676,7 @@ def _split_num_prefix_major(items: List[Dict], inline_placeholders: bool) -> Lis
                 meta["section_number"] = section_number
             if current_heading_path:
                 meta["heading_path"] = list(current_heading_path)
-            header_lines = [f"Procedure: {proc_title}", f"Section: {current_section_title}"]
+            header_lines = [_procedure_header(current_section_title), f"Section: {current_section_title}"]
             if current_path_line:
                 header_lines.append(current_path_line)
             _emit_text(header_lines + current_lines, meta, current_figures)
@@ -737,7 +742,7 @@ def _split_num_prefix_major(items: List[Dict], inline_placeholders: bool) -> Lis
         _flush_section()
 
         if current_section_title is None and (pending_lines or pending_figures):
-            header_lines = [f"Procedure: {proc_title}", f"Section: {proc_title}", _path_line([proc_title])]
+            header_lines = [_procedure_header(proc_title), f"Section: {proc_title}", _path_line([proc_title])]
             meta = dict(proc_meta or {})
             if proc_number:
                 meta["procedure_number"] = proc_number
@@ -881,14 +886,43 @@ def _build_figure_description(chunk_text: str, meta: Dict[str, object], fig: Dic
     return f"Figure {figure_id} for {proc}. Image reference: {image_ref}."
 
 
-def _ensure_procedure_prefix(text: str, meta: Dict[str, object]) -> str:
+def _select_procedure_title(meta: Dict[str, object]) -> str:
+    if not meta:
+        return ""
+    section_heading = meta.get("section_heading")
+    if isinstance(section_heading, str) and section_heading.strip():
+        return section_heading.strip()
+    heading_path = meta.get("heading_path")
+    if isinstance(heading_path, (list, tuple)) and heading_path:
+        last = heading_path[-1]
+        if isinstance(last, str) and last.strip():
+            return last.strip()
+        if last is not None:
+            return str(last).strip()
     proc_title = meta.get("procedure_title")
+    if isinstance(proc_title, str) and proc_title.strip():
+        return proc_title.strip()
+    if proc_title is not None:
+        return str(proc_title).strip()
+    return ""
+
+
+def _ensure_procedure_prefix(text: str, meta: Dict[str, object]) -> str:
+    proc_title = _select_procedure_title(meta)
     if not proc_title:
         return text
-    prefix = f"Procedure: {proc_title}"
+    proc_number = meta.get("procedure_number")
+    if proc_number:
+        prefix = f"Procedure {proc_number}: {proc_title}"
+    else:
+        prefix = f"Procedure: {proc_title}"
     lines = (text or "").splitlines()
-    first = lines[0].strip() if lines else ""
-    if first.lower().startswith("procedure:"):
+    first = ""
+    for ln in lines:
+        if ln.strip():
+            first = ln.strip()
+            break
+    if first.lower().startswith("procedure:") or re.match(r"^procedure\s+\d+\s*:", first, flags=re.IGNORECASE):
         return text
     body = "\n".join(lines).strip()
     if body:
@@ -983,6 +1017,7 @@ def chunk_docx_toc_sections(items: List[Dict], *, cfg: Dict, source_meta: Dict |
     figure_chunk_count = 0
     parent_links = 0
     images_seen = 0
+    debug_emitted = 0
     for ch in chunks:
         meta = dict(source_meta or {})
         meta.update(ch.get("metadata") or {})
@@ -1008,6 +1043,20 @@ def chunk_docx_toc_sections(items: List[Dict], *, cfg: Dict, source_meta: Dict |
             chunk_parts = [(text, {**meta, "section_strategy": strategy, "is_split": False})]
 
         for part_text, part_meta in chunk_parts:
+            if DOCX_SECTION_CHUNK_DEBUG and debug_emitted < 30:
+                heading_path = part_meta.get("heading_path")
+                hpath0 = heading_path[0] if isinstance(heading_path, (list, tuple)) and heading_path else None
+                hpath_last = heading_path[-1] if isinstance(heading_path, (list, tuple)) and heading_path else None
+                _log.info(
+                    "DOCX_SECTION_CHUNK_DEBUG proc_header selected=%s section_heading=%s heading_path_first=%s heading_path_last=%s procedure_title=%s procedure_number=%s",
+                    _select_procedure_title(part_meta),
+                    part_meta.get("section_heading"),
+                    hpath0,
+                    hpath_last,
+                    part_meta.get("procedure_title"),
+                    part_meta.get("procedure_number"),
+                )
+                debug_emitted += 1
             part_text = _ensure_procedure_prefix(part_text, part_meta)
             include_figures = inline_placeholders or figure_chunks_enabled
             part_figures = _figures_for_part(part_text, figures, inline_placeholders) if include_figures else []
